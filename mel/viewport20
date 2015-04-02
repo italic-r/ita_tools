@@ -1,0 +1,18 @@
+ActivateViewport20;
+
+setAttr "hardwareRenderingGlobals.consolidateWorld" 1;
+setAttr "hardwareRenderingGlobals.vertexAnimationCache" 2;
+hwInstancingCheckBoxOnCommand;
+setAttr "hardwareRenderingGlobals.threadDGEvaluation" 1;
+setAttr "hardwareRenderingGlobals.maxHardwareLights" 2;
+setAttr "hardwareRenderingGlobals.transparencyAlgorithm" 0;
+setAttr "hardwareRenderingGlobals.enableTextureMaxRes" 1;
+setAttr "hardwareRenderingGlobals.textureMaxResolution" 1024;
+
+setAttr "hardwareRenderingGlobals.ssaoEnable" 0;
+setAttr "hardwareRenderingGlobals.motionBlurEnable" 0;
+setAttr "hardwareRenderingGlobals.lineAAEnable" 0;
+setAttr "hardwareRenderingGlobals.multiSampleEnable" 0;
+setAttr "hardwareRenderingGlobals.gammaCorrectionEnable" 0;
+setAttr "hardwareRenderingGlobals.floatingPointRTEnable" 0;
+setAttr "hardwareRenderingGlobals.caching" 1;
