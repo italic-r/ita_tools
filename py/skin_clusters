@@ -1,0 +1,11 @@
+import maya.cmds as cmds
+
+sceneGeo = cmds.ls(g=True)
+charSC = []
+
+for skin in cmds.listConnections(sceneGeo ,type='skinCluster'):
+	if skin not in charSC:
+		charSC.append(skin)
+
+for sc in charSC:
+	cmds.setAttr((sc + '.deformUserNormals'), False)
