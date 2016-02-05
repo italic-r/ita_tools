@@ -9,6 +9,8 @@ reload(cameraStack)
 
 For help, see helpCall.helpText below,
 or open the help from the script UI.
+
+v1.2
 '''
 
 import maya.cmds as cmds
