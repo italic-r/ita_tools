@@ -1,4 +1,6 @@
 '''
+Copyright Jeffrey "Italic_" Hoover 2016
+
 This script is licensed under the Apache 2.0 license.
 See details of this license here:
 https://www.apache.org/licenses/LICENSE-2.0
@@ -10,11 +12,13 @@ reload(cameraStack)
 For help, see helpCall.helpText below,
 or open the help from the script UI.
 
+Jeffrey "Italic_" Hoover
+10 Feb 2016
 v1.2
 '''
 
 import maya.cmds as cmds
-import functools
+from functools import partial
 
 windowID = 'camSettingsWindow'
 helpID = 'camHelpWindow'
@@ -52,15 +56,15 @@ def createUI(pWindowTitle, pApplyCall):
 
     # Fourth row - buttons only
     cmds.button(label='Generate', command=genCall)
-    cmds.button(label='Apply', command=functools.partial(pApplyCall,
-                                                         camFocLenField,
-                                                         camNameField))
+    cmds.button(label='Apply', command=partial(pApplyCall,
+                                               camFocLenField,
+                                               camNameField))
     cmds.button(label='Cancel', command=destroyWindow)
 
     cmds.showWindow()
 
 
-def applyCall(pCamFocLenField, pCamNameField, *pArgs):
+def applyCall(pCamFocLenField, pCamNameField, *args):
     """Create a new camera stack at the scene origin with
     assigned custom properties."""
 
@@ -95,7 +99,7 @@ def applyCall(pCamFocLenField, pCamNameField, *pArgs):
     destroyWindow()
 
 
-def genCall(pCamNameExists, *pArgs):
+def genCall(pCamNameExists, *args):
     """Generate a camera stack based on one or more selected cameras,
     using original properties for the rest of the stack."""
     selectedCam = cmds.ls(selection=True)
@@ -152,7 +156,7 @@ def genCall(pCamNameExists, *pArgs):
         cmds.warning("Please select your camera(s) and generate again.")
 
 
-def helpCall(*pArgs):
+def helpCall(*args):
     """Open a text window with help information."""
     helpText = (
         'Camera Stack: a camera generator for handheld motion.\n'
@@ -239,7 +243,7 @@ def connectAtt(camSrc, camTarget):
     cmds.connectAttr((camSrc + lSR), (camTarget + lSR))
 
 
-def destroyWindow(*pArgs):
+def destroyWindow(*args):
     """If cameraStack windows exist, destroy them."""
     if cmds.window(windowID, exists=True):
         cmds.deleteUI(windowID)
