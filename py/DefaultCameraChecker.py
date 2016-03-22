@@ -143,7 +143,7 @@ def blast(*args):
         ResX = cmds.getAttr("defaultResolution.width")
         ResY = cmds.getAttr("defaultResolution.height")
 
-        mel.eval('deactivatePanZoom')
+        # mel.eval('deactivatePanZoom;')
         cmds.playblast(filename=("movies/" + fileNameShort[0] + ".mov"),
                        forceOverwrite=True, format="qt", compression="png",
                        offScreen=True, width=ResX, height=ResY, quality=100,
