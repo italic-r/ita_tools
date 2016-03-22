@@ -7,6 +7,10 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 To use the script, run:
 import DefaultCameraChecker
+DefaultCameraChecker.init()
+
+To reset default PB camera, run:
+import DefaultCameraChecker
 reload(DefaultCameraChecker)
 
 For help, call:
@@ -14,22 +18,25 @@ DefaultCameraChecker.helpCall()
 or open the help from the script UI.
 
 Jeffrey "Italic_" Hoover
-11 March 2016
-v1.0
+22 March 2016
+v2.0
 '''
 
 import maya.cmds as cmds
 import maya.mel as mel
 from functools import partial
 
-
 # Maya's stock camera names from hotbox marking menu
-stockCamNames = ["persp", "left", "right", "top", "bottom", "front", "back"]
+stockCamNames = ["persp", "side", "left", "top", "bottom", "front", "back"]
 windowID = 'perspPlayBlast'
 helpID = 'perspPlayBlastHelp'
 
+customPBcam = ""  # Saves camera name for future playblasts
+customPBcamTmp = "persp"  # Temp camera name save for unique playblasts
 
-def draw_warning(pWindowTitle, pbContinue):
+
+def draw_warning(pWindowTitle, pbContinue, setTempCam):
+    """Draw the warning window."""
     destroyWindow()
 
     cmds.window(windowID,
@@ -39,47 +46,87 @@ def draw_warning(pWindowTitle, pbContinue):
 
     rowcol = cmds.rowColumnLayout(numberOfColumns=1,
                                   columnWidth=[(1, 250)],
-                                  columnOffset=[(1, 'both', 3)]
+                                  columnOffset=[(1, 'both', 5)]
                                   )
 
     cmds.text(label='You are trying to playblast from a default camera!')
-
     cmds.separator(h=10, style='none')
-
     cmds.rowLayout(parent=rowcol,
-                   numberOfColumns=4,
-                   columnAttach=[(1, 'left', 3),
-                                 (2, 'both', 3),
-                                 (3, 'left', 3),
-                                 (4, 'right', 10)],
-                   columnWidth=[(1, 250/4),
-                                (2, 250/4),
-                                (3, 250/4),
-                                (4, 250/4)]
+                   numberOfColumns=3,
+                   columnAttach=[(1, 'left', 1),
+                                 (2, 'left', 1),
+                                 (3, 'both', 1)],
+                   columnWidth=[(1, 35),  # Total == 250 - margins
+                                (2, 85),
+                                (3, 112)]
                    )
     cmds.button(label='Help', command=helpCall)
-    perspToggle = cmds.checkBox(label='Persp')
-    cmds.button(label='OK!', command=partial(pbContinue, perspToggle))
-    cmds.button(label='Cancel', command=destroyWindow)
+    makeDefault = cmds.checkBox(label='Make Default')
+
+    makeDefaultMenu = cmds.optionMenu(label='', changeCommand=setTempCam)
+    cmds.menuItem(label='')
+    for camera in cmds.listRelatives(cmds.ls(type="camera"), parent=True):
+        if camera in stockCamNames:
+            if camera == "persp":
+                cmds.menuItem(label=camera)
+                continue
+            else:
+                continue
+        else:
+            cmds.menuItem(label=camera)
+
+    cmds.rowLayout(parent=rowcol,
+                   numberOfColumns=3,
+                   columnAttach=[(1, 'both', 2),
+                                 (2, 'both', 2),
+                                 (3, 'both', 2)],
+                   columnWidth=[(1, 123),
+                                (2, 50),
+                                (3, 60)]
+                   )
+    cmds.separator(h=10, style='none')
+    cmds.button(label='OK!', command=partial(pbContinue,
+                                             makeDefault,
+                                             makeDefaultMenu))
+    cmds.button(label='Continue', command=blast)
 
     cmds.showWindow()
 
 
-def pbContinue(perspToggle, *args):
+def pbContinue(makeDefault, makeDefaultMenu, *args):
+    """Confirm playblasting."""
     activepanel = cmds.getPanel(withFocus=True)
-    if cmds.checkBox(perspToggle, query=True, value=True) is True:
-        cam = cmds.modelEditor(activepanel, query=True, camera=True)
-        cmds.lookThru(activepanel, 'persp')
+    cam = cmds.modelEditor(activepanel, query=True, camera=True)
+    global customPBcam
+    global customPBcamTmp
+
+    if cmds.checkBox(makeDefault, query=True, value=True) is True:
+        customPBcam = customPBcamTmp
+        cmds.lookThru(activepanel, customPBcam)  # Global default PB cam
         blast()
         cmds.lookThru(activepanel, cam)
 
-    else:
-        blast()
+        destroyWindow()
 
-    destroyWindow()
+    else:
+        if customPBcamTmp != "":
+            cmds.lookThru(activepanel, customPBcamTmp)  # Temp PB cam
+            blast()
+            cmds.lookThru(activepanel, cam)
+
+            destroyWindow()
+        else:
+            cmds.warning("Please select a camera from the dropdown menu")
+
+
+def setTempCam(camName):
+    """Set temp default camera for pbContinue"""
+    global customPBcamTmp
+    customPBcamTmp = camName
 
 
 def blast(*args):
+    """Playblast and settings. Change to your liking."""
     fileNameLong = cmds.file(query=True, sceneName=True, shortName=True)
 
     if fileNameLong == "":
@@ -96,32 +143,35 @@ def blast(*args):
         ResX = cmds.getAttr("defaultResolution.width")
         ResY = cmds.getAttr("defaultResolution.height")
 
+        mel.eval('deactivatePanZoom')
         cmds.playblast(filename=("movies/" + fileNameShort[0] + ".mov"),
                        forceOverwrite=True, format="qt", compression="png",
                        offScreen=True, width=ResX, height=ResY, quality=100,
                        percent=100, sound=SoundNode)
+        # mel.eval('activatePanZoom')
 
     else:
-        cmds.error("No resolution data in file. Please set resolution and save.")
+        cmds.error("No resolution data in file. \
+                    Please set resolution and save.")
 
 
 def helpCall(*args):
     """Open a text window with help information."""
     helpText = (
-        'Default Camera Checker: A tool to check if you\'re playblasting\n'
-        'from a Maya default camera.\n'
+        'Default Camera Checker: A tool to check if you\'re\n'
+        'playblasting from a Maya default camera.\n'
         '\n'
         'If your active viewport does not use one of Maya\'s default \n'
-        'cameras, it will automatically playblast to file. If your camera\n'
-        'is any default camera, the tool will give options for blastable\n'
-        'cameras.\n'
-        '"OK!" initiates playblast.\n'
-        '"Cancel" simply closes these windows.\n'
-        '"Help" opens this help window.\n'
-        '"Persp" enables temporary toggling between the current\n'
-        'active camera (setting disabled) and the default persp\n'
-        'camera (setting enabled). Viewport is temporarily switched to\n'
-        'the persp camera for playblast and reverted when finished.\n'
+        'cameras, it will automatically playblast to file. If your\n'
+        'camera is any default camera, the tool will give options for\n'
+        'blastable cameras. Use the dropdown menu to select a\n'
+        'camera to blast from. Ensure you click an item or the script\n'
+        'won\'t have a camera to blast from.\n'
+        '\n'
+        'Make Default - saves the selected camera for future blasts.\n'
+        'OK! - initiates playblast with selected camera.\n'
+        'Continue - blasts with current camera, regardless of settings.\n'
+        'Help - opens this help window.\n'
         '\n'
         'by Jeffrey "Italic_" Hoover'
         )
@@ -154,6 +204,8 @@ def destroyWindow(*args):
 
 
 def check_camera_name():
+    """Get the active panel's camera.
+    Return its status compared to stockCamNames."""
     activepanel = cmds.getPanel(withFocus=True)
 
     if cmds.getPanel(typeOf=activepanel) != 'modelPanel':
@@ -161,9 +213,7 @@ def check_camera_name():
 
     elif cmds.getPanel(typeOf=activepanel) == 'modelPanel':
         cam = cmds.modelEditor(activepanel, query=True, camera=True)
-        if cam == 'persp':
-            return "persp"
-        elif cam in stockCamNames:
+        if cam in stockCamNames:
             return True
         else:
             return False
@@ -173,14 +223,28 @@ def check_camera_name():
 
 
 def init():
-    if check_camera_name() is False:
-        destroyWindow()
-        blast()
-    elif check_camera_name() == "persp":
-        draw_warning('DefaultCameraChecker', pbContinue)
-    elif check_camera_name() is True:
-        draw_warning('DefaultCameraChecker', pbContinue)
+    """Initiate camera name comparison."""
+    global customPBcam
+    global customPBcamTmp
+    customPBcamTmp = ""
+
+    if customPBcam == "":
+        if check_camera_name() is False:
+            destroyWindow()
+            blast()
+        elif check_camera_name() is True:
+            draw_warning('DefaultCameraChecker', pbContinue, setTempCam)
+        else:
+            cmds.warning("Activate a viewport and try again.")
+
     else:
-        cmds.warning("Activate a viewport and try again.")
+        activepanel = cmds.getPanel(withFocus=True)
+        cam = cmds.modelEditor(activepanel, query=True, camera=True)  # Get current viewport's camera
+        cmds.lookThru(activepanel, customPBcam)  # Global default PB cam
+        blast()
+        cmds.lookThru(activepanel, cam)  # Revert active viewport to original camera
 
 init()
+
+if __name__ == "__main__":
+    init()
