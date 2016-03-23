@@ -13,13 +13,15 @@ To reset default PB camera, run:
 import DefaultCameraChecker
 reload(DefaultCameraChecker)
 
+To disable 2D Pan & Zoom removal, comment out line 148 with a #
+
 For help, call:
 DefaultCameraChecker.helpCall()
 or open the help from the script UI.
 
 Jeffrey "Italic_" Hoover
 22 March 2016
-v2.0
+v2.1
 '''
 
 import maya.cmds as cmds
@@ -104,7 +106,7 @@ def pbContinue(makeDefault, makeDefaultMenu, *args):
         customPBcam = customPBcamTmp
         cmds.lookThru(activepanel, customPBcam)  # Global default PB cam
         blast()
-        cmds.lookThru(activepanel, cam)
+        cmds.lookThru(activepanel, cam)  # Return to original camera
 
         destroyWindow()
 
@@ -112,7 +114,7 @@ def pbContinue(makeDefault, makeDefaultMenu, *args):
         if customPBcamTmp != "":
             cmds.lookThru(activepanel, customPBcamTmp)  # Temp PB cam
             blast()
-            cmds.lookThru(activepanel, cam)
+            cmds.lookThru(activepanel, cam)  # Return to original camera
 
             destroyWindow()
         else:
@@ -139,16 +141,20 @@ def blast(*args):
     TimeRange = mel.eval('$tmpVar=$gPlayBackSlider')
     SoundNode = cmds.timeControl(TimeRange, query=True, sound=True)
 
+    # Disable 2D Pan & Zoom in current viewport
+    activepanel = cmds.getPanel(withFocus=True)
+    cam = cmds.modelEditor(activepanel, query=True, camera=True)
+    camShape = cmds.listRelatives(cam, shapes=True)
+    cmds.setAttr(camShape[0] + '.panZoomEnabled', False)
+
     if cmds.ls(renderResolutions=True):
         ResX = cmds.getAttr("defaultResolution.width")
         ResY = cmds.getAttr("defaultResolution.height")
 
-        # mel.eval('deactivatePanZoom;')
         cmds.playblast(filename=("movies/" + fileNameShort[0] + ".mov"),
                        forceOverwrite=True, format="qt", compression="png",
                        offScreen=True, width=ResX, height=ResY, quality=100,
                        percent=100, sound=SoundNode)
-        # mel.eval('activatePanZoom')
 
     else:
         cmds.error("No resolution data in file. \
@@ -239,10 +245,10 @@ def init():
 
     else:
         activepanel = cmds.getPanel(withFocus=True)
-        cam = cmds.modelEditor(activepanel, query=True, camera=True)  # Get current viewport's camera
+        cam = cmds.modelEditor(activepanel, query=True, camera=True)
         cmds.lookThru(activepanel, customPBcam)  # Global default PB cam
         blast()
-        cmds.lookThru(activepanel, cam)  # Revert active viewport to original camera
+        cmds.lookThru(activepanel, cam)  # Return to original camera
 
 init()
 
