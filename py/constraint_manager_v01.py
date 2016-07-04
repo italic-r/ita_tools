@@ -23,14 +23,9 @@ class ConstraintManager(object):
 
         self.ConstList = {}
 
-        # Constraint Options
-
-        # Replace Options
-        self.constCurrent = ""
-        self.constNewType = ""
-
         # Space Switch
         self.currentObject = ""
+        self.constNewType = ""
         self.switchKey = False
 
         # Dimensions and margins
@@ -90,7 +85,7 @@ class ConstraintManager(object):
         cmds.iconTextButton(l="Point", image="posConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Point"))
         cmds.iconTextButton(l="Orient", image="orientConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Orient"))
         cmds.iconTextButton(l="Scale", image="scaleConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Scale"))
-        cmds.iconTextButton(l="Remove", image="smallTrash.png", h=self.buttonheight01, w=colWidth, c=self.RemoveConst)
+        cmds.iconTextButton(l="Remove", image="smallTrash.png", h=self.buttonheight01, w=colWidth, c=partial(self.RemoveConst, arg="FromScene"), dcc=partial(self.RemoveConst, arg="FromList"))
 
         # Constraint Options
         Frame1Layout = self.name + "Layout1"
@@ -201,6 +196,10 @@ class ConstraintManager(object):
         if cmds.textScrollList(self.itemList, q=True, sii=1):
             cmds.textScrollList(self.itemList, e=True, sii=1)
 
+    def destroyUI(self):
+        if cmds.window(self.window, exists=True):
+            cmds.deleteUI(self.window)
+
     def updateUI(self):
         # fill replace and switch options
         #
@@ -236,7 +235,7 @@ class ConstraintManager(object):
             except:
                 pass
 
-        for key in list(self.ConstList):  # for key in list(d): if P(key): del d[key]
+        for key in list(self.ConstList):
             if key not in iter(ConstListTemp):
                 del self.ConstList[key]
             else:
@@ -250,12 +249,10 @@ class ConstraintManager(object):
             listEntry = "%s  |  %s" % (objName, constType)
             cmds.textScrollList(textlist, e=True, append=listEntry)
 
-        if activeObj != "":
-            cmds.textScrollList(textlist, e=True, si=activeObj)
-        else:
-            pass
+        cmds.textScrollList(textlist, e=True, si=activeObj)
 
         self.ListSize()
+        self.updateUI()
 
     def ListSize(self):
         amount = cmds.textScrollList(self.itemList, q=True, ni=True)
@@ -377,18 +374,40 @@ class ConstraintManager(object):
             self.ListUpdate(newEntry)
             self.updateUI()
 
-    def RemoveConst(self):
+    def RemoveConst(self, arg=None):
         textlist = self.itemList
-        selectedItem = cmds.textScrollList(textlist, q=True, si=True)
+        listItem = cmds.textScrollList(textlist, q=True, si=True)
+        self.ListUpdate(listItem)
+
+        activeObj = listItem[0].split("  |  ")[0]
+        activeObjU = cmds.ls(activeObj, uuid=True)[0]
+        constType = listItem[0].split("  |  ")[1]
+        constUUID = self.ConstList.get((activeObjU, constType))[0]
+
+        if arg == "FromScene":
+            print("Removing %s from scene" % (listItem))
+            cmds.delete(cmds.ls(constUUID)[0])
+
+        elif arg == "FromList":
+            print("Removing %s from list only" % (listItem))
+            cmds.textScrollList(textlist, e=True, ri=listItem)
+
+        del self.ConstList[(activeObjU, constType)]
+
+        self.ListUpdate("")
+        self.updateUI()
 
     def RetrieveObj(self):
         self.ConstList
 
     def ConstSpaceSwitch(*args):
-        print "Switch"
+        print "Populating Switch Menu"
 
     def switchConst(self, arg=None):
-        print "Running switchConst()"
+        if arg == "OFF":
+            print("Turning constraint off")
+        else:
+            print "Running switchConst()"
 
     def checkPkl(self, arg=None):
         # Existing pickle file
@@ -420,10 +439,6 @@ class ConstraintManager(object):
     def writePkl(self):
         with open(self.constraintpkl, 'w+b') as f:
             pickle.dump(self.ConstList, f, protocol=2)
-
-    def destroyUI(self):
-        if cmds.window(self.window, exists=True):
-            cmds.deleteUI(self.window)
 
 
 CMan = ConstraintManager()
