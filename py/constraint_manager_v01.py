@@ -7,6 +7,7 @@
 import os
 import time
 import pickle
+from collections import namedtuple
 import maya.cmds as cmds
 from functools import partial
 
@@ -377,12 +378,7 @@ class ConstraintManager(object):
     def RemoveConst(self, arg=None):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-        # self.ListUpdate(listItem)
-
-        activeObj = listItem[0].split("  |  ")[0]
-        activeObjU = cmds.ls(activeObj, uuid=True)[0]
-        constType = listItem[0].split("  |  ")[1]
-        constUUID = self.ConstList.get((activeObjU, constType))[0]
+        activeObj, activeObjU, constType, constUUID = self.RetrieveObj()
 
         if arg == "FromScene":
             print("Removing %s from scene" % (listItem))
@@ -396,7 +392,19 @@ class ConstraintManager(object):
         self.ListUpdate(None)
 
     def RetrieveObj(self):
-        self.ConstList
+        textlist = self.itemList
+        listItem = cmds.textScrollList(textlist, q=True, si=True)
+
+        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID"])
+
+        activeObj = listItem[0].split("  |  ")[0]
+        activeObjU = cmds.ls(activeObj, uuid=True)[0]
+        constType = listItem[0].split("  |  ")[1]
+        constUUID = self.ConstList.get((activeObjU, constType))[0]
+
+        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID)
+
+        return RO
 
     def ConstSpaceSwitch(*args):
         print "Populating Switch Menu"
