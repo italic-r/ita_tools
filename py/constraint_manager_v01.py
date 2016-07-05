@@ -377,7 +377,7 @@ class ConstraintManager(object):
     def RemoveConst(self, arg=None):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-        self.ListUpdate(listItem)
+        # self.ListUpdate(listItem)
 
         activeObj = listItem[0].split("  |  ")[0]
         activeObjU = cmds.ls(activeObj, uuid=True)[0]
@@ -390,12 +390,10 @@ class ConstraintManager(object):
 
         elif arg == "FromList":
             print("Removing %s from list only" % (listItem))
-            cmds.textScrollList(textlist, e=True, ri=listItem)
 
         del self.ConstList[(activeObjU, constType)]
 
-        self.ListUpdate("")
-        self.updateUI()
+        self.ListUpdate(None)
 
     def RetrieveObj(self):
         self.ConstList
@@ -415,12 +413,12 @@ class ConstraintManager(object):
             self.projDir = cmds.workspace(query=True, rd=True)
             self.workFile = cmds.file(query=True, sceneName=True, shortName=True).split('.')
             fileStr = '.'.join(self.workFile[:-1])
+            self.constraintpkl = os.path.join(self.projDir, 'data', 'ConMan_%s.pkl' % (fileStr))
         # Temp pickle file
         else:
             self.projDir = cmds.internalVar(utd=True)
             fileStr = self.fileTime
-
-        self.constraintpkl = os.path.join(self.projDir, 'data', 'ConMan_%s.pkl' % (fileStr))
+            self.constraintpkl = os.path.join(self.projDir, 'ConMan_%s.pkl' % (fileStr))
 
         if arg == "Read":
             if os.path.exists(self.constraintpkl):
