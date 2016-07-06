@@ -422,11 +422,18 @@ class ConstraintManager(object):
         listItem = cmds.textScrollList(textlist, q=True, si=True)
         RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "selObjs"])
 
-        activeObj = listItem[0].split("  |  ")[0]
-        activeObjU = cmds.ls(activeObj, uuid=True)[0]
-        constType = listItem[0].split("  |  ")[1]
-        constUUID = self.ConstList.get((activeObjU, constType))[0]
-        selObjs = self.ConstList.get((activeObjU, constType))[1]
+        try:
+            activeObj = listItem[0].split("  |  ")[0]
+            activeObjU = cmds.ls(activeObj, uuid=True)[0]
+            constType = listItem[0].split("  |  ")[1]
+            constUUID = self.ConstList.get((activeObjU, constType))[0]
+            selObjs = self.ConstList.get((activeObjU, constType))[1]
+        except:
+            activeObj = ""
+            activeObjU = ""
+            constType = ""
+            constUUID = ""
+            selObjs = []
 
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, selObjs)
         return RO
