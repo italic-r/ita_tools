@@ -155,11 +155,6 @@ class ConstraintManager(object):
             cal=((1, 'left'), (2, 'left')), cs=(2, 10),
             cw=((1, self.rowwidth / 2), (2, self.rowwidth / 2))
         )
-        cmds.text("Object:", w=self.rowwidth / 2)
-        cmds.text("Type:", w=self.rowwidth / 2)
-        #
-        cmds.separator(parent=Frame2Col, style=self.separatorstyle, height=self.separatorheight, width=self.rowwidth + 10)
-        #
         self.SwitchList = cmds.optionMenu(self.name + "SpaceSwitch", parent=Frame2Col, w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor)
         #
         cmds.rowColumnLayout(
