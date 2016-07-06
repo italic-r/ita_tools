@@ -396,19 +396,24 @@ class ConstraintManager(object):
             cmds.menuItem(p=self.SwitchList, label=objName)
 
     def switchConst(self, arg=None):
-        # self.SwitchList
-        # self.SwitchMaintainVisTrans
-        # self.SwitchKey
-        # activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        # cmds.attributeInfo()
+        # cmds.attributeQuery()
         # cmds.getAttr()
         # cmds.setAttr()
+
+        ConstList = self.ConstList
+        SwitchList = self.SwitchList
+        SwitchMaintainVisTrans = self.SwitchMaintainVisTrans
+        SwitchKey = self.SwitchKey
 
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
         if arg == "OFF":
             print("Turning constraint off")
+            print("Constraint turned off")
         else:
-            print "Running switchConst()"
+            print("Running switchConst()")
+            print("switchConst() finished")
 
         self.updateUI()
 
