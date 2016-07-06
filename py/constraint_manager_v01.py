@@ -203,7 +203,6 @@ class ConstraintManager(object):
 
     def updateUI(self):
         self.updateUISize()
-        # write file last
         self.checkPkl(arg="Write")
 
     def updateUISize(self):
@@ -405,14 +404,13 @@ class ConstraintManager(object):
         return RO
 
     def SpaceSwitchMenu(self, *args):
-        print "Populating Switch Menu"
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
-        menuList = cmds.optionMenu(self.SwitchList, q=True)
+        menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
         if menuList:
-            cmds.deleteUI(self.SwitchList, menuItem=True)
+            cmds.deleteUI(menuList)
         for obj in selObjs:
             objName = cmds.ls(obj)[0]
-            cmds.menuItem(self.SwitchList, label=objName)
+            cmds.menuItem(p=self.SwitchList, label=objName)
 
     def switchConst(self, arg=None):
         if arg == "OFF":
