@@ -405,8 +405,8 @@ class ConstraintManager(object):
         # self.SwitchMaintainVisTrans
         # self.SwitchKey
         # activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
-        # cmds.setAttr()
         # cmds.getAttr()
+        # cmds.setAttr()
 
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
@@ -432,17 +432,22 @@ class ConstraintManager(object):
         return RO
 
     def checkPkl(self, arg=None):
-        # Existing pickle file
+        # Initial temp values
+        self.projDir = cmds.internalVar(utd=True)
+        fileStr = self.fileTime
+        self.constraintpkl = os.path.join(self.projDir, 'ConMan_%s.pkl' % (fileStr))
+
+        # Saved scene pickle
         if cmds.file(query=True, sceneName=True, shortName=True) != "":
+            # Existing temp pickle file
+            if os.path.exists(self.constraintpkl):
+                cmds.warning("Temporary pickle found. Saving new pickle into project's data directory.")
+
+            # New pickle
             self.projDir = cmds.workspace(query=True, rd=True)
             self.workFile = cmds.file(query=True, sceneName=True, shortName=True).split('.')
             fileStr = '.'.join(self.workFile[:-1])
             self.constraintpkl = os.path.join(self.projDir, 'data', 'ConMan_%s.pkl' % (fileStr))
-        # Temp pickle file
-        else:
-            self.projDir = cmds.internalVar(utd=True)
-            fileStr = self.fileTime
-            self.constraintpkl = os.path.join(self.projDir, 'ConMan_%s.pkl' % (fileStr))
 
         if arg == "Read":
             if os.path.exists(self.constraintpkl):
