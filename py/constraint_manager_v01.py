@@ -4,11 +4,11 @@
 """
 # -*- coding: utf-8 -*-
 
+import maya.cmds as cmds
 import os
 import time
 import pickle
 from collections import namedtuple
-import maya.cmds as cmds
 from functools import partial
 
 
@@ -23,11 +23,6 @@ class ConstraintManager(object):
         # Initial property states
 
         self.ConstList = {}
-
-        # Space Switch
-        self.currentObject = ""
-        self.constNewType = ""
-        self.switchKey = False
 
         # Dimensions and margins
         self.scrollBarThickness = 10
@@ -76,7 +71,7 @@ class ConstraintManager(object):
         self.itemList = cmds.textScrollList(
             self.name + 'ScrollList', parent=ScrollCol,
             h=self.textScrollLayoutLineHeightMin, w=self.buttonwidth,
-            bgc=(0.4, 0.4, 0.4), ams=0, sc=self.SpaceSwitchMenu
+            bgc=(0.4, 0.4, 0.4), ams=0, sc=self.updateUI
         )
         #
         numButtons = 5
@@ -191,17 +186,25 @@ class ConstraintManager(object):
 
         # Recall existing data
         self.checkPkl(arg="Read")
+        self.ListUpdate(None)
         cmds.showWindow(self.window)
-        self.updateUI()
 
         if cmds.textScrollList(self.itemList, q=True, ni=True) > 0:
             cmds.textScrollList(self.itemList, e=True, sii=1)
+
+        self.updateUI()
 
     def destroyUI(self):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
 
     def updateUI(self):
+        textlist = self.itemList
+        activeObj = cmds.textScrollList(textlist, q=True, si=True)
+
+        self.SpaceSwitchMenu()
+        self.ListUpdate(activeObj)
+        self.ListSize()
         self.updateUISize()
         self.checkPkl(arg="Write")
 
@@ -217,11 +220,11 @@ class ConstraintManager(object):
 
     def ListUpdate(self, activeObj):
         textlist = self.itemList
-        cmds.textScrollList(textlist, e=True, ra=True)
-
         ListKeys = iter(self.ConstList)
         ConstListOrdered = []
         ConstListTemp = {}
+
+        cmds.textScrollList(textlist, e=True, ra=True)
 
         for key in ListKeys:
             try:
@@ -250,7 +253,6 @@ class ConstraintManager(object):
         cmds.textScrollList(textlist, e=True, si=activeObj)
 
         self.ListSize()
-        self.updateUI()
 
     def ListSize(self):
         amount = cmds.textScrollList(self.itemList, q=True, ni=True)
@@ -387,8 +389,35 @@ class ConstraintManager(object):
         del self.ConstList[(activeObjU, constType)]
 
         self.ListUpdate(None)
+        self.updateUI()
 
-    def RetrieveObj(self, *args):
+    def SpaceSwitchMenu(self):
+        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
+        if menuList:
+            cmds.deleteUI(menuList)
+        for obj in selObjs:
+            objName = cmds.ls(obj)[0]
+            cmds.menuItem(p=self.SwitchList, label=objName)
+
+    def switchConst(self, arg=None):
+        # self.SwitchList
+        # self.SwitchMaintainVisTrans
+        # self.SwitchKey
+        # activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        # cmds.setAttr()
+        # cmds.getAttr()
+
+        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+
+        if arg == "OFF":
+            print("Turning constraint off")
+        else:
+            print "Running switchConst()"
+
+        self.updateUI()
+
+    def RetrieveObj(self):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
         RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "selObjs"])
@@ -400,23 +429,7 @@ class ConstraintManager(object):
         selObjs = self.ConstList.get((activeObjU, constType))[1]
 
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, selObjs)
-
         return RO
-
-    def SpaceSwitchMenu(self, *args):
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
-        menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
-        if menuList:
-            cmds.deleteUI(menuList)
-        for obj in selObjs:
-            objName = cmds.ls(obj)[0]
-            cmds.menuItem(p=self.SwitchList, label=objName)
-
-    def switchConst(self, arg=None):
-        if arg == "OFF":
-            print("Turning constraint off")
-        else:
-            print "Running switchConst()"
 
     def checkPkl(self, arg=None):
         # Existing pickle file
@@ -443,7 +456,6 @@ class ConstraintManager(object):
     def readPkl(self):
         with open(self.constraintpkl, 'rb') as f:
             self.ConstList = pickle.load(f)
-        self.ListUpdate("")
 
     def writePkl(self):
         with open(self.constraintpkl, 'w+b') as f:
