@@ -81,7 +81,7 @@ class ConstraintManager(object):
         cmds.iconTextButton(l="Point", image="posConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Point"))
         cmds.iconTextButton(l="Orient", image="orientConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Orient"))
         cmds.iconTextButton(l="Scale", image="scaleConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Scale"))
-        cmds.iconTextButton(l="Remove", image="smallTrash.png", h=self.buttonheight01, w=colWidth, c=partial(self.RemoveConst, arg="FromScene"), dcc=partial(self.RemoveConst, arg="FromList"))
+        cmds.iconTextButton(l="Remove", image="smallTrash.png", h=self.buttonheight01, w=colWidth, c=partial(self.RemoveConst, arg="FromList"), dcc=partial(self.RemoveConst, arg="FromScene"))
 
         # Constraint Options
         Frame1Layout = self.name + "Layout1"
@@ -158,14 +158,20 @@ class ConstraintManager(object):
         self.SwitchList = cmds.optionMenu(self.name + "SpaceSwitch", parent=Frame2Col, w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor)
         #
         cmds.rowColumnLayout(
-            parent=Frame2Col, nc=2, h=25,
-            cal=((1, 'left'), (2, 'left')), cs=(2, 10),
-            cw=((1, self.rowwidth / 2), (2, self.rowwidth / 2))
+            parent=Frame2Col, nc=3, h=25,
+            cal=((1, 'left'), (2, 'left'), (3, 'left')), cs=((2, 5), (3, 5)),
+            cw=((1, self.rowwidth / 3), (2, self.rowwidth / 3), (3, self.rowwidth / 3))
         )
         cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="OFF", style='iconAndTextCentered', al='center', h=25,
             c=partial(
                 self.switchConst, arg="OFF"
+            )
+        )
+        cmds.iconTextButton(
+            ebg=True, bgc=(0.35, 0.35, 0.35), l="ALL", style='iconAndTextCentered', al='center', h=25,
+            c=partial(
+                self.switchConst, arg="ALL"
             )
         )
         cmds.iconTextButton(
@@ -396,21 +402,44 @@ class ConstraintManager(object):
             cmds.menuItem(p=self.SwitchList, label=objName)
 
     def switchConst(self, arg=None):
-        # cmds.attributeInfo()
-        # cmds.attributeQuery()
+        # self.SwitchList
         # cmds.getAttr()
         # cmds.setAttr()
 
-        ConstList = self.ConstList
-        SwitchList = self.SwitchList
-        SwitchMaintainVisTrans = self.SwitchMaintainVisTrans
-        SwitchKey = self.SwitchKey
-
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
+        constName = cmds.ls(constUUID)
+
         if arg == "OFF":
-            print("Turning constraint off")
-            print("Constraint turned off")
+            ws = cmds.xform(activeObj, q=True, matrix=True, worldSpace=True)
+
+            for obj in selObjs:
+                selObjsInd = selObjs.index(obj)
+                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName[0], selObjsInd), sourceFromDestination=True)
+                # currentVal = cmds.getAttr(weightAttr)
+                # If enabled, key previous frame before removing constraint weights
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    currentTime = cmds.currentTime(q=True)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                    cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                cmds.setAttr(weightAttr, 0.0)
+
+            # Maintain visual transforms
+            if cmds.checkBox(self.SwitchMaintainVisTrans, q=True):
+                cmds.xform(activeObj, matrix=ws, worldSpace=True)
+
+        elif arg == "ALL":
+            for obj in selObjs:
+                selObjsInd = selObjs.index(obj)
+                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName[0], selObjsInd), sourceFromDestination=True)
+                # currentVal = cmds.getAttr(weightAttr)
+                # If enabled, key previous frame before removing constraint weights
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    currentTime = cmds.currentTime(q=True)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                    cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                cmds.setAttr(weightAttr, 1.0)
+
         else:
             print("Running switchConst()")
             print("switchConst() finished")
