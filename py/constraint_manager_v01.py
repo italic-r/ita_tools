@@ -76,7 +76,7 @@ class ConstraintManager(object):
         self.itemList = cmds.textScrollList(
             self.name + 'ScrollList', parent=ScrollCol,
             h=self.textScrollLayoutLineHeightMin, w=self.buttonwidth,
-            bgc=(0.4, 0.4, 0.4), ams=0, sc=self.updateUI
+            bgc=(0.4, 0.4, 0.4), ams=0, sc=self.SpaceSwitchMenu
         )
         #
         numButtons = 5
@@ -165,7 +165,7 @@ class ConstraintManager(object):
         #
         cmds.separator(parent=Frame2Col, style=self.separatorstyle, height=self.separatorheight, width=self.rowwidth + 10)
         #
-        self.SwitchList = cmds.optionMenu(self.name + "SpaceSwitch", parent=Frame2Col, w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor, bsp=self.ConstSpaceSwitch)
+        self.SwitchList = cmds.optionMenu(self.name + "SpaceSwitch", parent=Frame2Col, w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor)
         #
         cmds.rowColumnLayout(
             parent=Frame2Col, nc=2, h=25,
@@ -194,7 +194,7 @@ class ConstraintManager(object):
         cmds.showWindow(self.window)
         self.updateUI()
 
-        if cmds.textScrollList(self.itemList, q=True, sii=1):
+        if cmds.textScrollList(self.itemList, q=True, ni=True) > 0:
             cmds.textScrollList(self.itemList, e=True, sii=1)
 
     def destroyUI(self):
@@ -202,8 +202,6 @@ class ConstraintManager(object):
             cmds.deleteUI(self.window)
 
     def updateUI(self):
-        # fill replace and switch options
-        #
         self.updateUISize()
         # write file last
         self.checkPkl(arg="Write")
@@ -378,7 +376,7 @@ class ConstraintManager(object):
     def RemoveConst(self, arg=None):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-        activeObj, activeObjU, constType, constUUID = self.RetrieveObj()
+        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
         if arg == "FromScene":
             print("Removing %s from scene" % (listItem))
@@ -391,23 +389,30 @@ class ConstraintManager(object):
 
         self.ListUpdate(None)
 
-    def RetrieveObj(self):
+    def RetrieveObj(self, *args):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-
-        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID"])
+        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "selObjs"])
 
         activeObj = listItem[0].split("  |  ")[0]
         activeObjU = cmds.ls(activeObj, uuid=True)[0]
         constType = listItem[0].split("  |  ")[1]
         constUUID = self.ConstList.get((activeObjU, constType))[0]
+        selObjs = self.ConstList.get((activeObjU, constType))[1]
 
-        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID)
+        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, selObjs)
 
         return RO
 
-    def ConstSpaceSwitch(*args):
+    def SpaceSwitchMenu(self, *args):
         print "Populating Switch Menu"
+        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        menuList = cmds.optionMenu(self.SwitchList, q=True)
+        if menuList:
+            cmds.deleteUI(self.SwitchList, menuItem=True)
+        for obj in selObjs:
+            objName = cmds.ls(obj)[0]
+            cmds.menuItem(self.SwitchList, label=objName)
 
     def switchConst(self, arg=None):
         if arg == "OFF":
