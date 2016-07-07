@@ -416,27 +416,25 @@ class ConstraintManager(object):
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
                 weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName[0], selObjsInd), sourceFromDestination=True)
-                # currentVal = cmds.getAttr(weightAttr)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
                     currentTime = cmds.currentTime(q=True)
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=1.0)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
                 cmds.setAttr(weightAttr, 0.0)
 
             # Maintain visual transforms
-            if cmds.checkBox(self.SwitchMaintainVisTrans, q=True):
+            if cmds.checkBox(self.SwitchMaintainVisTrans, q=True, value=True):
                 cmds.xform(activeObj, matrix=ws, worldSpace=True)
 
         elif arg == "ALL":
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
                 weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName[0], selObjsInd), sourceFromDestination=True)
-                # currentVal = cmds.getAttr(weightAttr)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
                     currentTime = cmds.currentTime(q=True)
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=0.0)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
                 cmds.setAttr(weightAttr, 1.0)
 
