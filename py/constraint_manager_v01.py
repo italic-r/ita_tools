@@ -1,45 +1,45 @@
 """
-Constraint Manager: create and track constraints for rigging and animation.
+    Constraint Manager: create and track constraints for rigging and animation.
 
-WARNING: THIS SCRIPT IS PRE-ALPHA. DO NOT USE FOR PRODUCTION YET.
+    WARNING: THIS SCRIPT IS PRE-ALPHA. DO NOT USE FOR PRODUCTION YET.
 
-Create common constraints (parent, point, orient, scale) using the buttons
-above the standard constraint options. Constraints will use data for their
-respective type (ie parent constraints do not use offset values, but allows
-maintaining offset, takes translate and rotate values, but not scale, etc.),
-but no more. Remove a constraint from the list only by single-clicking the
-trash icon; remove a constraint from the scene and list by double-clicking.
+    Create common constraints (parent, point, orient, scale) using the buttons
+    above the standard constraint options. Constraints will use data for their
+    respective type (ie parent constraints do not use offset values, but allows
+    maintaining offset, takes translate and rotate values, but not scale, etc.),
+    but no more. Remove a constraint from the list only by single-clicking the
+    trash icon; remove a constraint from the scene and list by double-clicking.
 
-Switch constraint target weights in the lower section of the window. Select
-an item in the list at the top, then from the dropdown menu (each an object
-used to constrain the active object) and press "Switch" to turn weight on
-for that object. Press "OFF" to turn off all weight targets and blend parent
-attributes to allow free animation of the constrained object. Press "ALL"
-to turn on weights for all targets (the state constraints are created in).
+    Switch constraint target weights in the lower section of the window. Select
+    an item in the list at the top, then from the dropdown menu (each an object
+    used to constrain the active object) and press "Switch" to turn weight on
+    for that object. Press "OFF" to turn off all weight targets and blend parent
+    attributes to allow free animation of the constrained object. Press "ALL"
+    to turn on weights for all targets (the state constraints are created in).
 
-Constraints created through this tool are stored in the item list at the
-top of the window. The tool stores the constraint type, constraint node
-UUID, constrained object UUID, and constraining object UUID(s) in a binary
-pickle file in the current project's data directory ($PROJECT/data/ConMan_%.pkl)
-for retrieval after reopening the scene. Because Maya objects maintain their
-UUIDs across restarts, this data storage is ideal for long-term projects,
-like rigging and animation.
+    Constraints created through this tool are stored in the item list at the
+    top of the window. The tool stores the constraint type, constraint node
+    UUID, constrained object UUID, and constraining object UUID(s) in a binary
+    pickle file in the current project's data directory ($PROJECT/data/ConMan_%.pkl)
+    for retrieval after reopening the scene. Because Maya objects maintain their
+    UUIDs across restarts, this data storage is ideal for long-term projects,
+    like rigging and animation.
 
-Limitations and known issues:
-Undo is not well-supported. Remove constraints with the removal button and recreate the constraint.
-Can only store one constraint of a particular type at a time (one parent, one point, etc.) - however it can store many constraints of different types.
-Does not support switching weights to individual targets yet. Switch button has been disabled until ready.
-UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
-Switch keying sets two keyframes (opposite value on previous frame and indicated value on current frame).
-Maintain visual transforms option has not been fully tested. It will only work when removing weight. It may support keying offset in the future.
-Rerunning the script results in recreation of the window (data is not lost). This is for testing during development.
+    Limitations and known issues:
+    Undo is not well-supported. Remove constraints with the removal button and recreate the constraint.
+    Can only store one constraint of a particular type at a time (one parent, one point, etc.) - however it can store many constraints of different types.
+    Does not support switching weights to individual targets yet. Switch button has been disabled until ready.
+    UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
+    Switch keying sets two keyframes (opposite value on previous frame and indicated value on current frame).
+    Maintain visual transforms option has not been fully tested. It will only work when removing weight. It may support keying offset in the future.
+    Rerunning the script results in recreation of the window (data is not lost). This is for testing during development.
 
-(c) Jeffrey "italic" Hoover
-italic DOT rendezvous AT gmail DOT com
+    (c) Jeffrey "italic" Hoover
+    italic DOT rendezvous AT gmail DOT com
 
-Licensed under the Apache 2.0 license. This script can be used for non-commercial
-and commercial projects free of charge. For more information, visit:
-https://www.apache.org/licenses/LICENSE-2.0
+    Licensed under the Apache 2.0 license. This script can be used for non-commercial
+    and commercial projects free of charge. For more information, visit:
+    https://www.apache.org/licenses/LICENSE-2.0
 """
 # -*- coding: utf-8 -*-
 
@@ -213,12 +213,12 @@ class ConstraintManager(object):
                 self.switchConst, arg="ALL"
             )
         )
-        # cmds.iconTextButton(
-        #     ebg=True, bgc=(0.35, 0.35, 0.35), l="Switch", style='iconAndTextCentered', al='center', h=25,
-        #     c=partial(
-        #         self.switchConst, arg=cmds.optionMenu(self.SwitchList, query=True, value=True)
-        #     )
-        # )
+        cmds.iconTextButton(
+            ebg=True, bgc=(0.35, 0.35, 0.35), l="Switch", style='iconAndTextCentered', al='center', h=25,
+            c=partial(
+                self.switchConst, arg=cmds.optionMenu(self.SwitchList, query=True, value=True)
+            )
+        )
         #
         self.SwitchMaintainVisTrans = cmds.checkBox(parent=Frame2Col, l="Maintain Visual Transforms", al='left', value=True, h=20)
         #
@@ -419,16 +419,15 @@ class ConstraintManager(object):
         listItem = cmds.textScrollList(textlist, q=True, si=True)
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
-        if arg == "FromScene":
+        if arg == "FromList":
+            print("Removing %s from list only" % (listItem))
+
+        elif arg == "FromScene":
             print("Removing %s from scene" % (listItem))
             cmds.delete(cmds.ls(constUUID)[0])
 
-        elif arg == "FromList":
-            print("Removing %s from list only" % (listItem))
-
         del self.ConstList[(activeObjU, constType)]
 
-        self.ListUpdate(None)
         self.updateUI()
 
     def SpaceSwitchMenu(self):
