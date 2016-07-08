@@ -92,7 +92,7 @@ class ConstraintManager(object):
             self.showUI()
 
     def showUI(self):
-        self.window = cmds.window(self.window, title="Constraint Manager", ret=True, rtf=1, s=1)
+        self.window = cmds.window(self.window, title="Constraint Manager", ret=True, rtf=True, s=False)
 
         # Main window column
         cmds.scrollLayout(
@@ -264,6 +264,8 @@ class ConstraintManager(object):
         ConstListOrdered = []
         ConstListTemp = {}
 
+        listIndex = cmds.textScrollList(textlist, q=True, sii=True)
+
         cmds.textScrollList(textlist, e=True, ra=True)
 
         for key in ListKeys:
@@ -290,7 +292,12 @@ class ConstraintManager(object):
             listEntry = "%s  |  %s" % (objName, constType)
             cmds.textScrollList(textlist, e=True, append=listEntry)
 
+        # if activeObj in cmds.textScrollList(textlist, q=True, ai=True):
         cmds.textScrollList(textlist, e=True, si=activeObj)
+        # elif cmds.textScrollList(textlist, q=True, ni=True) >= listIndex[0][0]:
+        #     cmds.textScrollList(textlist, e=True, sii=listIndex)
+        # else:
+        #     cmds.textScrollList(textlist, e=True, sii=None)
 
         self.ListSize()
 
