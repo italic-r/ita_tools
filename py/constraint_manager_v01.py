@@ -1,7 +1,7 @@
 """
     Constraint Manager: create and track constraints for rigging and animation.
 
-    WARNING: THIS SCRIPT IS PRE-ALPHA. DO NOT USE FOR PRODUCTION YET.
+    WARNING: THIS SCRIPT IS PRE-ALPHA. NOT FOR PRODUCTION USE.
 
     Create common constraints (parent, point, orient, scale) using the buttons
     above the standard constraint options. Constraints will use data for their
@@ -26,13 +26,11 @@
     like rigging and animation.
 
     Limitations and known issues:
-    Undo is not well-supported. Remove constraints with the removal button and recreate the constraint.
+    Undo is not well-supported. Remove constraints with the removal button or delete from the scene and recreate the constraint.
     Can only store one constraint of a particular type at a time (one parent, one point, etc.) - however it can store many constraints of different types.
-    Does not support switching weights to individual targets yet. Switch button has been disabled until ready.
     UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
-    Switch keying sets two keyframes (opposite value on previous frame and indicated value on current frame).
-    Maintain visual transforms option has not been fully tested. It will only work when removing weight. It may support keying offset in the future.
-    Rerunning the script results in recreation of the window (data is not lost). This is for testing during development.
+    Maintain Visual Transforms: Currently supports keying offsets in the parent constraint node.
+    Key: Sets two keyframes (opposite value on previous frame and indicated value on current frame) - Should take old value (keyed or unkeyed) as key value for pre-switch
 
     (c) Jeffrey "italic" Hoover
     italic DOT rendezvous AT gmail DOT com
@@ -216,21 +214,21 @@ class ConstraintManager(object):
             cal=((1, 'left'), (2, 'left'), (3, 'left')), cs=((2, 5), (3, 5)),
             cw=((1, self.rowwidth / 3), (2, self.rowwidth / 3), (3, self.rowwidth / 3))
         )
-        cmds.iconTextButton(
+        self.swOff = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="OFF", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchOff,
             c=partial(
                 self.switchConst, arg="OFF"
             )
         )
-        cmds.iconTextButton(
+        self.swOn = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="ALL", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchAll,
             c=partial(
                 self.switchConst, arg="ALL"
             )
         )
-        cmds.iconTextButton(
+        self.swObj = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="Switch", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchObj,
             c=partial(
@@ -314,13 +312,29 @@ class ConstraintManager(object):
             pass
         elif cmds.textScrollList(textlist, q=True, ni=True) == 0:
             pass
-        elif activeObj[0] in cmds.textScrollList(textlist, q=True, ai=True):
+        elif activeObj in cmds.textScrollList(textlist, q=True, ai=True):
             cmds.textScrollList(textlist, e=True, si=activeObj)
         elif cmds.textScrollList(textlist, q=True, ni=True) >= listIndex[0]:
             cmds.textScrollList(textlist, e=True, sii=listIndex)
         else:
             listLen = cmds.textScrollList(textlist, q=True, ni=True)
             cmds.textScrollList(textlist, e=True, sii=listLen)
+
+        # Disable switch controls if list is empty
+        if cmds.textScrollList(textlist, q=True, ni=True) == 0:
+            cmds.disable(self.SwitchList, v=True)
+            cmds.disable(self.swOff, v=True)
+            cmds.disable(self.swOn, v=True)
+            cmds.disable(self.swObj, v=True)
+            cmds.disable(self.SwitchMaintainVisTrans, v=True)
+            cmds.disable(self.SwitchKey, v=True)
+        else:
+            cmds.disable(self.SwitchList, v=False)
+            cmds.disable(self.swOff, v=False)
+            cmds.disable(self.swOn, v=False)
+            cmds.disable(self.swObj, v=False)
+            cmds.disable(self.SwitchMaintainVisTrans, v=False)
+            cmds.disable(self.SwitchKey, v=False)
 
         self.ListSize()
 
@@ -364,25 +378,27 @@ class ConstraintManager(object):
             activeUUID = selectionU[-1]
 
             # Get constraint creation options
-            MaintainOffset = cmds.checkBox(self.createMaintainOffset, query=True, value=True)
-            OffX = cmds.floatField(self.offsetX, query=True, value=True)
-            OffY = cmds.floatField(self.offsetY, query=True, value=True)
-            OffZ = cmds.floatField(self.offsetZ, query=True, value=True)
+            ConstWeight = cmds.floatSliderGrp(self.constWeight, q=True, v=True)
 
-            TAll = cmds.checkBox(self.TAll, query=True, value=True)
-            TX = cmds.checkBox(self.TX, query=True, value=True)
-            TY = cmds.checkBox(self.TY, query=True, value=True)
-            TZ = cmds.checkBox(self.TZ, query=True, value=True)
+            MaintainOffset = cmds.checkBox(self.createMaintainOffset, q=True, v=True)
+            OffX = cmds.floatField(self.offsetX, q=True, v=True)
+            OffY = cmds.floatField(self.offsetY, q=True, v=True)
+            OffZ = cmds.floatField(self.offsetZ, q=True, v=True)
 
-            RAll = cmds.checkBox(self.RAll, query=True, value=True)
-            RX = cmds.checkBox(self.RX, query=True, value=True)
-            RY = cmds.checkBox(self.RY, query=True, value=True)
-            RZ = cmds.checkBox(self.RZ, query=True, value=True)
+            TAll = cmds.checkBox(self.TAll, q=True, v=True)
+            TX = cmds.checkBox(self.TX, q=True, v=True)
+            TY = cmds.checkBox(self.TY, q=True, v=True)
+            TZ = cmds.checkBox(self.TZ, q=True, v=True)
 
-            SAll = cmds.checkBox(self.SAll, query=True, value=True)
-            SX = cmds.checkBox(self.SX, query=True, value=True)
-            SY = cmds.checkBox(self.SY, query=True, value=True)
-            SZ = cmds.checkBox(self.SZ, query=True, value=True)
+            RAll = cmds.checkBox(self.RAll, q=True, v=True)
+            RX = cmds.checkBox(self.RX, q=True, v=True)
+            RY = cmds.checkBox(self.RY, q=True, v=True)
+            RZ = cmds.checkBox(self.RZ, q=True, v=True)
+
+            SAll = cmds.checkBox(self.SAll, q=True, v=True)
+            SX = cmds.checkBox(self.SX, q=True, v=True)
+            SY = cmds.checkBox(self.SY, q=True, v=True)
+            SZ = cmds.checkBox(self.SZ, q=True, v=True)
 
             SkipT = []
             SkipR = []
@@ -420,7 +436,8 @@ class ConstraintManager(object):
                     selectedObjs, activeObj,
                     mo=MaintainOffset,
                     st=SkipT,
-                    sr=SkipR
+                    sr=SkipR,
+                    w=ConstWeight
                 )
                 newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Point":
@@ -429,6 +446,7 @@ class ConstraintManager(object):
                     mo=MaintainOffset,
                     o=[OffX, OffY, OffZ],
                     sk=SkipT,
+                    w=ConstWeight
                 )
                 newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Orient":
@@ -436,7 +454,8 @@ class ConstraintManager(object):
                     selectedObjs, activeObj,
                     mo=MaintainOffset,
                     o=[OffX, OffY, OffZ],
-                    sk=SkipR
+                    sk=SkipR,
+                    w=ConstWeight
                 )
                 newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Scale":
@@ -445,6 +464,7 @@ class ConstraintManager(object):
                     mo=MaintainOffset,
                     o=[OffX, OffY, OffZ],
                     sk=SkipS,
+                    w=ConstWeight
                 )
                 newConstU = cmds.ls(newConst, uuid=True)
 
@@ -454,16 +474,13 @@ class ConstraintManager(object):
             self.updateUI()
 
     def RemoveConst(self, arg=None):
-        textlist = self.itemList
-        listItem = cmds.textScrollList(textlist, q=True, si=True)
         activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
-        if arg == "FromList":
-            print("Removing %s from list only" % (listItem))
-
-        elif arg == "FromScene":
-            print("Removing %s from scene" % (listItem))
+        if arg == "FromScene":
             cmds.delete(cmds.ls(constUUID)[0])
+
+        elif arg == "FromList":
+            pass
 
         del self.ConstList[(activeObjU, constType)]
 
