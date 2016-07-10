@@ -94,13 +94,13 @@ class ConstraintManager(object):
         self.helpVisTrans = "Keep the object in its initial position after switching"
         self.helpSwitchKey = "Keyframe the switch among targets. \nOperation (off, on, object switch) keyed on current frame,\nkeyed opposite on previous frame"
 
-        if (cmds.window(self.window, q=True, exists=True)) is not True:
-            self.showUI()
-
-        else:
-            # cmds.showWindow(self.window)
-            self.destroyUI()
-            self.showUI()
+        # if (cmds.window(self.window, q=True, exists=True)) is not True:
+        #     self.showUI()
+        #
+        # else:
+        # cmds.showWindow(self.window)
+        self.destroyUI()
+        self.showUI()
 
     def showUI(self):
         self.window = cmds.window(self.window, title="Constraint Manager", ret=False, rtf=True, s=False)
@@ -315,7 +315,7 @@ class ConstraintManager(object):
         elif cmds.textScrollList(textlist, q=True, ni=True) == 0:
             pass
         elif activeObj[0] in cmds.textScrollList(textlist, q=True, ai=True):
-            cmds.textScrollList(textlist, e=True, si=activeObj[0])
+            cmds.textScrollList(textlist, e=True, si=activeObj)
         elif cmds.textScrollList(textlist, q=True, ni=True) >= listIndex[0]:
             cmds.textScrollList(textlist, e=True, sii=listIndex)
         else:
