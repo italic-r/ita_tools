@@ -320,19 +320,9 @@ class ConstraintManager(object):
 
         # Disable switch controls if list is empty
         if cmds.textScrollList(textlist, q=True, ni=True) == 0:
-            cmds.disable(self.SwitchList, v=True)
-            cmds.disable(self.swOff, v=True)
-            cmds.disable(self.swOn, v=True)
-            cmds.disable(self.swObj, v=True)
-            cmds.disable(self.SwitchMaintainVisTrans, v=True)
-            cmds.disable(self.SwitchKey, v=True)
+            cmds.disable(self.name + "Layout2Col", v=True)
         else:
-            cmds.disable(self.SwitchList, v=False)
-            cmds.disable(self.swOff, v=False)
-            cmds.disable(self.swOn, v=False)
-            cmds.disable(self.swObj, v=False)
-            cmds.disable(self.SwitchMaintainVisTrans, v=False)
-            cmds.disable(self.SwitchKey, v=False)
+            cmds.disable(self.name + "Layout2Col", v=False)
 
         self.ListSize()
 
