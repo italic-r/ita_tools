@@ -247,16 +247,20 @@ class ConstraintManager(object):
             cmds.textScrollList(self.itemList, e=True, sii=1)
 
         self.updateUI()
+        print("Started constraint manager")
 
     def destroyUI(self):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
 
     def updateUI(self):
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
-        if activeObj is not "":
-            pass
+        if activeObj != "" and cmds.objExists(activeObj):
+            if constUUID is not "" and cmds.objExists(constObj):
+                pass
+            else:
+                self.ListUpdate(activeObj)
         else:
             self.ListUpdate(activeObj)
 
@@ -344,9 +348,7 @@ class ConstraintManager(object):
         cmds.textScrollList(self.itemList, e=True, h=heightAll)
 
     def ConstSel(self):
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
-        constName = cmds.ls(constUUID)[0]
-        print(constUUID, constName)
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
         cmds.select(activeObj, r=True)
 
     def AddConst(self):
@@ -470,7 +472,7 @@ class ConstraintManager(object):
             self.updateUI()
 
     def RemoveConst(self, arg=None):
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if arg == "FromScene":
             cmds.delete(cmds.ls(constUUID)[0])
@@ -483,7 +485,7 @@ class ConstraintManager(object):
         self.updateUI()
 
     def SpaceSwitchMenu(self):
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
         menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
         if menuList:
             cmds.deleteUI(menuList)
@@ -493,7 +495,7 @@ class ConstraintManager(object):
 
     def switchConst(self, arg=None):
         # self.SwitchList
-        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
         constName = cmds.ls(constUUID)[0]
 
         if arg == "OFF":
@@ -553,22 +555,34 @@ class ConstraintManager(object):
     def RetrieveObj(self):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "selObjs"])
+        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "constObj", "selObjs"])
 
         try:
             activeObj = listItem[0].split("  |  ")[0]
-            activeObjU = cmds.ls(activeObj, uuid=True)[0]
-            constType = listItem[0].split("  |  ")[1]
-            constUUID = self.ConstList.get((activeObjU, constType))[0]
-            selObjs = self.ConstList.get((activeObjU, constType))[1]
         except:
             activeObj = ""
+        try:
+            activeObjU = cmds.ls(activeObj, uuid=True)[0]
+        except:
             activeObjU = ""
+        try:
+            constType = listItem[0].split("  |  ")[1]
+        except:
             constType = ""
+        try:
+            constUUID = self.ConstList.get((activeObjU, constType))[0]
+        except:
             constUUID = ""
+        try:
+            constObj = cmds.ls(constUUID)[0]
+        except:
+            constObj = ""
+        try:
+            selObjs = self.ConstList.get((activeObjU, constType))[1]
+        except:
             selObjs = []
 
-        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, selObjs)
+        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
         return RO
 
     def checkPkl(self, arg=None):
