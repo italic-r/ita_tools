@@ -88,7 +88,7 @@ class ConstraintManager(object):
         self.helpSwitchAll = "Turn ON all constraint weights"
         self.helpSwitchObj = "Make selected object the sole target of the constraint"
         self.helpVisTrans = "Keep the object in its initial position after switching"
-        self.helpSwitchKey = "Keyframe the switch among targets. \nOperation (off, on, object switch) keyed on current frame,\nkeyed opposite on previous frame"
+        self.helpSwitchKey = "Keyframe the switch among targets. \nKeyed on current frame,\nkeyed opposite on previous frame"
 
         # if (cmds.window(self.window, q=True, exists=True)) is not True:
         #     self.showUI()
@@ -120,13 +120,13 @@ class ConstraintManager(object):
             bgc=(0.4, 0.4, 0.4), ams=0,
             ann=self.helpTextList,
             sc=self.updateUI,
-            dcc=self.ConstSel,
+            dcc=self.ConstSel
         )
         #
         numButtons = 6
         colWidth = self.buttonwidth / numButtons
         cmds.rowColumnLayout(parent=self.name + "ScrollBox", w=self.buttonwidth, nc=numButtons)
-        cmds.iconTextButton(l="Add", image="pickHandlesComp.png", h=self.buttonheight01, w=colWidth, c=self.AddConst, ann=self.helpAddConst)
+        cmds.iconTextButton(l="Add", image="pickHandlesComp.png", h=self.buttonheight01, w=colWidth, c=self.AddConst, ann=self.helpAddConst, enable=False)
         cmds.iconTextButton(l="Parent", image="parentConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Parent"), ann="Create parent constraint with options below")
         cmds.iconTextButton(l="Point", image="posConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Point"), ann="Create point constraint with options below")
         cmds.iconTextButton(l="Orient", image="orientConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Orient"), ann="Create orient constraint with options below")
@@ -253,13 +253,16 @@ class ConstraintManager(object):
             cmds.deleteUI(self.window)
 
     def updateUI(self):
-        textlist = self.itemList
-        activeObj = cmds.textScrollList(textlist, q=True, si=True)
+        activeObj, activeObjU, constType, constUUID, selObjs = self.RetrieveObj()
 
-        self.SpaceSwitchMenu()
-        self.ListUpdate(activeObj)
+        if activeObj is not "":
+            pass
+        else:
+            self.ListUpdate(activeObj)
+
         self.ListSize()
         self.updateUISize()
+        self.SpaceSwitchMenu()
         self.checkPkl(arg="Write")
 
     def updateUISize(self):
@@ -323,6 +326,11 @@ class ConstraintManager(object):
             cmds.disable(self.name + "Layout2Col", v=True)
         else:
             cmds.disable(self.name + "Layout2Col", v=False)
+            # Disable target switch if only one item in target list
+            if cmds.optionMenu(self.SwitchList, q=True, ni=True) == 1:
+                cmds.disable(self.swObj, v=True)
+            else:
+                cmds.disable(self.swObj, v=False)
 
         self.ListSize()
 
