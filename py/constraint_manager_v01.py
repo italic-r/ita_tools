@@ -215,23 +215,17 @@ class ConstraintManager(object):
         self.swOff = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="OFF", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchOff,
-            c=partial(
-                self.switchConst, arg="OFF"
-            )
+            c=partial(self.switchConst, arg="OFF")
         )
         self.swOn = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="ALL", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchAll,
-            c=partial(
-                self.switchConst, arg="ALL"
-            )
+            c=partial(self.switchConst, arg="ALL")
         )
         self.swObj = cmds.iconTextButton(
             ebg=True, bgc=(0.35, 0.35, 0.35), l="Switch", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchObj,
-            c=partial(
-                self.switchConst, arg=cmds.optionMenu(self.SwitchList, query=True, value=True)
-            )
+            c=partial(self.switchConst, arg="OBJ")
         )
         #
         self.SwitchMaintainVisTrans = cmds.checkBox(parent=Frame2Col, l="Maintain Visual Transforms", al='left', value=True, h=20, ann=self.helpVisTrans)
@@ -324,17 +318,6 @@ class ConstraintManager(object):
         else:
             listLen = cmds.textScrollList(textlist, q=True, ni=True)
             cmds.textScrollList(textlist, e=True, sii=listLen)
-
-        # Disable switch controls if list is empty
-        if cmds.textScrollList(textlist, q=True, ni=True) == 0:
-            cmds.disable(self.name + "Layout2Col", v=True)
-        else:
-            cmds.disable(self.name + "Layout2Col", v=False)
-            # Disable target switch if only one item in target list
-            if cmds.optionMenu(self.SwitchList, q=True, ni=True) == 1:
-                cmds.disable(self.swObj, v=True)
-            else:
-                cmds.disable(self.swObj, v=False)
 
         self.ListSize()
 
@@ -485,72 +468,104 @@ class ConstraintManager(object):
         self.updateUI()
 
     def SpaceSwitchMenu(self):
+        textlist = self.itemList
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
         menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
+
         if menuList:
             cmds.deleteUI(menuList)
         for obj in selObjs:
             objName = cmds.ls(obj)[0]
             cmds.menuItem(p=self.SwitchList, label=objName)
 
+        # Disable switch controls if list is empty
+        if cmds.textScrollList(textlist, q=True, ni=True) == 0:
+            cmds.disable(self.name + "Layout2Col", v=True)
+        else:
+            cmds.disable(self.name + "Layout2Col", v=False)
+            # Disable target switch if only one item in target list
+            if cmds.optionMenu(self.SwitchList, q=True, ni=True) == 1:
+                cmds.disable(self.swObj, v=True)
+            else:
+                cmds.disable(self.swObj, v=False)
+
     def switchConst(self, arg=None):
         # self.SwitchList
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
-        constName = cmds.ls(constUUID)[0]
+        currentTime = cmds.currentTime(q=True)
+        ws = cmds.xform(activeObj, q=True, matrix=True, worldSpace=True)
+        selObjsNames = [cmds.ls(obj)[0] for obj in selObjs]
 
         if arg == "OFF":
-            ws = cmds.xform(activeObj, q=True, matrix=True, worldSpace=True)
-
             for obj in selObjs:
-                # Get old value properly for setting previous frame
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName, selObjsInd), sourceFromDestination=True)
+                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
+                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    currentTime = cmds.currentTime(q=True)
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=1.0)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
                 cmds.setAttr(weightAttr, 0.0)
-            # blend parent
+            # Constraint blend attribute
+            try:
+                cmds.setAttr("%s.blend%s1" % (constObj, constType), 0.0)
+            except:
+                pass
 
             # Maintain visual transforms
             if cmds.checkBox(self.SwitchMaintainVisTrans, q=True, value=True):
                 cmds.xform(activeObj, matrix=ws, worldSpace=True)
 
         elif arg == "ALL":
-            # Get old value properly for setting previous frame
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName, selObjsInd), sourceFromDestination=True)
+                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
+                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    currentTime = cmds.currentTime(q=True)
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=0.0)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
                 cmds.setAttr(weightAttr, 1.0)
-            # blend parent
+            # Constraint blend attribute
+            try:
+                cmds.setAttr("%s.blend%s1" % (constObj, constType), 1.0)
+            except:
+                pass
 
-        else:
+        elif arg == "OBJ":
             # Get old value properly for setting previous frame
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constName, selObjsInd), sourceFromDestination=True)
+                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
+                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
                     if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                        currentTime = cmds.currentTime(q=True)
-                        cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                        cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
                         cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
                     cmds.setAttr(weightAttr, 1.0)
                 else:
                     if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                        currentTime = cmds.currentTime(q=True)
-                        cmds.setKeyframe(weightAttr, t=currentTime - 1)
+                        cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
                         cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
                     cmds.setAttr(weightAttr, 0.0)
-            # blend parent
+            # Constraint blend attribute
+            try:
+                try:
+                    if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                        cmds.setKeyframe("%s.blend%s1" % (constObj, constType), t=currentTime - 1)
+                        cmds.setKeyframe("%s.blend%s1" % (constObj, constType), t=currentTime, v=1.0)
+                except:
+                    pass
+                cmds.setAttr("%s.blend%s1" % (constObj, constType), 1.0)
+            except:
+                pass
+
             if cmds.checkBox(self.SwitchMaintainVisTrans, q=True, value=True):
-                cmds.parentConstraint([cmds.ls(obj) for obj in selObjs], activeObj[0], edit=True, maintainOffset=True)
+                cmds.parentConstraint(selObjsNames, activeObj, edit=True, maintainOffset=True)
 
     def RetrieveObj(self):
         textlist = self.itemList
