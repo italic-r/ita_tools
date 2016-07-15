@@ -500,75 +500,473 @@ class ConstraintManager(object):
         selObjsNames = [cmds.ls(obj)[0] for obj in selObjs]
 
         if arg == "OFF":
-            for obj in selObjs:
-                selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
-                PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
-                PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
-                # If enabled, key previous frame before removing constraint weights
-                if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
-                    cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
-                cmds.setAttr(weightAttr, 0.0)
+            if constType == "Parent":
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
+
+                    PaT = '{}.target[{}].targetOffsetTranslate'.format(constObj, selObjsInd)
+                    PaR = '{}.target[{}].targetOffsetRotate'.format(constObj, selObjsInd)
+
+                    PT = '{}.target[{}].targetOffsetTranslate{}'
+                    PR = '{}.target[{}].targetOffsetRotate{}'
+
+                    PrevKeyPaT = cmds.findKeyframe(PaT, which="previous")
+                    PrevKeyPaR = cmds.findKeyframe(PaR, which="previous")
+
+                    PrevValPaT = cmds.getAttr(PaT, time=PrevKeyPaT)
+                    PaTX, PaTY, PaTZ = PrevValPaT[0][0:3]
+
+                    PrevValPaR = cmds.getAttr(PaR, time=PrevKeyPaR)
+                    PaRX, PaRY, PaRZ = PrevValPaR[0][0:3]
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
+
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # Set current weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(PaT, t=currentTime)
+                            cmds.setKeyframe(PaR, t=currentTime)
+
+                        else:
+                            # after set weights
+                            cmds.setAttr(weightAttr, 0.0)
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            cmds.setAttr(weightAttr, 0.0)  # Updates maya UI to properly reflect attribute
+
+                        else:
+                            # set weights
+                            cmds.setAttr(weightAttr, 0.0)
+
+            else:
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
+
+                    OffsetAx = '{}.offset{}'
+
+                    PrevKeyOffX = cmds.findKeyframe(OffsetAx.format(constObj, "X"), which="previous")
+                    PrevKeyOffY = cmds.findKeyframe(OffsetAx.format(constObj, "Y"), which="previous")
+                    PrevKeyOffZ = cmds.findKeyframe(OffsetAx.format(constObj, "Z"), which="previous")
+
+                    PrevValOffX = cmds.getAttr(OffsetAx.format(constObj, "X"), time=PrevKeyOffX)
+                    PrevValOffY = cmds.getAttr(OffsetAx.format(constObj, "Y"), time=PrevKeyOffY)
+                    PrevValOffZ = cmds.getAttr(OffsetAx.format(constObj, "Z"), time=PrevKeyOffZ)
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime - 1, v=PrevValOffX)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime - 1, v=PrevValOffY)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime - 1, v=PrevValOffZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # Set current weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime)
+
+                        else:
+                            # after set weights
+                            cmds.setAttr(weightAttr, 0.0)
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            cmds.setAttr(weightAttr, 0.0)
+
+                        else:
+                            cmds.setAttr(weightAttr, 0.0)
+
             # Constraint blend attribute
             try:
-                cmds.setAttr("{}.blend{}1".format(constObj, constType), 0.0)
+                blendAttr = "{}.blend{}1".format(constObj, constType)
+                PrevKey = cmds.findKeyframe(blendAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
+
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(blendAttr, t=currentTime, v=0.0)
+                    cmds.setAttr(blendAttr, 0.0)  # Updates maya UI to properly reflect attribute
+
+                else:
+                    cmds.setAttr(blendAttr, 0.0)
+
             except:
                 pass
 
-            # Maintain visual transforms
-            if cmds.checkBox(self.SwitchMaintainVisTrans, q=True, value=True):
-                cmds.xform(activeObj, matrix=ws, worldSpace=True)
-
         elif arg == "ALL":
-            for obj in selObjs:
-                selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+            if constType == "Parent":
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
                     PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
                     PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
-                # If enabled, key previous frame before removing constraint weights
-                if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
-                    cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
-                cmds.setAttr(weightAttr, 1.0)
+
+                    PaT = '{}.target[{}].targetOffsetTranslate'.format(constObj, selObjsInd)
+                    PaR = '{}.target[{}].targetOffsetRotate'.format(constObj, selObjsInd)
+
+                    PT = '{}.target[{}].targetOffsetTranslate{}'
+                    PR = '{}.target[{}].targetOffsetRotate{}'
+
+                    PrevKeyPaT = cmds.findKeyframe(PaT, which="previous")
+                    PrevKeyPaR = cmds.findKeyframe(PaR, which="previous")
+
+                    PrevValPaT = cmds.getAttr(PaT, time=PrevKeyPaT)
+                    PaTX, PaTY, PaTZ = PrevValPaT[0][0:3]
+
+                    PrevValPaR = cmds.getAttr(PaR, time=PrevKeyPaR)
+                    PaRX, PaRY, PaRZ = PrevValPaR[0][0:3]
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
+
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # Set current weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(PaT, t=currentTime)
+                            cmds.setKeyframe(PaR, t=currentTime)
+
+                        else:
+                            # after set weights
+                            cmds.setAttr(weightAttr, 1.0)
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                            cmds.setAttr(weightAttr, 1.0)  # Updates maya UI to properly reflect attribute
+
+                        else:
+                            # set weights
+                            cmds.setAttr(weightAttr, 1.0)
+
+            else:
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
+
+                    OffsetAx = '{}.offset{}'
+
+                    PrevKeyOffX = cmds.findKeyframe(OffsetAx.format(constObj, "X"), which="previous")
+                    PrevKeyOffY = cmds.findKeyframe(OffsetAx.format(constObj, "Y"), which="previous")
+                    PrevKeyOffZ = cmds.findKeyframe(OffsetAx.format(constObj, "Z"), which="previous")
+
+                    PrevValOffX = cmds.getAttr(OffsetAx.format(constObj, "X"), time=PrevKeyOffX)
+                    PrevValOffY = cmds.getAttr(OffsetAx.format(constObj, "Y"), time=PrevKeyOffY)
+                    PrevValOffZ = cmds.getAttr(OffsetAx.format(constObj, "Z"), time=PrevKeyOffZ)
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime - 1, v=PrevValOffX)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime - 1, v=PrevValOffY)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime - 1, v=PrevValOffZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # Set current weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime)
+
+                        else:
+                            # after set weights
+                            cmds.setAttr(weightAttr, 1.0)
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                            cmds.setAttr(weightAttr, 1.0)
+
+                        else:
+                            cmds.setAttr(weightAttr, 1.0)
+
             # Constraint blend attribute
             try:
-                cmds.setAttr("{}.blend{}1".format(constObj, constType), 1.0)
+                blendAttr = "{}.blend{}1".format(constObj, constType)
+                PrevKey = cmds.findKeyframe(blendAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
+
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(blendAttr, t=currentTime, v=1.0)
+                    cmds.setAttr(blendAttr, 1.0)  # Updates maya UI to properly reflect attribute
+
+                else:
+                    cmds.setAttr(blendAttr, 1.0)
+
             except:
                 pass
 
         elif arg == "OBJ":
-            # Get old value properly for setting previous frame
-            for obj in selObjs:
-                selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
-                PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
-                PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
-                # If enabled, key previous frame before removing constraint weights
-                if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
-                    if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                        cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
-                        cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
-                    cmds.setAttr(weightAttr, 1.0)
-                else:
-                    if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                        cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
-                        cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
-                    cmds.setAttr(weightAttr, 0.0)
+            if constType == "Parent":
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
+
+                    PaT = '{}.target[{}].targetOffsetTranslate'.format(constObj, selObjsInd)
+                    PaR = '{}.target[{}].targetOffsetRotate'.format(constObj, selObjsInd)
+
+                    PT = '{}.target[{}].targetOffsetTranslate{}'
+                    PR = '{}.target[{}].targetOffsetRotate{}'
+
+                    PrevKeyPaT = cmds.findKeyframe(PaT, which="previous")
+                    PrevKeyPaR = cmds.findKeyframe(PaR, which="previous")
+
+                    PrevValPaT = cmds.getAttr(PaT, time=PrevKeyPaT)
+                    PaTX, PaTY, PaTZ = PrevValPaT[0][0:3]
+
+                    PrevValPaR = cmds.getAttr(PaR, time=PrevKeyPaR)
+                    PaRX, PaRY, PaRZ = PrevValPaR[0][0:3]
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
+                            cmds.setKeyframe(PT.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
+
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
+                            cmds.setKeyframe(PR.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+
+                            if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                                cmds.setAttr(weightAttr, 1.0)
+                            else:
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                                cmds.setAttr(weightAttr, 0.0)
+
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(PaT, t=currentTime)
+                            cmds.setKeyframe(PaR, t=currentTime)
+
+                        else:
+                            # after set weights
+                            if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                                cmds.setAttr(weightAttr, 1.0)
+                            else:
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                                cmds.setAttr(weightAttr, 0.0)
+
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
+                                cmds.setAttr(weightAttr, 1.0)
+                            else:
+                                cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                                cmds.setAttr(weightAttr, 0.0)
+
+                        else:
+                            # set weights
+                            cmds.setAttr(weightAttr, 0.0)
+
+            else:
+                for obj in selObjs:
+                    selObjsInd = selObjs.index(obj)
+
+                    weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
+
+                    OffsetAx = '{}.offset{}'
+
+                    PrevKeyOffX = cmds.findKeyframe(OffsetAx.format(constObj, "X"), which="previous")
+                    PrevKeyOffY = cmds.findKeyframe(OffsetAx.format(constObj, "Y"), which="previous")
+                    PrevKeyOffZ = cmds.findKeyframe(OffsetAx.format(constObj, "Z"), which="previous")
+
+                    PrevValOffX = cmds.getAttr(OffsetAx.format(constObj, "X"), time=PrevKeyOffX)
+                    PrevValOffY = cmds.getAttr(OffsetAx.format(constObj, "Y"), time=PrevKeyOffY)
+                    PrevValOffZ = cmds.getAttr(OffsetAx.format(constObj, "Z"), time=PrevKeyOffZ)
+
+                    if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                        if cmds.checkBox(self.SwitchKey, q=True, v=True):
+                            # Set previous offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime - 1, v=PrevValOffX)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime - 1, v=PrevValOffY)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime - 1, v=PrevValOffZ)
+
+                            # Set previous weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # Set current weight key
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            # Set current transform
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # Update current offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            # Set current offset key
+                            cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime)
+                            cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime)
+
+                        else:
+                            # after set weights
+                            cmds.setAttr(weightAttr, 0.0)
+                            # after set transforms
+                            cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                            # after update offset
+                            if constType == "Point":
+                                cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Orient":
+                                cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
+                            elif constType == "Scale":
+                                cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+
+                    else:
+                        if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                            # before key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
+                            # after key weights
+                            cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
+                            cmds.setAttr(weightAttr, 0.0)
+
+                        else:
+                            cmds.setAttr(weightAttr, 0.0)
+
             # Constraint blend attribute
             try:
-                try:
-                    if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                        cmds.setKeyframe("%s.blend%s1" % (constObj, constType), t=currentTime - 1)
-                        cmds.setKeyframe("%s.blend%s1" % (constObj, constType), t=currentTime, v=1.0)
-                except:
-                    pass
-                cmds.setAttr("%s.blend%s1" % (constObj, constType), 1.0)
+                blendAttr = "{}.blend{}1".format(constObj, constType)
+                PrevKey = cmds.findKeyframe(blendAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
+
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(blendAttr, t=currentTime, v=1.0)
+                    cmds.setAttr(blendAttr, 1.0)  # Updates maya UI to properly reflect attribute
+
+                else:
+                    cmds.setAttr(blendAttr, 1.0)
+
             except:
                 pass
-
-            if cmds.checkBox(self.SwitchMaintainVisTrans, q=True, value=True):
-                cmds.parentConstraint(selObjsNames, activeObj, edit=True, maintainOffset=True)
 
     def RetrieveObj(self):
         textlist = self.itemList
