@@ -24,9 +24,9 @@
 
     LIMITATIONS AND KNOWN ISSUES:
     Undo: Undo is not well-supported. Remove constraint with the button or delete from scene and recreate.
-    Can only store one constraint of a type at a time (one parent, one point, etc.)
+    Can only store one constraint of a type at a time. Maya supports multiple parent constraints but only one of each of the others (point, orient, scale). This tool supports only one parent constriant at a time (this may change in the future).
     UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
-    Maintain Visual Transforms: Currently supports keying offsets in the parent constraint node.
+    Maintain Visual Transforms: Currently supports updating offsets in the constraint node. Enable keying to save old offsets during switching.
     Key: Sets two keyframes (opposite value on previous frame and indicated value on current frame) - Should take old value (keyed or unkeyed) as key value for pre-switch
 
     (c) Jeffrey "italic" Hoover
@@ -40,9 +40,9 @@
 # -*- coding: utf-8 -*-
 
 import maya.cmds as cmds
-import os
-import time
-import pickle
+from os import path
+from pickle import load, dump
+from time import strftime, localtime
 from collections import namedtuple
 from functools import partial
 
@@ -53,7 +53,7 @@ class ConstraintManager(object):
         self.name = "ConstraintManager"
         self.window = self.name + "Window"
 
-        self.fileTime = time.strftime("%Y_%m_%d_%H_%M", time.localtime())
+        self.fileTime = strftime("%Y_%m_%d_%H_%M", localtime())
 
         # Initial property states
 
@@ -123,10 +123,10 @@ class ConstraintManager(object):
             dcc=self.ConstSel
         )
         #
-        numButtons = 6
+        numButtons = 5
         colWidth = self.buttonwidth / numButtons
         cmds.rowColumnLayout(parent=self.name + "ScrollBox", w=self.buttonwidth, nc=numButtons)
-        cmds.iconTextButton(l="Add", image="pickHandlesComp.png", h=self.buttonheight01, w=colWidth, c=self.AddConst, ann=self.helpAddConst, enable=False)
+        # cmds.iconTextButton(l="Add", image="pickHandlesComp.png", h=self.buttonheight01, w=colWidth, c=self.AddConst, ann=self.helpAddConst, enable=False)
         cmds.iconTextButton(l="Parent", image="parentConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Parent"), ann="Create parent constraint with options below")
         cmds.iconTextButton(l="Point", image="posConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Point"), ann="Create point constraint with options below")
         cmds.iconTextButton(l="Orient", image="orientConstraint.png", h=self.buttonheight01, w=colWidth, c=partial(self.CreateConst, arg="Orient"), ann="Create orient constraint with options below")
@@ -228,7 +228,7 @@ class ConstraintManager(object):
             c=partial(self.switchConst, arg="OBJ")
         )
         #
-        self.SwitchMaintainVisTrans = cmds.checkBox(parent=Frame2Col, l="Maintain Visual Transforms", al='left', value=True, h=20, ann=self.helpVisTrans)
+        self.SwitchVisTrans = cmds.checkBox(parent=Frame2Col, l="Maintain Visual Transforms", al='left', value=True, h=20, ann=self.helpVisTrans)
         #
         self.SwitchKey = cmds.checkBox(parent=Frame2Col, l="Key", al='left', value=True, h=20, ann=self.helpSwitchKey)
 
@@ -265,13 +265,12 @@ class ConstraintManager(object):
 
     def updateUISize(self):
         resizeHeight = self.windowHeight
-        if cmds.window(self.window, q=1, exists=1) == 1:
-            if cmds.frameLayout(self.name + 'Layout1', q=True, cl=True) == 0:
-                resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout1', q=True, h=True)) - 20
-            if cmds.frameLayout(self.name + 'Layout2', q=True, cl=True) == 0:
-                resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout2', q=True, h=True)) - 20
-            resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 80
-            cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
+        if cmds.frameLayout(self.name + 'Layout1', q=True, cl=True) == 0:
+            resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout1', q=True, h=True)) - 20
+        if cmds.frameLayout(self.name + 'Layout2', q=True, cl=True) == 0:
+            resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout2', q=True, h=True)) - 20
+        resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 80
+        cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
 
     def ListUpdate(self, activeObj):
         textlist = self.itemList
@@ -304,7 +303,7 @@ class ConstraintManager(object):
         for key in ConstListOrdered:
             objName = cmds.ls(key[0])[0]  # Object name from UUID
             constType = key[1]  # Constraint type
-            listEntry = "%s  |  %s" % (objName, constType)
+            listEntry = "{}  |  {}".format(objName, constType)
             cmds.textScrollList(textlist, e=True, append=listEntry)
 
         if activeObj is None:
@@ -346,7 +345,7 @@ class ConstraintManager(object):
 
     def CreateConst(self, arg=None):
         if self.checkSel():
-            print "Creating %s constraint" % (arg)
+            print "Creating {} constraint".format(arg)
 
             # Get selected objects and their UUIDs
             # Use node names for constraining; cannot use UUIDs
@@ -450,7 +449,7 @@ class ConstraintManager(object):
                 newConstU = cmds.ls(newConst, uuid=True)
 
             self.ConstList[(activeUUID, arg)] = newConstU[0], selectedUUID
-            newEntry = "%s  |  %s" % (activeObj, arg)
+            newEntry = "{}  |  {}".format(activeObj, arg)
             self.ListUpdate(newEntry)
             self.updateUI()
 
@@ -463,9 +462,13 @@ class ConstraintManager(object):
         elif arg == "FromList":
             pass
 
-        del self.ConstList[(activeObjU, constType)]
+        try:
+            del self.ConstList[(activeObjU, constType)]
+        except KeyError:
+            cmds.warning("No item selected. Cannot remove.")
 
         self.updateUI()
+        self.updateUISize()
 
     def SpaceSwitchMenu(self):
         textlist = self.itemList
@@ -499,17 +502,17 @@ class ConstraintManager(object):
         if arg == "OFF":
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
-                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
-                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
+                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=0.0)
                 cmds.setAttr(weightAttr, 0.0)
             # Constraint blend attribute
             try:
-                cmds.setAttr("%s.blend%s1" % (constObj, constType), 0.0)
+                cmds.setAttr("{}.blend{}1".format(constObj, constType), 0.0)
             except:
                 pass
 
@@ -520,17 +523,17 @@ class ConstraintManager(object):
         elif arg == "ALL":
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
-                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
-                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
+                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                    PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                    PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
                     cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
                 cmds.setAttr(weightAttr, 1.0)
             # Constraint blend attribute
             try:
-                cmds.setAttr("%s.blend%s1" % (constObj, constType), 1.0)
+                cmds.setAttr("{}.blend{}1".format(constObj, constType), 1.0)
             except:
                 pass
 
@@ -538,9 +541,9 @@ class ConstraintManager(object):
             # Get old value properly for setting previous frame
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
-                weightAttr = cmds.connectionInfo('%s.target[%i].targetWeight' % (constObj, selObjsInd), sfd=True)
-                PrevKey = cmds.findKeyframe(weightAttr, which="previous")
-                PrevKeyVal = cmds.getAttr(weightAttr, time=PrevKey)
+                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
+                PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
                 # If enabled, key previous frame before removing constraint weights
                 if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
                     if cmds.checkBox(self.SwitchKey, q=True, value=True):
@@ -604,36 +607,36 @@ class ConstraintManager(object):
         # Initial temp values
         self.projDir = cmds.internalVar(utd=True)
         fileStr = self.fileTime
-        self.constraintpkl = os.path.join(self.projDir, 'ConMan_%s.pkl' % (fileStr))
+        self.constraintpkl = path.join(self.projDir, 'ConMan_{}.pkl'.format(fileStr))
 
         # Saved scene pickle
         if cmds.file(query=True, sceneName=True, shortName=True) != "":
             # Existing temp pickle file
-            if os.path.exists(self.constraintpkl):
+            if path.exists(self.constraintpkl):
                 cmds.warning("Temporary pickle found. Saving new pickle into project's data directory.")
 
             # New pickle
             self.projDir = cmds.workspace(query=True, rd=True)
             self.workFile = cmds.file(query=True, sceneName=True, shortName=True).split('.')
             fileStr = '.'.join(self.workFile[:-1])
-            self.constraintpkl = os.path.join(self.projDir, 'data', 'ConMan_%s.pkl' % (fileStr))
+            self.constraintpkl = path.join(self.projDir, 'data', 'ConMan_{}.pkl'.format(fileStr))
 
         if arg == "Read":
-            if os.path.exists(self.constraintpkl):
+            if path.exists(self.constraintpkl):
                 self.readPkl()
             else:
                 self.writePkl()
-                cmds.warning("No constraint manager pickle found; created a new pickle at %s" % (self.constraintpkl))
+                cmds.warning("No constraint manager pickle found; created a new pickle at {}".format(self.constraintpkl))
         elif arg == "Write":
             self.writePkl()
 
     def readPkl(self):
         with open(self.constraintpkl, 'rb') as f:
-            self.ConstList = pickle.load(f)
+            self.ConstList = load(f)
 
     def writePkl(self):
         with open(self.constraintpkl, 'w+b') as f:
-            pickle.dump(self.ConstList, f, protocol=2)
+            dump(self.ConstList, f, protocol=2)
 
 
 CMan = ConstraintManager()
