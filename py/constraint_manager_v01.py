@@ -345,8 +345,6 @@ class ConstraintManager(object):
 
     def CreateConst(self, arg=None):
         if self.checkSel():
-            print "Creating {} constraint".format(arg)
-
             # Get selected objects and their UUIDs
             # Use node names for constraining; cannot use UUIDs
             selectionO = cmds.ls(sl=True)  # Node names
@@ -500,7 +498,26 @@ class ConstraintManager(object):
         selObjsNames = [cmds.ls(obj)[0] for obj in selObjs]
 
         if arg == "OFF":
+            # Constraint blend attribute
+            try:
+                blendAttr = "{}.blend{}1".format(activeObj, constType)
+                PrevKey = cmds.findKeyframe(blendAttr, which="previous")
+                PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
+
+                if cmds.checkBox(self.SwitchKey, q=True, value=True):
+                    cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
+                    cmds.setKeyframe(blendAttr, t=currentTime, v=0.0)
+                    cmds.setAttr(blendAttr, 0.0)  # Updates maya UI to properly reflect attribute
+
+                else:
+                    cmds.setAttr(blendAttr, 0.0)
+
+            except:
+                pass
+
             if constType == "Parent":
+                TX, TY, TZ, RX, RY, RZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -567,6 +584,8 @@ class ConstraintManager(object):
                             cmds.setAttr(weightAttr, 0.0)
 
             else:
+                ConnX, ConnY, ConnZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -633,25 +652,27 @@ class ConstraintManager(object):
                         else:
                             cmds.setAttr(weightAttr, 0.0)
 
+        elif arg == "ALL":
             # Constraint blend attribute
             try:
-                blendAttr = "{}.blend{}1".format(constObj, constType)
+                blendAttr = "{}.blend{}1".format(activeObj, constType)
                 PrevKey = cmds.findKeyframe(blendAttr, which="previous")
                 PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
 
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
                     cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
-                    cmds.setKeyframe(blendAttr, t=currentTime, v=0.0)
-                    cmds.setAttr(blendAttr, 0.0)  # Updates maya UI to properly reflect attribute
+                    cmds.setKeyframe(blendAttr, t=currentTime, v=1.0)
+                    cmds.setAttr(blendAttr, 1.0)  # Updates maya UI to properly reflect attribute
 
                 else:
-                    cmds.setAttr(blendAttr, 0.0)
+                    cmds.setAttr(blendAttr, 1.0)
 
             except:
                 pass
 
-        elif arg == "ALL":
             if constType == "Parent":
+                TX, TY, TZ, RX, RY, RZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -718,6 +739,8 @@ class ConstraintManager(object):
                             cmds.setAttr(weightAttr, 1.0)
 
             else:
+                ConnX, ConnY, ConnZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -784,9 +807,10 @@ class ConstraintManager(object):
                         else:
                             cmds.setAttr(weightAttr, 1.0)
 
+        elif arg == "OBJ":
             # Constraint blend attribute
             try:
-                blendAttr = "{}.blend{}1".format(constObj, constType)
+                blendAttr = "{}.blend{}1".format(activeObj, constType)
                 PrevKey = cmds.findKeyframe(blendAttr, which="previous")
                 PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
 
@@ -801,8 +825,9 @@ class ConstraintManager(object):
             except:
                 pass
 
-        elif arg == "OBJ":
             if constType == "Parent":
+                TX, TY, TZ, RX, RY, RZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -839,6 +864,7 @@ class ConstraintManager(object):
                             # Set previous weight key
                             cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
 
+                            # Set next weight key
                             if cmds.ls(obj)[0] == cmds.optionMenu(self.SwitchList, q=True, value=True):
                                 cmds.setKeyframe(weightAttr, t=currentTime, v=1.0)
                                 cmds.setAttr(weightAttr, 1.0)
@@ -885,6 +911,8 @@ class ConstraintManager(object):
                             cmds.setAttr(weightAttr, 0.0)
 
             else:
+                ConnX, ConnY, ConnZ = self.RetrieveConn()
+
                 for obj in selObjs:
                     selObjsInd = selObjs.index(obj)
 
@@ -951,23 +979,6 @@ class ConstraintManager(object):
                         else:
                             cmds.setAttr(weightAttr, 0.0)
 
-            # Constraint blend attribute
-            try:
-                blendAttr = "{}.blend{}1".format(constObj, constType)
-                PrevKey = cmds.findKeyframe(blendAttr, which="previous")
-                PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
-
-                if cmds.checkBox(self.SwitchKey, q=True, value=True):
-                    cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
-                    cmds.setKeyframe(blendAttr, t=currentTime, v=1.0)
-                    cmds.setAttr(blendAttr, 1.0)  # Updates maya UI to properly reflect attribute
-
-                else:
-                    cmds.setAttr(blendAttr, 1.0)
-
-            except:
-                pass
-
     def RetrieveObj(self):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
@@ -1000,6 +1011,126 @@ class ConstraintManager(object):
 
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
         return RO
+
+    def RetrieveConn(self):
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+
+        if constType == "Parent":
+            RetrievedConn = namedtuple("RetrievedConn", ["TX", "TY", "TZ", "RX", "RY", "RZ"])
+
+            activeConn = cmds.listConnections(activeObj + ".tx", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    TX = True
+            elif nType == "parentConstraint":
+                TX = True
+            else:
+                TX = False
+
+            activeConn = cmds.listConnections(activeObj + ".ty", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    TY = True
+            elif nType == "parentConstraint":
+                TY = True
+            else:
+                TY = False
+
+            activeConn = cmds.listConnections(activeObj + ".tz", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    TZ = True
+            elif nType == "parentConstraint":
+                TZ = True
+            else:
+                TZ = False
+
+            activeConn = cmds.listConnections(activeObj + ".rx", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    RX = True
+            elif nType == "parentConstraint":
+                RX = True
+            else:
+                RX = False
+
+            activeConn = cmds.listConnections(activeObj + ".ry", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    RY = True
+            elif nType == "parentConstraint":
+                RY = True
+            else:
+                RY = False
+
+            activeConn = cmds.listConnections(activeObj + ".rz", source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    RZ = True
+            elif nType == "parentConstraint":
+                RZ = True
+            else:
+                RZ = False
+
+            return RetrievedConn(TX, TY, TZ, RX, RY, RZ)
+
+        else:
+            RetrievedConn = namedtuple("RetrievedConn", ["ConnX", "ConnY", "ConnZ"])
+
+            # Constraint type to determine channels queried
+            if constType == "Point":
+                chType = "t"
+            elif constType == "Orient":
+                chType = "r"
+            elif constType == "Scale":
+                chType = "s"
+
+            activeConn = cmds.listConnections(activeObj + ".{}x".format(chType), source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    ConnX = True
+            elif nType == "{}Constraint".format(constType.lower()):
+                ConnX = True
+            else:
+                ConnX = False
+
+            activeConn = cmds.listConnections(activeObj + ".{}y".format(chType), source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    ConnY = True
+            elif nType == "{}Constraint".format(constType.lower()):
+                ConnY = True
+            else:
+                ConnY = False
+
+            activeConn = cmds.listConnections(activeObj + ".{}z".format(chType), source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    ConnZ = True
+            elif nType == "{}Constraint".format(constType.lower()):
+                ConnZ = True
+            else:
+                ConnZ = False
+
+            return RetrievedConn(ConnX, ConnY, ConnZ)
 
     def checkPkl(self, arg=None):
         # Initial temp values
