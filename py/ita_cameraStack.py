@@ -172,7 +172,7 @@ def helpCall(*args):
         'will need to create one in the namespace editor.\n'
         '\n'
         'by Jeffrey "Italic_" Hoover'
-        )
+    )
 
     if cmds.window(helpID, exists=True):
         cmds.deleteUI(helpID)
