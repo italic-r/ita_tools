@@ -28,7 +28,7 @@
     This tool can only store one constraint of a type at a time.
         Maya supports multiple parent constraints but only one of each of
         the others (point, orient, scale). This tool supports only one parent
-        constriant at a time (this may change in the future).
+        constraint at a time (this may change in the future).
     UI does not update properly when removing constraints. Click a
         list item or (un)collapse a section to refresh the UI.
     Maintain Visual Transforms: Currently updates offsets in the constraint
