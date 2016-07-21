@@ -60,6 +60,7 @@ class ConstraintManager(object):
         # Script Properties
         self.name = "ConstraintManager"
         self.window = self.name + "Window"
+        self.helpWindow = self.name + "Help"
 
         self.fileTime = strftime("%Y_%m_%d_%H_%M", localtime())
 
@@ -70,14 +71,10 @@ class ConstraintManager(object):
         # Dimensions and margins
         self.scrollBarThickness = 10
         self.textScrollLayoutLineHeight = 14
-        self.textScrollLayoutLineHeightMin = 50
+        self.textScrollLayoutLineHeightMin = 75
         self.textScrollLayoutLineHeightMax = 150
-        self.separatorheight = 10
-        self.separatorstyle = 'in'
         self.buttonwidth = 235
         self.buttonheight01 = 30
-        self.buttonheight02 = 20
-        self.fieldwidth = 75
         self.rowspacing = 2
         self.rowmargin = 2
         self.rowwidth = self.buttonwidth - (self.rowmargin * 8)
@@ -274,6 +271,16 @@ class ConstraintManager(object):
         #
         self.SwitchKey = cmds.checkBox(parent=Frame2Col, l="Key", al='left', value=True, h=20, ann=self.helpSwitchKey)
 
+        # Help button
+        # Frame3Col = self.name + "Layout3Col"
+        # cmds.columnLayout(Frame3Col, parent=ScrollCol, co=('both', self.rowmargin), rs=self.rowspacing)
+        self.helpButton = cmds.iconTextButton(
+            parent=ScrollCol,
+            ebg=True, bgc=(0.35, 0.35, 0.35), l="Help", style='iconAndTextCentered', al='center', h=25,
+            ann="Open a help window.",
+            c=self.helpUI
+        )
+
         # Recall existing data
         self.checkPkl(arg="Read")
         self.ListUpdate(None)
@@ -286,8 +293,87 @@ class ConstraintManager(object):
         print("Started constraint manager")
 
     def destroyUI(self):
+        if cmds.window(self.helpWindow, exists=True):
+            cmds.deleteUI(self.helpWindow)
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
+
+    def helpUI(self):
+        helpText = (
+            'ConMan: A constraint manager for rigging and animation.\n'
+            '\n'
+            'Create common constraints (parent, point, orient, scale)\n'
+            'with options specified in the options section.\n'
+            'Remove a constraint from the list with the trash icon;\n'
+            'delete from the scene with double click.\n'
+            '\n'
+            'Switch constraint targets in the second section. Select\n'
+            'a constraint, then an object from the dropdown menu.\n'
+            '"OFF" turns off all weights and blend parents.\n'
+            '"ON" turns on all weights and blend parents.\n'
+            '"SWITCH" activates a single target and blend parents\n'
+            'and deactivates the rest.\n'
+            '\n'
+            'Maintain Visual Transforms: Update constraint offsets to\n'
+            'maintain the object\'s world-space transforms.\n'
+            '\n'
+            'Key: Set keys on the current frame and the immediately\n'
+            'previous frame to animate a weight switch.\n'
+            '\n'
+            'Constraint data is saved in the current project\'s data\n'
+            'directory: ($PROJECT/data/ConMan_%.pkl)\n'
+            'or, if no project is specified, in a temp file:\n'
+            '($TMPDIR/ConMan_%.pkl).\n'
+            '\n'
+            'LIMITATIONS AND KNOWN ISSUES:\n'
+            '-- Undo: Undo is not well-supported. Remove constraint\n'
+            'with the button or delete from scene and recreate.\n'
+            '-- This tool stores one constraint of a type at a time.\n'
+            'Maya supports multiple parent constraints but only one\n'
+            'of each of the others (point, orient, scale). This tool\n'
+            'supports only one parent constraint at a time (this\n'
+            'may change in the future).\n'
+            '-- UI does not update properly when removing constraints.\n'
+            'Click a list item or (un)collapse a section to refresh the UI.\n'
+            '-- Maintain Visual Transforms: Currently updates offsets\n'
+            'in the constraint node. Enable keying to save old\n'
+            'offsets during switching.\n'
+            '-- Key: Sets two keyframes (current configuration on\n'
+            'previous frame and new configuration on current\n'
+            'frame). Takes old value (keyed or unkeyed) as key\n'
+            'value for pre-switch.\n'
+            '\n'
+            '(c) Jeffrey "italic" Hoover\n'
+            'italic DOT rendezvous AT gmail DOT com\n'
+            '\n'
+            'Licensed under the Apache 2.0 license.\n'
+            'This script can be used for non-commercial\n'
+            'and commercial projects free of charge.\n'
+            'For more information, visit:\n'
+            'https://www.apache.org/licenses/LICENSE-2.0\n'
+        )
+
+        if (cmds.window(self.helpWindow, q=True, exists=True)) is True:
+            cmds.showWindow(self.helpWindow)
+
+        else:
+            cmds.window(
+                self.helpWindow,
+                title='ConMan Help',
+                widthHeight=[300, 250],
+                sizeable=True,
+                resizeToFitChildren=True
+            )
+            cmds.columnLayout(width=300)
+            cmds.scrollField(
+                wordWrap=True,
+                text=helpText,
+                editable=False,
+                width=300,
+                height=250,
+                font='smallPlainLabelFont'
+            )
+            cmds.showWindow(self.helpWindow)
 
     def updateUI(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
@@ -311,7 +397,7 @@ class ConstraintManager(object):
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout1', q=True, h=True)) - 20
         if cmds.frameLayout(self.name + 'Layout2', q=True, cl=True) == 0:
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout2', q=True, h=True)) - 20
-        resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 80
+        resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 50
         cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
 
     def ListUpdate(self, activeObj):
