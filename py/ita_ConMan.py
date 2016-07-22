@@ -57,6 +57,11 @@ from functools import partial
 
 class ConstraintManager(object):
     def __init__(self):
+        self.supportedVersion = 2016
+        self.currentVersion = int(cmds.about(version=True).split(" ")[0])
+        if self.currentVersion < self.supportedVersion:
+            cmds.error("Maya version unsupported. Use 2016 or newer (UUID is unsupported in versions before 2016).")
+
         # Script Properties
         self.name = "ConstraintManager"
         self.window = self.name + "Window"
