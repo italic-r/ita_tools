@@ -1,51 +1,44 @@
+# -*- coding: utf-8 -*-
+
 """
     Constraint Manager: create and track constraints for rigging and animation.
 
-    WARNING: THIS SCRIPT IS PRE-ALPHA. NOT FOR PRODUCTION USE.
+    WARNING: THIS SCRIPT IS BETA!
 
-    Create common constraints (parent, point, orient, scale) with options
-    specified in the options section. Remove a constraint from the list with
-    the trash icon; delete from the scene with double click.
+    Create common constraints (parent, point, orient, scale) with the given options.
+    Remove a constraint from the list with the trash icon; delete from the scene with double click.
 
-    Switch constraint targets in the second section. Select a constraint, then
-    an object from the dropdown menu. "OFF" turns off all weights and blend
-    parents. "ON" turns on all weights and blend parents. "SWITCH" activates a
-    single target and blend parents and deactivates the rest.
+    Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.
+    "OFF" turns off all weights and blend attributes.
+    "ON" turns on all weights and blend attributes.
+    "SWITCH" activates a single target and blend attributes and deactivates the rest.
 
-    Maintain Visual Transforms: Update constraint offsets to maintain the
-    object's world-space transforms.
+    Maintain Visual Transforms: Update constraint offsets to maintain the object's world-space transforms.
 
-    Key: Set keys on the current frame and the immediately previous frame to
-    animate a weight switch. (Parent constraint only)
+    Key: Animate the switch across two frames (current and immediately previous).
 
-    Constraint data is saved in the current project's data directory
-    ($PROJECT/data/ConMan_%.pkl) or, if no project is specified, in a temp
-    file ($TMPDIR/ConMan_%.pkl).
+    Constraint data is saved in one of two places.
+    Project: $PROJECT/data/ConMan_%.pkl
+    Temp file: $TMPDIR/ConMan_%.pkl.
+    Set a project to save the data with the project.
 
     LIMITATIONS AND KNOWN ISSUES:
-    Undo: Undo is not well-supported. Remove constraint with
-        the button or delete from scene and recreate.
-    This tool can only store one constraint of a type at a time.
-        Maya supports multiple parent constraints but only one of each of
-        the others (point, orient, scale). This tool supports only one parent
-        constraint at a time (this may change in the future).
-    UI does not update properly when removing constraints. Click a
-        list item or (un)collapse a section to refresh the UI.
-    Maintain Visual Transforms: Currently updates offsets in the constraint
-        node. Enable keying to save old offsets during switching.
-    Key: Sets two keyframes (current configuration on previous frame and
-        new configuration on current frame) - Takes old value (keyed or
-        unkeyed) as key value for pre-switch.
+    -- Undo: Undo is not supported. Remove constraint with the button or delete from scene and recreate.
+    -- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.
+    -- UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
+    -- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.
+    -- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current frame). Takes old value (keyed or unkeyed) as key value for pre-switch.
 
     (c) Jeffrey "italic" Hoover
     italic DOT rendezvous AT gmail DOT com
 
-    Licensed under the Apache 2.0 license. This script can be used for
-    non-commercial and commercial projects free of charge.
+    Licensed under the Apache 2.0 license.
+    This script can be used for non-commercial
+    and commercial projects free of charge.
     For more information, visit:
     https://www.apache.org/licenses/LICENSE-2.0
 """
-# -*- coding: utf-8 -*-
+
 
 import maya.cmds as cmds
 from os import path
@@ -85,6 +78,7 @@ class ConstraintManager(object):
         self.rowwidth = self.buttonwidth - (self.rowmargin * 8)
 
         self.backgroundColor = (0.15, 0.15, 0.15)
+        self.backgroundColorBtn = (0.35, 0.35, 0.35)
 
         self.windowHeight = 167
         self.windowWidth = 248
@@ -130,13 +124,13 @@ class ConstraintManager(object):
         self.itemList = cmds.textScrollList(
             self.name + 'ScrollList', parent=ScrollCol,
             h=self.textScrollLayoutLineHeightMin, w=self.buttonwidth,
-            bgc=(0.4, 0.4, 0.4), ams=0,
+            bgc=self.backgroundColorBtn, ams=0,
             ann=self.helpTextList,
             sc=self.updateUI,
             dcc=self.ConstSel
         )
         #
-        numButtons = 5
+        numButtons = 5  # 6 if using Add Constraint
         colWidth = self.buttonwidth / numButtons
         cmds.rowColumnLayout(parent=self.name + "ScrollBox", w=self.buttonwidth, nc=numButtons)
         # cmds.iconTextButton(
@@ -257,17 +251,17 @@ class ConstraintManager(object):
             cw=((1, self.rowwidth / 3), (2, self.rowwidth / 3), (3, self.rowwidth / 3))
         )
         self.swOff = cmds.iconTextButton(
-            ebg=True, bgc=(0.35, 0.35, 0.35), l="OFF", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, l="OFF", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchOff,
             c=partial(self.switchConst, arg="OFF")
         )
         self.swOn = cmds.iconTextButton(
-            ebg=True, bgc=(0.35, 0.35, 0.35), l="ALL", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, l="ALL", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchAll,
             c=partial(self.switchConst, arg="ALL")
         )
         self.swObj = cmds.iconTextButton(
-            ebg=True, bgc=(0.35, 0.35, 0.35), l="Switch", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, l="Switch", style='iconAndTextCentered', al='center', h=25,
             ann=self.helpSwitchObj,
             c=partial(self.switchConst, arg="OBJ")
         )
@@ -277,11 +271,9 @@ class ConstraintManager(object):
         self.SwitchKey = cmds.checkBox(parent=Frame2Col, l="Key", al='left', value=True, h=20, ann=self.helpSwitchKey)
 
         # Help button
-        # Frame3Col = self.name + "Layout3Col"
-        # cmds.columnLayout(Frame3Col, parent=ScrollCol, co=('both', self.rowmargin), rs=self.rowspacing)
         self.helpButton = cmds.iconTextButton(
             parent=ScrollCol,
-            ebg=True, bgc=(0.35, 0.35, 0.35), l="Help", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, l="Help", style='iconAndTextCentered', al='center', h=25,
             ann="Open a help window.",
             c=self.helpUI
         )
@@ -307,46 +299,29 @@ class ConstraintManager(object):
         helpText = (
             'ConMan: A constraint manager for rigging and animation.\n'
             '\n'
-            'Create common constraints (parent, point, orient, scale)\n'
-            'with options specified in the options section.\n'
-            'Remove a constraint from the list with the trash icon;\n'
-            'delete from the scene with double click.\n'
+            'Create common constraints (parent, point, orient, scale) with the given options.\n'
+            'Remove a constraint from the list with the trash icon; delete from the scene with double click.\n'
             '\n'
-            'Switch constraint targets in the second section. Select\n'
-            'a constraint, then an object from the dropdown menu.\n'
-            '"OFF" turns off all weights and blend parents.\n'
-            '"ON" turns on all weights and blend parents.\n'
-            '"SWITCH" activates a single target and blend parents\n'
-            'and deactivates the rest.\n'
+            'Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.\n'
+            '"OFF" turns off all weights and blend attributes.\n'
+            '"ON" turns on all weights and blend attributes.\n'
+            '"SWITCH" activates a single target and blend attributes and deactivates the rest.\n'
             '\n'
-            'Maintain Visual Transforms: Update constraint offsets to\n'
-            'maintain the object\'s world-space transforms.\n'
+            'Maintain Visual Transforms: Update constraint offsets to maintain the object\'s world-space transforms.\n'
             '\n'
-            'Key: Set keys on the current frame and the immediately\n'
-            'previous frame to animate a weight switch.\n'
+            'Key: Animate the switch across two frames (current and immediately previous).\n'
             '\n'
-            'Constraint data is saved in the current project\'s data\n'
-            'directory: ($PROJECT/data/ConMan_%.pkl)\n'
-            'or, if no project is specified, in a temp file:\n'
-            '($TMPDIR/ConMan_%.pkl).\n'
+            'Constraint data is saved in one of two places:\n'
+            'Project: $PROJECT/data/ConMan_%.pkl\n'
+            'Temp file: $TMPDIR/ConMan_%.pkl.\n'
+            'Set a project to save the data with the project.\n'
             '\n'
             'LIMITATIONS AND KNOWN ISSUES:\n'
-            '-- Undo: Undo is not well-supported. Remove constraint\n'
-            'with the button or delete from scene and recreate.\n'
-            '-- This tool stores one constraint of a type at a time.\n'
-            'Maya supports multiple parent constraints but only one\n'
-            'of each of the others (point, orient, scale). This tool\n'
-            'supports only one parent constraint at a time (this\n'
-            'may change in the future).\n'
-            '-- UI does not update properly when removing constraints.\n'
-            'Click a list item or (un)collapse a section to refresh the UI.\n'
-            '-- Maintain Visual Transforms: Currently updates offsets\n'
-            'in the constraint node. Enable keying to save old\n'
-            'offsets during switching.\n'
-            '-- Key: Sets two keyframes (current configuration on\n'
-            'previous frame and new configuration on current\n'
-            'frame). Takes old value (keyed or unkeyed) as key\n'
-            'value for pre-switch.\n'
+            '-- Undo: Undo is not supported. Use the removal button or delete from scene and recreate.\n'
+            '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
+            '-- UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.\n'
+            '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
+            '-- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current frame). Takes old value (keyed or unkeyed) as key value for pre-switch.\n'
             '\n'
             '(c) Jeffrey "italic" Hoover\n'
             'italic DOT rendezvous AT gmail DOT com\n'
@@ -439,9 +414,7 @@ class ConstraintManager(object):
             listEntry = "{}  |  {}".format(objName, constType)
             cmds.textScrollList(textlist, e=True, append=listEntry)
 
-        if activeObj is None:
-            pass
-        elif cmds.textScrollList(textlist, q=True, ni=True) == 0:
+        if activeObj is None or cmds.textScrollList(textlist, q=True, ni=True) == 0:
             pass
         elif activeObj in cmds.textScrollList(textlist, q=True, ai=True):
             cmds.textScrollList(textlist, e=True, si=activeObj)
@@ -588,7 +561,10 @@ class ConstraintManager(object):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if arg == "FromScene":
-            cmds.delete(cmds.ls(constUUID)[0])
+            if cmds.objExists(constObj):
+                cmds.delete(constObj)
+            else:
+                cmds.warning("Nothing to remove.")
 
         elif arg == "FromList":
             pass
@@ -599,7 +575,6 @@ class ConstraintManager(object):
             cmds.warning("No item selected. Cannot remove.")
 
         self.updateUI()
-        self.updateUISize()
 
     def SpaceSwitchMenu(self):
         textlist = self.itemList
