@@ -24,10 +24,14 @@
 
     LIMITATIONS AND KNOWN ISSUES:
     -- Undo: Undo is not supported. Remove constraint with the button or delete from scene and recreate.
-    -- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.
-    -- UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.
-    -- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.
-    -- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current frame). Takes old value (keyed or unkeyed) as key value for pre-switch.
+    -- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints
+       and one of any other kind.
+    -- UI does not update properly when removing constraints. Click a list item or (un)collapse a section
+       to refresh the UI.
+    -- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save
+       old offsets during switching.
+    -- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current
+       frame). Takes old value (keyed or unkeyed) as key value for pre-switch.
 
     (c) Jeffrey "italic" Hoover
     italic DOT rendezvous AT gmail DOT com
