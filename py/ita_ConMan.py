@@ -3,17 +3,20 @@
 """
     Constraint Manager: create and track constraints for rigging and animation.
 
-    WARNING: THIS SCRIPT IS BETA!
+    THIS SCRIPT IS BETA!
 
-    Create common constraints (parent, point, orient, scale) with the given options.
-    Remove a constraint from the list with the trash icon; delete from the scene with double click.
+    Create constraints (parent, point, orient, scale) with the given options.
+    Remove a constraint from the list with the trash icon; delete from the
+    scene with double click.
 
-    Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.
+    Switch constraint targets in the second section. Select a constraint, then a
+        target in the dropdown menu.
     "OFF" turns off all weights and blend attributes.
     "ON" turns on all weights and blend attributes.
     "SWITCH" activates a single target and blend attributes and deactivates the rest.
 
-    Maintain Visual Transforms: Update constraint offsets to maintain the object's world-space transforms.
+    Maintain Visual Transforms: Update constraint offsets to maintain the object's
+    world-space transforms.
 
     Key: Animate the switch across two frames (current and immediately previous).
 
@@ -23,15 +26,17 @@
     Set a project to save the data with the project.
 
     LIMITATIONS AND KNOWN ISSUES:
-    -- Undo: Undo is not supported. Remove constraint with the button or delete from scene and recreate.
-    -- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints
-       and one of any other kind.
-    -- UI does not update properly when removing constraints. Click a list item or (un)collapse a section
-       to refresh the UI.
-    -- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save
-       old offsets during switching.
-    -- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current
-       frame). Takes old value (keyed or unkeyed) as key value for pre-switch.
+    -- Undo: Undo is not supported. Remove constraint with the button or delete
+       from scene and recreate.
+    -- This tool supports only one parent constraint at a time. Maya supports
+       multiple parent constraints and one of any other kind.
+    -- UI does not update properly when removing constraints. Click a list item or
+       (un)collapse a section to refresh the UI.
+    -- Maintain Visual Transforms: Currently updates offsets in the constraint
+       node. Enable keying to save old offsets during switching.
+    -- Key: Sets two keyframes (existing configuration on previous frame and new
+       configuration on current frame). Takes old value (keyed or unkeyed) as key
+       value for pre-switch.
 
     (c) Jeffrey "italic" Hoover
     italic DOT rendezvous AT gmail DOT com
@@ -43,8 +48,13 @@
     https://www.apache.org/licenses/LICENSE-2.0
 """
 
+# om.MGlobal.displayError()
+# om.MGlobal.displayWarning()
+
 
 import maya.cmds as cmds
+import maya.OpenMaya as om
+import sys
 from os import path
 from pickle import load, dump
 from time import strftime, localtime
@@ -57,7 +67,8 @@ class ConstraintManager(object):
         self.supportedVersion = 2016
         self.currentVersion = int(cmds.about(version=True).split(" ")[0])
         if self.currentVersion < self.supportedVersion:
-            cmds.error("Maya version unsupported. Use 2016 or newer (UUID is unsupported in versions before 2016).")
+            om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (UUID is unsupported in versions before 2016).")
+            sys.exit()
 
         # Script Properties
         self.name = "ConstraintManager"
@@ -134,15 +145,16 @@ class ConstraintManager(object):
             dcc=self.ConstSel
         )
         #
-        numButtons = 5  # 6 if using Add Constraint
+        numButtons = 6  # 6 if using Add Constraint
         colWidth = self.buttonwidth / numButtons
         cmds.rowColumnLayout(parent=self.name + "ScrollBox", w=self.buttonwidth, nc=numButtons)
-        # cmds.iconTextButton(
-        #     l="Add", image="pickHandlesComp.png",
-        #     h=self.buttonheight01, w=colWidth,
-        #     c=self.AddConst,
-        #     ann=self.helpAddConst, enable=False
-        # )
+        cmds.iconTextButton(
+            l="Add", image="pickHandlesComp.png",
+            h=self.buttonheight01, w=colWidth,
+            c=self.AddConst,
+            ann=self.helpAddConst,
+            # enable=False
+        )
         cmds.iconTextButton(
             l="Parent", image="parentConstraint.png",
             h=self.buttonheight01, w=colWidth,
@@ -445,6 +457,42 @@ class ConstraintManager(object):
 
     def AddConst(self):
         print("Adding constraint to the list")
+        # activeObj, activeObjU, constType, constUUID, constObj, selObjs
+
+        constObj = cmds.ls(sl=True)
+        constUUID = cmds.ls(constObj, uuid=True)
+
+        constTypes = (
+            "constraint",  # Constraint node type parent
+            "parentConstraint",
+            "pointConstraint",
+            "orientConstraint",
+            "scaleConstraint"
+        )
+
+        if len(constObj) == 1:
+            if cmds.nodeType(constObj) not in constTypes:
+                om.MGlobal.displayError("Selected node is not a constraint.")
+                sys.exit()
+            else:
+                pass
+        else:
+            om.MGlobal.displayError("Select one constraint node.")
+            sys.exit()
+
+        # Check constraint type
+        if cmds.nodeType(constObj) == "parentConstraint":
+            constType = "Parent"
+        elif cmds.nodeType(constObj) == "pointConstraint":
+            constType = "Point"
+        elif cmds.nodeType(constObj) == "orientConstraint":
+            constType = "Orient"
+        elif cmds.nodeType(constObj) == "scaleConstraint":
+            constType = "Scale"
+
+        # Check connections
+
+        # Add to list?
 
     def checkSel(self):
         if len(cmds.ls(sl=True)) < 2:
@@ -979,8 +1027,13 @@ class ConstraintManager(object):
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
         return RO
 
-    def RetrieveConn(self):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+    def RetrieveConn(self, ctx=None):
+
+        if ctx == "":
+            activeObj = ""
+            constType = ""
+        else:
+            activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if constType == "Parent":
             RetrievedConn = namedtuple("RetrievedConn", ["TX", "TY", "TZ", "RX", "RY", "RZ"])
@@ -1017,6 +1070,8 @@ class ConstraintManager(object):
                 TZ = True
             else:
                 TZ = False
+
+            # ============
 
             activeConn = cmds.listConnections(activeObj + ".rx", source=True)
             nType = cmds.nodeType(activeConn)
