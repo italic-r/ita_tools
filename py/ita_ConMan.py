@@ -693,13 +693,13 @@ class ConstraintManager(object):
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
                 if ConnX:
                     oldTime = cmds.getAttr(activeObj + ".{}x".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".tx", t=currentTime - 1, v=oldTime)
+                    cmds.setKeyframe(activeObj + ".{}x".format(cType), t=currentTime - 1, v=oldTime)
                 if ConnY:
                     oldTime = cmds.getAttr(activeObj + ".{}y".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".tx", t=currentTime - 1, v=oldTime)
+                    cmds.setKeyframe(activeObj + ".{}y".format(cType), t=currentTime - 1, v=oldTime)
                 if ConnZ:
                     oldTime = cmds.getAttr(activeObj + ".{}z".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".tx", t=currentTime - 1, v=oldTime)
+                    cmds.setKeyframe(activeObj + ".{}z".format(cType), t=currentTime - 1, v=oldTime)
 
         # Constraint blend attribute
         try:
@@ -1029,11 +1029,11 @@ class ConstraintManager(object):
 
     def RetrieveConn(self, ctx=None):
 
-        if ctx == "":
-            activeObj = ""
-            constType = ""
-        else:
-            activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        # if ctx == "":
+        #     activeObj = ""
+        #     constType = ""
+        # else:
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if constType == "Parent":
             RetrievedConn = namedtuple("RetrievedConn", ["TX", "TY", "TZ", "RX", "RY", "RZ"])
