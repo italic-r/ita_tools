@@ -37,6 +37,11 @@
     -- Key: Sets two keyframes (existing configuration on previous frame and new
        configuration on current frame). Takes old value (keyed or unkeyed) as key
        value for pre-switch.
+       
+    TODO:
+    Finish RetrieveConn()
+    Finish AddConst()
+    
 
     (c) Jeffrey "italic" Hoover
     italic DOT rendezvous AT gmail DOT com
@@ -55,9 +60,8 @@
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import sys
-from os import path
-from pickle import load, dump
-from time import strftime, localtime
+import base64
+import pickle
 from collections import namedtuple
 from functools import partial
 
@@ -67,15 +71,13 @@ class ConstraintManager(object):
         self.supportedVersion = 2016
         self.currentVersion = int(cmds.about(version=True).split(" ")[0])
         if self.currentVersion < self.supportedVersion:
-            om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (UUID is unsupported in versions before 2016).")
+            om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (requires UUID).")
             sys.exit()
 
         # Script Properties
         self.name = "ConstraintManager"
         self.window = self.name + "Window"
         self.helpWindow = self.name + "Help"
-
-        self.fileTime = strftime("%Y_%m_%d_%H_%M", localtime())
 
         # Initial property states
 
@@ -460,9 +462,9 @@ class ConstraintManager(object):
         # activeObj, activeObjU, constType, constUUID, constObj, selObjs
 
         constObj = cmds.ls(sl=True)
-        constUUID = cmds.ls(constObj, uuid=True)
+        constUUID = cmds.ls(constObj, uuid=True)[0]
 
-        constTypes = (
+        constTypeTup = (
             "constraint",  # Constraint node type parent
             "parentConstraint",
             "pointConstraint",
@@ -471,7 +473,7 @@ class ConstraintManager(object):
         )
 
         if len(constObj) == 1:
-            if cmds.nodeType(constObj) not in constTypes:
+            if cmds.nodeType(constObj) not in constTypeTup:
                 om.MGlobal.displayError("Selected node is not a constraint.")
                 sys.exit()
             else:
@@ -493,6 +495,20 @@ class ConstraintManager(object):
         # Check connections
 
         # Add to list?
+        self.ConstList[(activeUUID, arg)] = constUUID, selectedUUID
+        newEntry = "{}  |  {}".format(activeObj, arg)
+        self.ListUpdate(newEntry)
+        self.updateUI()
+
+        # Print final output
+        print(
+            "Constraint type: {}\n".format(constType),
+            "Constraint UUID: {}\n".format(constUUID),
+            "Constraint obj: {}\n".format(constObj),
+            "Target objs: {}\n".format(selObjs),
+            "Active obj: {}\n".format(activeObj),
+            "Active obj UUID: {}\n".format(activeUUID)
+        )
 
     def checkSel(self):
         if len(cmds.ls(sl=True)) < 2:
@@ -575,7 +591,6 @@ class ConstraintManager(object):
                     sr=SkipR,
                     w=ConstWeight
                 )
-                newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Point":
                 newConst = cmds.pointConstraint(
                     selectedObjs, activeObj,
@@ -584,7 +599,6 @@ class ConstraintManager(object):
                     sk=SkipT,
                     w=ConstWeight
                 )
-                newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Orient":
                 newConst = cmds.orientConstraint(
                     selectedObjs, activeObj,
@@ -593,7 +607,6 @@ class ConstraintManager(object):
                     sk=SkipR,
                     w=ConstWeight
                 )
-                newConstU = cmds.ls(newConst, uuid=True)
             elif arg == "Scale":
                 newConst = cmds.scaleConstraint(
                     selectedObjs, activeObj,
@@ -602,7 +615,7 @@ class ConstraintManager(object):
                     sk=SkipS,
                     w=ConstWeight
                 )
-                newConstU = cmds.ls(newConst, uuid=True)
+            newConstU = cmds.ls(newConst, uuid=True)
 
             self.ConstList[(activeUUID, arg)] = newConstU[0], selectedUUID
             newEntry = "{}  |  {}".format(activeObj, arg)
@@ -1155,39 +1168,26 @@ class ConstraintManager(object):
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
     def checkPkl(self, arg=None):
-        # Initial temp values
-        self.projDir = cmds.internalVar(utd=True)
-        fileStr = self.fileTime
-        self.constraintpkl = path.join(self.projDir, 'ConMan_{}.pkl'.format(fileStr))
-
-        # Saved scene pickle
-        if cmds.file(query=True, sceneName=True, shortName=True) != "":
-            # Existing temp pickle file
-            if path.exists(self.constraintpkl):
-                cmds.warning("Temporary pickle found. Saving new pickle into project's data directory.")
-
-            # New pickle
-            self.projDir = cmds.workspace(query=True, rd=True)
-            self.workFile = cmds.file(query=True, sceneName=True, shortName=True).split('.')
-            fileStr = '.'.join(self.workFile[:-1])
-            self.constraintpkl = path.join(self.projDir, 'data', 'ConMan_{}.pkl'.format(fileStr))
-
         if arg == "Read":
-            if path.exists(self.constraintpkl):
+            if cmds.fileInfo("ConMan_data", q=True) != []:
                 self.readPkl()
             else:
-                self.writePkl()
-                cmds.warning("No constraint manager pickle found; created a new pickle at {}".format(self.constraintpkl))
+                cmds.warning("No constraint manager data found.")
         elif arg == "Write":
             self.writePkl()
 
     def readPkl(self):
-        with open(self.constraintpkl, 'rb') as f:
-            self.ConstList = load(f)
+        # Read fileInfo() entry
+        binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
+        decoded = base64.b64decode(binLoad)
+        unPickled = pickle.loads(decoded)
+        self.ConstList = unPickled
 
     def writePkl(self):
-        with open(self.constraintpkl, 'w+b') as f:
-            dump(self.ConstList, f, protocol=2)
+        # Write fileInfo() entry
+        binDump = pickle.dumps(self.ConstList, protocol=2)
+        encoded = base64.b64encode(binDump)
+        cmds.fileInfo("ConMan_data", encoded)
 
 
 CMan = ConstraintManager()
