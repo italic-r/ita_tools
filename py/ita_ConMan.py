@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 """
 Constraint Manager: create and track constraints for rigging and animation.
 
 THIS SCRIPT IS BETA!
+
+import ita_ConMan
+reload(ita_ConMan)
 
 Create constraints (parent, point, orient, scale) with the given options.
 Remove a constraint from the list with the trash icon; delete from the
@@ -35,9 +38,6 @@ LIMITATIONS AND KNOWN ISSUES:
    configuration on current frame). Takes old value (keyed or unkeyed) as key
    value for pre-switch.
 
-TODO:
-Finish AddConst()
-
 
 (c) Jeffrey "italic" Hoover
 italic DOT rendezvous AT gmail DOT com
@@ -48,9 +48,6 @@ and commercial projects free of charge.
 For more information, visit:
 https://www.apache.org/licenses/LICENSE-2.0
 """
-
-# om.MGlobal.displayError()
-# om.MGlobal.displayWarning()
 
 
 import maya.cmds as cmds
@@ -77,7 +74,6 @@ class ConstraintManager(object):
         self.helpWindow = self.name + "Help"
 
         # Initial property states
-
         self.ConstList = {}
 
         # Dimensions and margins
@@ -108,11 +104,6 @@ class ConstraintManager(object):
         self.helpVisTrans = "Keep the object in its initial position after \nswitching using constraint offsets."
         self.helpSwitchKey = "Keyframe target switching. \nCurrent configuration keyed on previous frame. \nSwitch keyed on current frame."
 
-        # if (cmds.window(self.window, q=True, exists=True)) is not True:
-        #     self.showUI()
-        #
-        # else:
-        # cmds.showWindow(self.window)
         self.destroyUI()
         self.showUI()
 
@@ -144,9 +135,12 @@ class ConstraintManager(object):
             dcc=self.ConstSel
         )
         #
-        numButtons = 6  # 6 if using Add Constraint
+        numButtons = 6
         colWidth = self.buttonwidth / numButtons
-        cmds.rowColumnLayout(parent=self.name + "ScrollBox", w=self.buttonwidth, nc=numButtons)
+        cmds.rowColumnLayout(
+            parent=self.name + "ScrollBox",
+            w=self.buttonwidth, nc=numButtons
+        )
         cmds.iconTextButton(
             l="Add", image="pickHandlesComp.png",
             h=self.buttonheight01, w=colWidth,
@@ -190,8 +184,15 @@ class ConstraintManager(object):
         Frame1Layout = self.name + "Layout1"
         Frame1Col = self.name + "Layout1Col"
         Frame1Grid = self.name + "Layout1Grid"
-        cmds.frameLayout(Frame1Layout, parent=ScrollCol, cl=0, cll=1, cc=self.updateUISize, ec=self.updateUISize, l="Constraint Options", fn="plainLabelFont")
-        cmds.columnLayout(Frame1Col, parent=Frame1Layout, co=('both', self.rowmargin), rs=self.rowspacing)
+        cmds.frameLayout(
+            Frame1Layout, parent=ScrollCol, cl=0, cll=1,
+            cc=self.updateUISize, ec=self.updateUISize,
+            l="Constraint Options", fn="plainLabelFont"
+        )
+        cmds.columnLayout(
+            Frame1Col, parent=Frame1Layout,
+            co=('both', self.rowmargin), rs=self.rowspacing
+        )
 
         axisField = ((self.rowwidth / 3) * 2) / 3
         cmds.rowColumnLayout(
@@ -243,7 +244,8 @@ class ConstraintManager(object):
         #
         cmds.rowColumnLayout(parent=Frame1Col, nc=1)
         self.constWeight = cmds.floatSliderGrp(
-            self.name + "WeightSlider", l="Weight", field=True, min=0.0, max=1.0, pre=2, value=1.0,
+            self.name + "WeightSlider", l="Weight", field=True,
+            min=0.0, max=1.0, pre=2, value=1.0,
             cw=((1, self.rowwidth / 3), (2, axisField), (3, axisField * 2)),
             cal=((1, 'right'), (2, 'left'), (3, 'center'))
         )
@@ -251,14 +253,26 @@ class ConstraintManager(object):
         # Constraint Space Switching
         Frame2Layout = self.name + "Layout2"
         Frame2Col = self.name + "Layout2Col"
-        cmds.frameLayout(Frame2Layout, parent=ScrollCol, cl=0, cll=1, cc=self.updateUISize, ec=self.updateUISize, l="Switch", fn="plainLabelFont")
-        cmds.columnLayout(Frame2Col, parent=Frame2Layout, co=('both', self.rowmargin), rs=self.rowspacing)
+        cmds.frameLayout(
+            Frame2Layout, parent=ScrollCol,
+            cl=0, cll=1,
+            cc=self.updateUISize, ec=self.updateUISize,
+            l="Switch", fn="plainLabelFont"
+        )
+        cmds.columnLayout(
+            Frame2Col, parent=Frame2Layout,
+            co=('both', self.rowmargin), rs=self.rowspacing
+        )
         cmds.rowColumnLayout(
             parent=Frame2Col, nc=2,
             cal=((1, 'left'), (2, 'left')), cs=(2, 10),
             cw=((1, self.rowwidth / 2), (2, self.rowwidth / 2))
         )
-        self.SwitchList = cmds.optionMenu(self.name + "SpaceSwitch", parent=Frame2Col, w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor, ann=self.helpSwitchList)
+        self.SwitchList = cmds.optionMenu(
+            self.name + "SpaceSwitch", parent=Frame2Col,
+            w=self.rowwidth + 10, ebg=True, bgc=self.backgroundColor,
+            ann=self.helpSwitchList
+        )
         #
         cmds.rowColumnLayout(
             parent=Frame2Col, nc=3, h=25,
@@ -266,29 +280,39 @@ class ConstraintManager(object):
             cw=((1, self.rowwidth / 3), (2, self.rowwidth / 3), (3, self.rowwidth / 3))
         )
         self.swOff = cmds.iconTextButton(
-            ebg=True, bgc=self.backgroundColorBtn, l="OFF", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="OFF", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchOff,
             c=partial(self.switchConst, arg="OFF")
         )
         self.swOn = cmds.iconTextButton(
-            ebg=True, bgc=self.backgroundColorBtn, l="ALL", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="ALL", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchAll,
             c=partial(self.switchConst, arg="ALL")
         )
         self.swObj = cmds.iconTextButton(
-            ebg=True, bgc=self.backgroundColorBtn, l="Switch", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="Switch", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchObj,
             c=partial(self.switchConst, arg="OBJ")
         )
         #
-        self.SwitchVisTrans = cmds.checkBox(parent=Frame2Col, l="Maintain Visual Transforms", al='left', value=True, h=20, ann=self.helpVisTrans)
+        self.SwitchVisTrans = cmds.checkBox(
+            parent=Frame2Col, l="Maintain Visual Transforms", al='left',
+            value=True, h=20, ann=self.helpVisTrans
+        )
         #
-        self.SwitchKey = cmds.checkBox(parent=Frame2Col, l="Key", al='left', value=True, h=20, ann=self.helpSwitchKey)
+        self.SwitchKey = cmds.checkBox(
+            parent=Frame2Col, l="Key", al='left',
+            value=True, h=20, ann=self.helpSwitchKey
+        )
 
         # Help button
         self.helpButton = cmds.iconTextButton(
             parent=ScrollCol,
-            ebg=True, bgc=self.backgroundColorBtn, l="Help", style='iconAndTextCentered', al='center', h=25,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="Help", style='iconAndTextCentered', al='center',
             ann="Open a help window.",
             c=self.helpUI
         )
@@ -335,6 +359,7 @@ class ConstraintManager(object):
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
             '-- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current frame). Takes old value (keyed or unkeyed) as key value for pre-switch.\n'
             '\n'
+            '\n'
             '(c) Jeffrey "italic" Hoover\n'
             'italic DOT rendezvous AT gmail DOT com\n'
             '\n'
@@ -353,7 +378,7 @@ class ConstraintManager(object):
                 self.helpWindow,
                 title='ConMan Help',
                 widthHeight=[300, 250],
-                sizeable=True,
+                sizeable=False,
                 resizeToFitChildren=True
             )
             cmds.columnLayout(width=300)
@@ -406,8 +431,8 @@ class ConstraintManager(object):
             try:
                 obj = cmds.ls(key[0])[0]
                 const = cmds.ls(self.ConstList[key][0])
-                if cmds.objExists(obj):  # Test if original object still exists
-                    if cmds.objExists(const[0]):  # Test if original object still has original constraint
+                if cmds.objExists(obj):
+                    if cmds.objExists(const[0]):
                         ConstListTemp[key] = self.ConstList[key]
             except:
                 pass
@@ -452,7 +477,6 @@ class ConstraintManager(object):
         cmds.select(activeObj, r=True)
 
     def AddConst(self):
-        # activeObj, activeObjU, constType, constUUID, constObj, selObjs
         axes = ["x", "y", "z"]
         conns = []
 
@@ -510,8 +534,11 @@ class ConstraintManager(object):
             if "constraint" not in cmds.nodeType(obj, i=True)
         ]
 
+        # Sort targets in UUID list
         for ind in range(len(selObjs)):
-            activeTG = cmds.listConnections(constObj + ".target[{}].targetParentMatrix".format(ind))
+            activeTG = cmds.listConnections(
+                constObj + ".target[{}].targetParentMatrix".format(ind)
+            )
             selectedUUID.append(cmds.ls(activeTG[0], uuid=True)[0])
 
         # Add to list?
@@ -628,7 +655,7 @@ class ConstraintManager(object):
 
         # Warning for less than two selected objects
         else:
-            cmds.warning("Must select two or more objects to constrain.")
+            om.MGlobal.displayWarning("Must select two or more objects to constrain.")
 
     def RemoveConst(self, arg=None):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
@@ -637,7 +664,7 @@ class ConstraintManager(object):
             if cmds.objExists(constObj):
                 cmds.delete(constObj)
             else:
-                cmds.warning("Nothing to remove.")
+                om.MGlobal.displayWarning("Nothing to remove.")
 
         elif arg == "FromList":
             pass
@@ -645,7 +672,7 @@ class ConstraintManager(object):
         try:
             del self.ConstList[(activeObjU, constType)]
         except KeyError:
-            cmds.warning("No item selected. Cannot remove.")
+            om.MGlobal.displayWarning("No item selected. Cannot remove.")
 
         self.updateUI()
 
@@ -769,7 +796,9 @@ class ConstraintManager(object):
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
 
-                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                weightAttr = cmds.connectionInfo(
+                    '{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True
+                )
                 PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
                 PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
 
@@ -873,7 +902,9 @@ class ConstraintManager(object):
             for obj in selObjs:
                 selObjsInd = selObjs.index(obj)
 
-                weightAttr = cmds.connectionInfo('{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True)
+                weightAttr = cmds.connectionInfo(
+                    '{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True
+                )
                 PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
                 PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
 
@@ -1018,7 +1049,10 @@ class ConstraintManager(object):
     def RetrieveObj(self):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
-        RetrievedObj = namedtuple("RetrievedObj", ["activeObj", "activeObjU", "constType", "constUUID", "constObj", "selObjs"])
+        RetrievedObj = namedtuple(
+            "RetrievedObj",
+            ["activeObj", "activeObjU", "constType", "constUUID", "constObj", "selObjs"]
+        )
 
         try:
             activeObj = listItem[0].split("  |  ")[0]
@@ -1179,7 +1213,7 @@ class ConstraintManager(object):
                 unPickled = pickle.loads(decoded)
                 self.ConstList = unPickled
             else:
-                cmds.warning("No constraint manager data found.")
+                om.MGlobal.displayWarning("No constraint manager data found.")
         elif arg == "Write":
             # Write fileInfo() entry
             binDump = pickle.dumps(self.ConstList, protocol=2)
