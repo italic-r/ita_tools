@@ -1,56 +1,52 @@
 # -*- coding: utf-8 -*-
 
 """
-    Constraint Manager: create and track constraints for rigging and animation.
+Constraint Manager: create and track constraints for rigging and animation.
 
-    THIS SCRIPT IS BETA!
+THIS SCRIPT IS BETA!
 
-    Create constraints (parent, point, orient, scale) with the given options.
-    Remove a constraint from the list with the trash icon; delete from the
-    scene with double click.
+Create constraints (parent, point, orient, scale) with the given options.
+Remove a constraint from the list with the trash icon; delete from the
+scene with double click.
 
-    Switch constraint targets in the second section. Select a constraint, then a
-        target in the dropdown menu.
-    "OFF" turns off all weights and blend attributes.
-    "ON" turns on all weights and blend attributes.
-    "SWITCH" activates a single target and blend attributes and deactivates the rest.
+Switch constraint targets in the second section. Select a constraint, then a
+    target in the dropdown menu.
+"OFF" turns off all weights and blend attributes.
+"ON" turns on all weights and blend attributes.
+"SWITCH" activates a single target and blend attributes and deactivates the rest.
 
-    Maintain Visual Transforms: Update constraint offsets to maintain the object's
-    world-space transforms.
+Maintain Visual Transforms: Update constraint offsets to maintain the object's
+world-space transforms.
 
-    Key: Animate the switch across two frames (current and immediately previous).
+Key: Animate the switch across two frames (current and immediately previous).
 
-    Constraint data is saved in one of two places.
-    Project: $PROJECT/data/ConMan_%.pkl
-    Temp file: $TMPDIR/ConMan_%.pkl.
-    Set a project to save the data with the project.
+Constraint data is saved in the scene file.
 
-    LIMITATIONS AND KNOWN ISSUES:
-    -- Undo: Undo is not supported. Remove constraint with the button or delete
-       from scene and recreate.
-    -- This tool supports only one parent constraint at a time. Maya supports
-       multiple parent constraints and one of any other kind.
-    -- UI does not update properly when removing constraints. Click a list item or
-       (un)collapse a section to refresh the UI.
-    -- Maintain Visual Transforms: Currently updates offsets in the constraint
-       node. Enable keying to save old offsets during switching.
-    -- Key: Sets two keyframes (existing configuration on previous frame and new
-       configuration on current frame). Takes old value (keyed or unkeyed) as key
-       value for pre-switch.
-       
-    TODO:
-    Finish RetrieveConn()
-    Finish AddConst()
-    
+LIMITATIONS AND KNOWN ISSUES:
+-- Undo: Undo is not supported. Remove constraint with the button or delete
+   from scene and recreate.
+-- This tool supports only one parent constraint at a time. Maya supports
+   multiple parent constraints and one of any other kind.
+-- UI does not update properly when removing constraints. Click a list item or
+   (un)collapse a section to refresh the UI.
+-- Maintain Visual Transforms: Currently updates offsets in the constraint
+   node. Enable keying to save old offsets during switching.
+-- Key: Sets two keyframes (existing configuration on previous frame and new
+   configuration on current frame). Takes old value (keyed or unkeyed) as key
+   value for pre-switch.
 
-    (c) Jeffrey "italic" Hoover
-    italic DOT rendezvous AT gmail DOT com
+TODO:
+Finish AddConst()
 
-    Licensed under the Apache 2.0 license.
-    This script can be used for non-commercial
-    and commercial projects free of charge.
-    For more information, visit:
-    https://www.apache.org/licenses/LICENSE-2.0
+
+(c) Jeffrey "italic" Hoover
+italic DOT rendezvous AT gmail DOT com
+
+Licensed under the Apache 2.0 license.
+This script can be used for non-commercial
+and commercial projects free of charge.
+For more information, visit:
+https://www.apache.org/licenses/LICENSE-2.0
 """
 
 # om.MGlobal.displayError()
@@ -67,6 +63,7 @@ from functools import partial
 
 
 class ConstraintManager(object):
+
     def __init__(self):
         self.supportedVersion = 2016
         self.currentVersion = int(cmds.about(version=True).split(" ")[0])
@@ -329,10 +326,7 @@ class ConstraintManager(object):
             '\n'
             'Key: Animate the switch across two frames (current and immediately previous).\n'
             '\n'
-            'Constraint data is saved in one of two places:\n'
-            'Project: $PROJECT/data/ConMan_%.pkl\n'
-            'Temp file: $TMPDIR/ConMan_%.pkl.\n'
-            'Set a project to save the data with the project.\n'
+            'Constraint data is saved in the scene file.\n'
             '\n'
             'LIMITATIONS AND KNOWN ISSUES:\n'
             '-- Undo: Undo is not supported. Use the removal button or delete from scene and recreate.\n'
@@ -458,22 +452,13 @@ class ConstraintManager(object):
         cmds.select(activeObj, r=True)
 
     def AddConst(self):
-        print("Adding constraint to the list")
         # activeObj, activeObjU, constType, constUUID, constObj, selObjs
+        axes = ["x", "y", "z"]
 
-        constObj = cmds.ls(sl=True)
-        constUUID = cmds.ls(constObj, uuid=True)[0]
+        selNodes = cmds.ls(sl=True)
 
-        constTypeTup = (
-            "constraint",  # Constraint node type parent
-            "parentConstraint",
-            "pointConstraint",
-            "orientConstraint",
-            "scaleConstraint"
-        )
-
-        if len(constObj) == 1:
-            if cmds.nodeType(constObj) not in constTypeTup:
+        if len(selNodes) == 1:
+            if "constraint" not in cmds.nodeType(selNodes[0], i=True):
                 om.MGlobal.displayError("Selected node is not a constraint.")
                 sys.exit()
             else:
@@ -481,6 +466,9 @@ class ConstraintManager(object):
         else:
             om.MGlobal.displayError("Select one constraint node.")
             sys.exit()
+
+        constObj = selNodes[0]
+        constUUID = cmds.ls(constObj, uuid=True)[0]
 
         # Check constraint type
         if cmds.nodeType(constObj) == "parentConstraint":
@@ -493,32 +481,31 @@ class ConstraintManager(object):
             constType = "Scale"
 
         # Check connections
+        selObjs = [
+            cmds.ls(obj, uuid=True)[0]
+            for obj in set(cmds.listConnections(constObj + ".tg"))
+            if "constraint" not in cmds.nodeType(obj, i=True)
+        ]
 
         # Add to list?
-        self.ConstList[(activeUUID, arg)] = constUUID, selectedUUID
-        newEntry = "{}  |  {}".format(activeObj, arg)
-        self.ListUpdate(newEntry)
-        self.updateUI()
+        # self.ConstList[(activeUUID, constType)] = constUUID, selectedUUID
+        # newEntry = "{}  |  {}".format(activeObj, constType)
+        # self.ListUpdate(newEntry)
+        # self.updateUI()
 
         # Print final output
         print(
-            "Constraint type: {}\n".format(constType),
-            "Constraint UUID: {}\n".format(constUUID),
-            "Constraint obj: {}\n".format(constObj),
-            "Target objs: {}\n".format(selObjs),
-            "Active obj: {}\n".format(activeObj),
-            "Active obj UUID: {}\n".format(activeUUID)
+            # "Active obj: {}".format(activeObj),
+            # "Active obj UUID: {}".format(activeUUID),
+            "Constraint type: {}".format(constType),
+            "Constraint UUID: {}".format(constUUID),
+            "Constraint obj: {}".format(constObj),
+            "Target objs: {}".format(selObjs)
         )
 
-    def checkSel(self):
-        if len(cmds.ls(sl=True)) < 2:
-            cmds.warning("Must select two or more objects to constrain.")
-            return False
-        else:
-            return True
-
     def CreateConst(self, arg=None):
-        if self.checkSel():
+        # Check for two or more selected objects
+        if len(cmds.ls(sl=True)) >= 2:
             # Get selected objects and their UUIDs
             # Use node names for constraining; cannot use UUIDs
             selectionO = cmds.ls(sl=True)  # Node names
@@ -621,6 +608,10 @@ class ConstraintManager(object):
             newEntry = "{}  |  {}".format(activeObj, arg)
             self.ListUpdate(newEntry)
             self.updateUI()
+
+        # Warning for less than two selected objects
+        else:
+            cmds.warning("Must select two or more objects to constrain.")
 
     def RemoveConst(self, arg=None):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
@@ -1040,12 +1031,7 @@ class ConstraintManager(object):
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
         return RO
 
-    def RetrieveConn(self, ctx=None):
-
-        # if ctx == "":
-        #     activeObj = ""
-        #     constType = ""
-        # else:
+    def RetrieveConn(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if constType == "Parent":
@@ -1170,24 +1156,18 @@ class ConstraintManager(object):
     def checkPkl(self, arg=None):
         if arg == "Read":
             if cmds.fileInfo("ConMan_data", q=True) != []:
-                self.readPkl()
+                # Read fileInfo() entry
+                binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
+                decoded = base64.b64decode(binLoad)
+                unPickled = pickle.loads(decoded)
+                self.ConstList = unPickled
             else:
                 cmds.warning("No constraint manager data found.")
         elif arg == "Write":
-            self.writePkl()
-
-    def readPkl(self):
-        # Read fileInfo() entry
-        binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
-        decoded = base64.b64decode(binLoad)
-        unPickled = pickle.loads(decoded)
-        self.ConstList = unPickled
-
-    def writePkl(self):
-        # Write fileInfo() entry
-        binDump = pickle.dumps(self.ConstList, protocol=2)
-        encoded = base64.b64encode(binDump)
-        cmds.fileInfo("ConMan_data", encoded)
+            # Write fileInfo() entry
+            binDump = pickle.dumps(self.ConstList, protocol=2)
+            encoded = base64.b64encode(binDump)
+            cmds.fileInfo("ConMan_data", encoded)
 
 
 CMan = ConstraintManager()
