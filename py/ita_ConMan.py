@@ -454,6 +454,7 @@ class ConstraintManager(object):
     def AddConst(self):
         # activeObj, activeObjU, constType, constUUID, constObj, selObjs
         axes = ["x", "y", "z"]
+        conns = []
 
         selNodes = cmds.ls(sl=True)
 
@@ -470,38 +471,54 @@ class ConstraintManager(object):
         constObj = selNodes[0]
         constUUID = cmds.ls(constObj, uuid=True)[0]
 
-        # Check constraint type
+        # Check constraint type and targets
         if cmds.nodeType(constObj) == "parentConstraint":
             constType = "Parent"
+            for ax in axes:
+                activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
+                if activeT is not None:
+                    conns.append(activeT[0])
+                activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
+                if activeR is not None:
+                    conns.append(activeR[0])
         elif cmds.nodeType(constObj) == "pointConstraint":
             constType = "Point"
+            for ax in axes:
+                activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
+                if activeT is not None:
+                    conns.append(activeT[0])
         elif cmds.nodeType(constObj) == "orientConstraint":
             constType = "Orient"
+            for ax in axes:
+                activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
+                if activeR is not None:
+                    conns.append(activeR[0])
         elif cmds.nodeType(constObj) == "scaleConstraint":
             constType = "Scale"
+            for ax in axes:
+                activeS = cmds.listConnections(constObj + ".cs{}".format(ax))
+                if activeS is not None:
+                    conns.append(activeS[0])
 
         # Check connections
+        activeObj = list(set(conns))[0]
+        activeUUID = cmds.ls(activeObj, uuid=True)[0]
+        selectedUUID = []
         selObjs = [
             cmds.ls(obj, uuid=True)[0]
             for obj in set(cmds.listConnections(constObj + ".tg"))
             if "constraint" not in cmds.nodeType(obj, i=True)
         ]
 
-        # Add to list?
-        # self.ConstList[(activeUUID, constType)] = constUUID, selectedUUID
-        # newEntry = "{}  |  {}".format(activeObj, constType)
-        # self.ListUpdate(newEntry)
-        # self.updateUI()
+        for ind in range(len(selObjs)):
+            activeTG = cmds.listConnections(constObj + ".tg[{}]".format(ind))
+            selectedUUID.append(cmds.ls(activeTG, uuid=True)[0])
 
-        # Print final output
-        print(
-            # "Active obj: {}".format(activeObj),
-            # "Active obj UUID: {}".format(activeUUID),
-            "Constraint type: {}".format(constType),
-            "Constraint UUID: {}".format(constUUID),
-            "Constraint obj: {}".format(constObj),
-            "Target objs: {}".format(selObjs)
-        )
+        # Add to list?
+        self.ConstList[(activeUUID, constType)] = constUUID, selectedUUID
+        newEntry = "{}  |  {}".format(activeObj, constType)
+        self.ListUpdate(newEntry)
+        self.updateUI()
 
     def CreateConst(self, arg=None):
         # Check for two or more selected objects
