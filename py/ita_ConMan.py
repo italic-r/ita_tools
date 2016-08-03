@@ -511,8 +511,8 @@ class ConstraintManager(object):
         ]
 
         for ind in range(len(selObjs)):
-            activeTG = cmds.listConnections(constObj + ".tg[{}]".format(ind))
-            selectedUUID.append(cmds.ls(activeTG, uuid=True)[0])
+            activeTG = cmds.listConnections(constObj + ".target[{}].targetParentMatrix".format(ind))
+            selectedUUID.append(cmds.ls(activeTG[0], uuid=True)[0])
 
         # Add to list?
         self.ConstList[(activeUUID, constType)] = constUUID, selectedUUID
