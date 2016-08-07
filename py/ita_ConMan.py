@@ -501,28 +501,48 @@ class ConstraintManager(object):
             for ax in axes:
                 activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
                 if activeT is not None:
-                    conns.append(activeT[0])
+                    if cmds.nodeType(activeT) == "pairBlend":
+                        blendOut = cmds.listConnections(activeT[0] + ".ot{}".format(ax), d=True)
+                        conns.append(blendOut[0])
+                    else:
+                        conns.append(activeT[0])
                 activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
                 if activeR is not None:
-                    conns.append(activeR[0])
+                    if cmds.nodeType(activeR) == "pairBlend":
+                        blendOut = cmds.listConnections(activeR[0] + ".or{}".format(ax), d=True)
+                        conns.append(blendOut[0])
+                    else:
+                        conns.append(activeR[0])
         elif cmds.nodeType(constObj) == "pointConstraint":
             constType = "Point"
             for ax in axes:
                 activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
                 if activeT is not None:
-                    conns.append(activeT[0])
+                    if cmds.nodeType(activeT) == "pairBlend":
+                        blendOut = cmds.listConnections(activeT[0] + ".ot{}".format(ax), d=True)
+                        conns.append(blendOut[0])
+                    else:
+                        conns.append(activeT[0])
         elif cmds.nodeType(constObj) == "orientConstraint":
             constType = "Orient"
             for ax in axes:
                 activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
                 if activeR is not None:
-                    conns.append(activeR[0])
+                    if cmds.nodeType(activeR) == "pairBlend":
+                        blendOut = cmds.listConnections(activeR[0] + ".or{}".format(ax), d=True)
+                        conns.append(blendOut[0])
+                    else:
+                        conns.append(activeR[0])
         elif cmds.nodeType(constObj) == "scaleConstraint":
             constType = "Scale"
             for ax in axes:
                 activeS = cmds.listConnections(constObj + ".cs{}".format(ax))
                 if activeS is not None:
-                    conns.append(activeS[0])
+                    if cmds.nodeType(activeS) == "pairBlend":
+                        blendOut = cmds.listConnections(activeS[0] + ".os{}".format(ax), d=True)
+                        conns.append(blendOut[0])
+                    else:
+                        conns.append(activeS[0])
 
         # Check connections
         activeObj = list(set(conns))[0]
