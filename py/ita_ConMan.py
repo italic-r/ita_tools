@@ -562,7 +562,7 @@ class ConstraintManager(object):
             selectedUUID.append(cmds.ls(activeTG[0], uuid=True)[0])
 
         # Add to list?
-        self.ConstList[(activeUUID, constType)] = constUUID, selectedUUID
+        self.ConstList[(activeUUID, constType)] = constUUID, tuple(selectedUUID)
         newEntry = "{}  |  {}".format(activeObj, constType)
         self.ListUpdate(newEntry)
         self.updateUI()
@@ -577,7 +577,7 @@ class ConstraintManager(object):
             activeObj = selectionO[-1]
 
             selectionU = cmds.ls(sl=True, uuid=True)  # Node UUIDs
-            selectedUUID = selectionU[:-1]
+            selectedUUID = tuple(selectionU[:-1])
             activeUUID = selectionU[-1]
 
             # Get constraint creation options
@@ -666,9 +666,9 @@ class ConstraintManager(object):
                     sk=SkipS,
                     w=ConstWeight
                 )
-            newConstU = cmds.ls(newConst, uuid=True)
+            newConstU = cmds.ls(newConst, uuid=True)[0]
 
-            self.ConstList[(activeUUID, arg)] = newConstU[0], selectedUUID
+            self.ConstList[(activeUUID, arg)] = newConstU, selectedUUID
             newEntry = "{}  |  {}".format(activeObj, arg)
             self.ListUpdate(newEntry)
             self.updateUI()
