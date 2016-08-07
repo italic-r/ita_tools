@@ -26,8 +26,8 @@ Key: Animate the switch across two frames (current and immediately previous).
 Constraint data is saved in the scene file.
 
 LIMITATIONS AND KNOWN ISSUES:
--- Undo: Undo is not supported. Remove constraint with the button or delete
-   from scene and recreate.
+-- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will
+   recognize the old data exists again and repopulate the tracked list.
 -- This tool supports only one parent constraint at a time. Maya supports
    multiple parent constraints and one of any other kind.
 -- UI does not update properly when removing constraints. Click a list item or
@@ -353,7 +353,7 @@ class ConstraintManager(object):
             'Constraint data is saved in the scene file.\n'
             '\n'
             'LIMITATIONS AND KNOWN ISSUES:\n'
-            '-- Undo: Undo is not supported. Use the removal button or delete from scene and recreate.\n'
+            '-- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will recognize the old data exists again and repopulate the tracked list.\n'
             '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
             '-- UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.\n'
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
@@ -439,7 +439,7 @@ class ConstraintManager(object):
 
         for key in list(self.ConstList):
             if key not in iter(ConstListTemp):
-                del self.ConstList[key]
+                pass
             else:
                 ConstListOrdered.append(key)
 
