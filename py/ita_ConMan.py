@@ -25,6 +25,9 @@ Key: Animate the switch across two frames (current and immediately previous).
 
 Constraint data is saved in the scene file.
 
+Clean Stale: Remove old data of non-existant objects. Any data not shown in the list is removed.
+Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!
+
 LIMITATIONS AND KNOWN ISSUES:
 -- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will
    recognize the old data exists again and repopulate the tracked list.
@@ -34,9 +37,6 @@ LIMITATIONS AND KNOWN ISSUES:
    (un)collapse a section to refresh the UI.
 -- Maintain Visual Transforms: Currently updates offsets in the constraint
    node. Enable keying to save old offsets during switching.
--- Key: Sets two keyframes (existing configuration on previous frame and new
-   configuration on current frame). Takes old value (keyed or unkeyed) as key
-   value for pre-switch.
 
 
 (c) Jeffrey "italic" Hoover
@@ -65,7 +65,7 @@ class ConstraintManager(object):
         self.supportedVersion = 2016
         self.currentVersion = int(cmds.about(version=True).split(" ")[0])
         if self.currentVersion < self.supportedVersion:
-            om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (requires UUID).")
+            om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (requires node UUID).")
             sys.exit()
 
         # Script Properties
@@ -103,11 +103,17 @@ class ConstraintManager(object):
         self.helpSwitchObj = "Switch influence to this object."
         self.helpVisTrans = "Keep the object in its initial position after \nswitching using constraint offsets."
         self.helpSwitchKey = "Keyframe target switching. \nCurrent configuration keyed on previous frame. \nSwitch keyed on current frame."
+        self.helpCleanData = "Clean saved constraint data. \nRemoves stale data from file."
+        self.helpPurgeData = "Purge constraint data. \nRemoves all constraint data from \nfile and Python variables. \nWARNING: NOT UNDO-ABLE!"
+        self.helpHelpWindow = "Open a help window."
 
-        self.destroyUI()
-        self.showUI()
+        self.DestroyUI()
+        self.ShowUI()
 
-    def showUI(self):
+        # Cleans stale data before file save; avoids compounding stale data across sessions.
+        om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, partial(self.CleanData, arg="Clean"))
+
+    def ShowUI(self):
         self.window = cmds.window(
             self.window, title="Constraint Manager",
             ret=False, rtf=True, s=False
@@ -131,7 +137,7 @@ class ConstraintManager(object):
             h=self.textScrollLayoutLineHeightMin, w=self.buttonwidth,
             bgc=self.backgroundColorBtn, ams=0,
             ann=self.helpTextList,
-            sc=self.updateUI,
+            sc=self.UpdateUI,
             dcc=self.ConstSel
         )
         #
@@ -186,7 +192,7 @@ class ConstraintManager(object):
         Frame1Grid = self.name + "Layout1Grid"
         cmds.frameLayout(
             Frame1Layout, parent=ScrollCol, cl=0, cll=1,
-            cc=self.updateUISize, ec=self.updateUISize,
+            cc=self.UpdateUISize, ec=self.UpdateUISize,
             l="Constraint Options", fn="plainLabelFont"
         )
         cmds.columnLayout(
@@ -256,7 +262,7 @@ class ConstraintManager(object):
         cmds.frameLayout(
             Frame2Layout, parent=ScrollCol,
             cl=0, cll=1,
-            cc=self.updateUISize, ec=self.updateUISize,
+            cc=self.UpdateUISize, ec=self.UpdateUISize,
             l="Switch", fn="plainLabelFont"
         )
         cmds.columnLayout(
@@ -283,19 +289,19 @@ class ConstraintManager(object):
             ebg=True, bgc=self.backgroundColorBtn, h=25,
             l="OFF", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchOff,
-            c=partial(self.switchConst, arg="OFF")
+            c=partial(self.SwitchConst, arg="OFF")
         )
         self.swOn = cmds.iconTextButton(
             ebg=True, bgc=self.backgroundColorBtn, h=25,
             l="ALL", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchAll,
-            c=partial(self.switchConst, arg="ALL")
+            c=partial(self.SwitchConst, arg="ALL")
         )
         self.swObj = cmds.iconTextButton(
             ebg=True, bgc=self.backgroundColorBtn, h=25,
             l="Switch", style='iconAndTextCentered', al='center',
             ann=self.helpSwitchObj,
-            c=partial(self.switchConst, arg="OBJ")
+            c=partial(self.SwitchConst, arg="OBJ")
         )
         #
         self.SwitchVisTrans = cmds.checkBox(
@@ -308,33 +314,53 @@ class ConstraintManager(object):
             value=True, h=20, ann=self.helpSwitchKey
         )
 
-        # Help button
+        # Help and data management
+        HelpRow = self.name + "HelpRow"
+        cmds.rowColumnLayout(
+            HelpRow, parent=ScrollCol, nc=3,
+            cal=((1, 'left'), (2, 'left'), (3, 'left')), cs=((2, 8), (3, 8)),
+            cw=((1, self.rowwidth / 3), (2, self.rowwidth / 3), (3, self.rowwidth / 3))
+        )
         self.helpButton = cmds.iconTextButton(
-            parent=ScrollCol,
+            parent=HelpRow,
             ebg=True, bgc=self.backgroundColorBtn, h=25,
             l="Help", style='iconAndTextCentered', al='center',
-            ann="Open a help window.",
-            c=self.helpUI
+            ann=self.helpHelpWindow,
+            c=self.HelpUI
+        )
+        self.cleanData = cmds.iconTextButton(
+            parent=HelpRow,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="Clean Stale", style='iconAndTextCentered', al='center',
+            ann=self.helpCleanData,
+            c=partial(self.CleanData, arg="Clean")
+        )
+        self.resetData = cmds.iconTextButton(
+            parent=HelpRow,
+            ebg=True, bgc=self.backgroundColorBtn, h=25,
+            l="Purge", style='iconAndTextCentered', al='center',
+            ann=self.helpPurgeData,
+            c=partial(self.CleanData, arg="Purge")
         )
 
         # Recall existing data
-        self.checkPkl(arg="Read")
+        self.CheckPkl(arg="Read")
         self.ListUpdate(None)
         cmds.showWindow(self.window)
 
         if cmds.textScrollList(self.itemList, q=True, ni=True) > 0:
             cmds.textScrollList(self.itemList, e=True, sii=1)
 
-        self.updateUI()
+        self.UpdateUI()
         print("Started constraint manager")
 
-    def destroyUI(self):
+    def DestroyUI(self):
         if cmds.window(self.helpWindow, exists=True):
             cmds.deleteUI(self.helpWindow)
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
 
-    def helpUI(self):
+    def HelpUI(self):
         helpText = (
             'ConMan: A constraint manager for rigging and animation.\n'
             '\n'
@@ -352,12 +378,14 @@ class ConstraintManager(object):
             '\n'
             'Constraint data is saved in the scene file.\n'
             '\n'
+            'Clean Stale: Remove old data of non-existant objects. Any data not shown in the list is removed.\n'
+            'Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!\n'
+            '\n'
             'LIMITATIONS AND KNOWN ISSUES:\n'
             '-- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will recognize the old data exists again and repopulate the tracked list.\n'
             '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
-            '-- UI does not update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.\n'
+            '-- UI does not always update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.\n'
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
-            '-- Key: Sets two keyframes (existing configuration on previous frame and new configuration on current frame). Takes old value (keyed or unkeyed) as key value for pre-switch.\n'
             '\n'
             '\n'
             '(c) Jeffrey "italic" Hoover\n'
@@ -392,7 +420,7 @@ class ConstraintManager(object):
             )
             cmds.showWindow(self.helpWindow)
 
-    def updateUI(self):
+    def UpdateUI(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if activeObj != "" and cmds.objExists(activeObj):
@@ -404,11 +432,11 @@ class ConstraintManager(object):
             self.ListUpdate(activeObj)
 
         self.ListSize()
-        self.updateUISize()
+        self.UpdateUISize()
         self.SpaceSwitchMenu()
-        self.checkPkl(arg="Write")
+        self.CheckPkl(arg="Write")
 
-    def updateUISize(self):
+    def UpdateUISize(self):
         resizeHeight = self.windowHeight
         if cmds.frameLayout(self.name + 'Layout1', q=True, cl=True) == 0:
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout1', q=True, h=True)) - 20
@@ -422,9 +450,7 @@ class ConstraintManager(object):
         ListKeys = iter(self.ConstList)
         ConstListOrdered = []
         ConstListTemp = {}
-
         listIndex = cmds.textScrollList(textlist, q=True, sii=True)
-
         cmds.textScrollList(textlist, e=True, ra=True)
 
         for key in ListKeys:
@@ -543,6 +569,9 @@ class ConstraintManager(object):
                         conns.append(blendOut[0])
                     else:
                         conns.append(activeS[0])
+        else:
+            om.MGlobal.displayError("Only parent, point, orient and scale constraints are supported.")
+            sys.exit()
 
         # Check connections
         activeObj = list(set(conns))[0]
@@ -565,20 +594,20 @@ class ConstraintManager(object):
         self.ConstList[(activeUUID, constType)] = constUUID, tuple(selectedUUID)
         newEntry = "{}  |  {}".format(activeObj, constType)
         self.ListUpdate(newEntry)
-        self.updateUI()
+        self.UpdateUI()
 
     def CreateConst(self, arg=None):
         # Check for two or more selected objects
         if len(cmds.ls(sl=True)) >= 2:
             # Get selected objects and their UUIDs
             # Use node names for constraining; cannot use UUIDs
-            selectionO = cmds.ls(sl=True)  # Node names
-            selectedObjs = selectionO[:-1]
-            activeObj = selectionO[-1]
+            selObj = cmds.ls(sl=True)  # Node names
+            selectedObjs = selObj[:-1]
+            activeObj = selObj[-1]
 
-            selectionU = cmds.ls(sl=True, uuid=True)  # Node UUIDs
-            selectedUUID = tuple(selectionU[:-1])
-            activeUUID = selectionU[-1]
+            selUUID = cmds.ls(sl=True, uuid=True)  # Node UUIDs
+            selectedUUID = tuple(selUUID[:-1])
+            activeUUID = selUUID[-1]
 
             # Get constraint creation options
             ConstWeight = cmds.floatSliderGrp(self.constWeight, q=True, v=True)
@@ -671,7 +700,7 @@ class ConstraintManager(object):
             self.ConstList[(activeUUID, arg)] = newConstU, selectedUUID
             newEntry = "{}  |  {}".format(activeObj, arg)
             self.ListUpdate(newEntry)
-            self.updateUI()
+            self.UpdateUI()
 
         # Warning for less than two selected objects
         else:
@@ -694,7 +723,7 @@ class ConstraintManager(object):
         except KeyError:
             om.MGlobal.displayWarning("No item selected. Cannot remove.")
 
-        self.updateUI()
+        self.UpdateUI()
 
     def SpaceSwitchMenu(self):
         textlist = self.itemList
@@ -718,7 +747,7 @@ class ConstraintManager(object):
             else:
                 cmds.disable(self.swObj, v=False)
 
-    def switchConst(self, arg=None):
+    def SwitchConst(self, arg=None):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
         currentTime = cmds.currentTime(q=True)
         ws = cmds.xform(activeObj, q=True, matrix=True, worldSpace=True)
@@ -1224,7 +1253,7 @@ class ConstraintManager(object):
 
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
-    def checkPkl(self, arg=None):
+    def CheckPkl(self, arg=None):
         if arg == "Read":
             if cmds.fileInfo("ConMan_data", q=True) != []:
                 # Read fileInfo() entry
@@ -1239,6 +1268,65 @@ class ConstraintManager(object):
             binDump = pickle.dumps(self.ConstList, protocol=2)
             encoded = base64.b64encode(binDump)
             cmds.fileInfo("ConMan_data", encoded)
+
+    def CleanData(self, arg=None):
+        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+
+        if arg == "Purge":
+            if cmds.confirmDialog(
+                    message="Purge all saved constraint data?", icon="critical", title="Purge Constraint Data",
+                    b=("Purge", "Cancel"), defaultButton="Purge", cancelButton="Cancel"
+            ) == "Purge":
+                self.ConstList = {}
+                cmds.fileInfo(rm="ConMan_data")
+                om.MGlobal.displayWarning("Constraint data has been purged.")
+        else:
+            textlist = self.itemList
+            ListKeys = iter(self.ConstList)
+            ConstListOrdered = []
+            ConstListTemp = {}
+
+            listIndex = cmds.textScrollList(textlist, q=True, sii=True)
+
+            cmds.textScrollList(textlist, e=True, ra=True)
+
+            for key in ListKeys:
+                try:
+                    obj = cmds.ls(key[0])[0]
+                    const = cmds.ls(self.ConstList[key][0])
+                    if cmds.objExists(obj):
+                        if cmds.objExists(const[0]):
+                            ConstListTemp[key] = self.ConstList[key]
+                except:
+                    pass
+
+            for key in list(self.ConstList):
+                if key not in iter(ConstListTemp):
+                    del self.ConstList[key]
+                else:
+                    ConstListOrdered.append(key)
+
+            ConstListOrdered.sort()
+
+            for key in ConstListOrdered:
+                objName = cmds.ls(key[0])[0]  # Object name from UUID
+                constType = key[1]  # Constraint type
+                listEntry = "{}  |  {}".format(objName, constType)
+                cmds.textScrollList(textlist, e=True, append=listEntry)
+
+            if (activeObj is None or "") or cmds.textScrollList(textlist, q=True, ni=True) == 0:
+                pass
+            elif activeObj in cmds.textScrollList(textlist, q=True, ai=True):
+                cmds.textScrollList(textlist, e=True, si=activeObj)
+            elif cmds.textScrollList(textlist, q=True, ni=True) >= listIndex[0]:
+                cmds.textScrollList(textlist, e=True, sii=listIndex)
+            else:
+                listLen = cmds.textScrollList(textlist, q=True, ni=True)
+                cmds.textScrollList(textlist, e=True, sii=listLen)
+
+            om.MGlobal.displayWarning("Constraint data has been cleaned.")
+
+        self.UpdateUI()
 
 
 CMan = ConstraintManager()
