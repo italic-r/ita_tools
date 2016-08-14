@@ -25,8 +25,10 @@ Key: Animate the switch across two frames (current and immediately previous).
 
 Constraint data is saved in the scene file.
 
+WARNING: THIS IS NOT UNDO-ABLE! ================================================
 Clean Stale: Remove old data of non-existant objects. Any data not shown in the list is removed.
-Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!
+Purge: Remove ALL saved constraint data from the scene.
+WARNING: THIS IS NOT UNDO-ABLE! ================================================
 
 LIMITATIONS AND KNOWN ISSUES:
 -- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will
@@ -110,7 +112,7 @@ class ConstraintManager(object):
         self.DestroyUI()
         self.ShowUI()
 
-        # Cleans stale data before file save; avoids compounding stale data across sessions.
+        # Cleans stale data before file save; prevents compounding stale data across sessions.
         om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, partial(self.CleanData, arg="Clean"))
 
     def ShowUI(self):
@@ -421,15 +423,25 @@ class ConstraintManager(object):
             cmds.showWindow(self.helpWindow)
 
     def UpdateUI(self):
+        textList = self.itemList
+        listItem = cmds.textScrollList(textList, q=True, sii=True)
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
-        if activeObj != "" and cmds.objExists(activeObj):
-            if constUUID is not "" and cmds.objExists(constObj):
+        if activeObj is not None and cmds.objExists(activeObj):
+            if constUUID is not None and cmds.objExists(constObj):
                 pass
             else:
                 self.ListUpdate(activeObj)
+                try:
+                    cmds.textScrollList(textList, e=True, sii=listItem)
+                except:
+                    pass
         else:
             self.ListUpdate(activeObj)
+            try:
+                cmds.textScrollList(textList, e=True, sii=listItem)
+            except:
+                pass
 
         self.ListSize()
         self.UpdateUISize()
@@ -1111,27 +1123,23 @@ class ConstraintManager(object):
 
         try:
             activeObj = listItem[0].split("  |  ")[0]
+            constType = listItem[0].split("  |  ")[1]
         except:
-            activeObj = ""
+            activeObj = None
+            constType = None
+
         try:
             activeObjU = cmds.ls(activeObj, uuid=True)[0]
         except:
-            activeObjU = ""
-        try:
-            constType = listItem[0].split("  |  ")[1]
-        except:
-            constType = ""
+            activeObjU = None
+
         try:
             constUUID = self.ConstList.get((activeObjU, constType))[0]
-        except:
-            constUUID = ""
-        try:
+            selObjs = self.ConstList.get((activeObjU, constType))[1]
             constObj = cmds.ls(constUUID)[0]
         except:
-            constObj = ""
-        try:
-            selObjs = self.ConstList.get((activeObjU, constType))[1]
-        except:
+            constUUID = None
+            constObj = None
             selObjs = []
 
         RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
