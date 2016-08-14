@@ -515,7 +515,7 @@ class ConstraintManager(object):
         cmds.select(activeObj, r=True)
 
     def AddConst(self):
-        axes = ["x", "y", "z"]
+        axes = ("x", "y", "z")
         supported = (
             "constraint",
             "parentConstraint",
@@ -595,11 +595,11 @@ class ConstraintManager(object):
             activeObj = list(set(conns))[0]
             activeUUID = cmds.ls(activeObj, uuid=True)[0]
             selectedUUID = []
-            selObjs = [
+            selObjs = (
                 cmds.ls(obj, uuid=True)[0]
                 for obj in set(cmds.listConnections(constObj + ".tg"))
                 if "constraint" not in cmds.nodeType(obj, i=True)
-            ]
+            )
 
             # Sort targets in UUID list
             for ind in range(len(selObjs)):
