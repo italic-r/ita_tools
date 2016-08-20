@@ -35,14 +35,15 @@ LIMITATIONS AND KNOWN ISSUES:
    recognize the old data exists again and repopulate the tracked list.
 -- This tool supports only one parent constraint at a time. Maya supports
    multiple parent constraints and one of any other kind.
--- UI does not update properly when removing constraints. Click a list item or
-   (un)collapse a section to refresh the UI.
 -- Maintain Visual Transforms: Currently updates offsets in the constraint
    node. Enable keying to save old offsets during switching.
 
 
 (c) Jeffrey "italic" Hoover
 italic DOT rendezvous AT gmail DOT com
+
+UI inspired by Spencer Jones's Arc Tracker Pro
+www.spence-animator.co.uk
 
 Licensed under the Apache 2.0 license.
 This script can be used for non-commercial
@@ -81,8 +82,7 @@ class ConstraintManager(object):
         # Dimensions and margins
         self.scrollBarThickness = 10
         self.textScrollLayoutLineHeight = 14
-        self.textScrollLayoutLineHeightMin = 75
-        self.textScrollLayoutLineHeightMax = 150
+        self.textScrollLayoutLineHeightMin = 100
         self.buttonwidth = 235
         self.buttonheight01 = 30
         self.rowspacing = 2
@@ -109,16 +109,21 @@ class ConstraintManager(object):
         self.helpPurgeData = "Purge constraint data. \nRemoves all constraint data from \nfile and Python variables. \nWARNING: NOT UNDO-ABLE!"
         self.helpHelpWindow = "Open a help window."
 
-        self.DestroyUI()
-        self.ShowUI()
+        if cmds.window(self.window, exists=True):
+            cmds.showWindow(self.window)
+        else:
+            # self.DestroyUI()
+            self.ShowUI()
 
-        # Cleans stale data before file save; prevents compounding stale data across sessions.
-        om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, partial(self.CleanData, arg="Clean"))
+            # Cleans stale data after file open; prevents compounding stale data across sessions.
+            self.openCallbackPkl = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.CheckPkl)
+            self.openCallbackClean = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.CleanData)
+            self.newCallback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, self.CheckPkl)
 
     def ShowUI(self):
         self.window = cmds.window(
             self.window, title="Constraint Manager",
-            ret=False, rtf=True, s=False
+            ret=False, rtf=True, s=False, cc=self.DestroyUI
         )
 
         # Main window column
@@ -357,10 +362,14 @@ class ConstraintManager(object):
         print("Started constraint manager")
 
     def DestroyUI(self):
+        # if cmds.window(self.window, exists=True):
+        #     cmds.deleteUI(self.window)
         if cmds.window(self.helpWindow, exists=True):
             cmds.deleteUI(self.helpWindow)
-        if cmds.window(self.window, exists=True):
-            cmds.deleteUI(self.window)
+
+        om.MSceneMessage.removeCallback(self.openCallbackPkl)
+        om.MSceneMessage.removeCallback(self.openCallbackClean)
+        om.MSceneMessage.removeCallback(self.newCallback)
 
     def HelpUI(self):
         helpText = (
@@ -386,7 +395,6 @@ class ConstraintManager(object):
             'LIMITATIONS AND KNOWN ISSUES:\n'
             '-- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will recognize the old data exists again and repopulate the tracked list.\n'
             '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
-            '-- UI does not always update properly when removing constraints. Click a list item or (un)collapse a section to refresh the UI.\n'
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
             '\n'
             '\n'
@@ -443,16 +451,15 @@ class ConstraintManager(object):
             except:
                 pass
 
-        self.ListSize()
         self.UpdateUISize()
         self.SpaceSwitchMenu()
         self.CheckPkl(arg="Write")
 
     def UpdateUISize(self):
         resizeHeight = self.windowHeight
-        if cmds.frameLayout(self.name + 'Layout1', q=True, cl=True) == 0:
+        if cmds.frameLayout(self.name + 'Layout1', q=True, cl=True) is False:
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout1', q=True, h=True)) - 20
-        if cmds.frameLayout(self.name + 'Layout2', q=True, cl=True) == 0:
+        if cmds.frameLayout(self.name + 'Layout2', q=True, cl=True) is False:
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout2', q=True, h=True)) - 20
         resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 50
         cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
@@ -498,17 +505,6 @@ class ConstraintManager(object):
         else:
             listLen = cmds.textScrollList(textlist, q=True, ni=True)
             cmds.textScrollList(textlist, e=True, sii=listLen)
-
-        self.ListSize()
-
-    def ListSize(self):
-        amount = cmds.textScrollList(self.itemList, q=True, ni=True)
-        heightAll = amount * self.textScrollLayoutLineHeight
-        if heightAll < self.textScrollLayoutLineHeightMin:
-            heightAll = self.textScrollLayoutLineHeightMin
-        elif heightAll > self.textScrollLayoutLineHeightMax:
-            heightAll = self.textScrollLayoutLineHeightMax
-        cmds.textScrollList(self.itemList, e=True, h=heightAll)
 
     def ConstSel(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
@@ -728,18 +724,17 @@ class ConstraintManager(object):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if arg == "FromScene":
-            if cmds.objExists(constObj):
+            try:
                 cmds.delete(constObj)
-            else:
-                om.MGlobal.displayWarning("Nothing to remove.")
-
+            except:
+                om.MGlobal.displayInfo("Nothing to remove.")
         elif arg == "FromList":
             pass
 
         try:
             del self.ConstList[(activeObjU, constType)]
         except KeyError:
-            om.MGlobal.displayWarning("No item selected. Cannot remove.")
+            om.MGlobal.displayInfo("No item selected. Cannot remove.")
 
         self.UpdateUI()
 
@@ -1268,7 +1263,13 @@ class ConstraintManager(object):
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
     def CheckPkl(self, arg=None):
-        if arg == "Read":
+        if arg == "Write":
+            # Write fileInfo() entry
+            binDump = pickle.dumps(self.ConstList, protocol=2)
+            encoded = base64.b64encode(binDump)
+            cmds.fileInfo("ConMan_data", encoded)
+
+        else:
             if cmds.fileInfo("ConMan_data", q=True) != []:
                 # Read fileInfo() entry
                 binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
@@ -1276,19 +1277,14 @@ class ConstraintManager(object):
                 unPickled = pickle.loads(decoded)
                 self.ConstList = unPickled
             else:
-                om.MGlobal.displayWarning("No constraint manager data found.")
-        elif arg == "Write":
-            # Write fileInfo() entry
-            binDump = pickle.dumps(self.ConstList, protocol=2)
-            encoded = base64.b64encode(binDump)
-            cmds.fileInfo("ConMan_data", encoded)
+                om.MGlobal.displayInfo("No constraint manager data found.")
 
     def CleanData(self, arg=None):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
         if arg == "Purge":
             if cmds.confirmDialog(
-                    message="Purge all saved constraint data?", icon="critical", title="Purge Constraint Data",
+                    message="Purge all saved constraint data?\nThis cannot be undone!", icon="critical", title="Purge Constraint Data",
                     b=("Purge", "Cancel"), defaultButton="Purge", cancelButton="Cancel"
             ) == "Purge":
                 self.ConstList = {}
@@ -1338,7 +1334,7 @@ class ConstraintManager(object):
                 listLen = cmds.textScrollList(textlist, q=True, ni=True)
                 cmds.textScrollList(textlist, e=True, sii=listLen)
 
-            om.MGlobal.displayWarning("Constraint data has been cleaned.")
+            om.MGlobal.displayInfo("Constraint data has been cleaned.")
 
         self.UpdateUI()
 
