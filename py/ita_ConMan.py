@@ -31,8 +31,6 @@ Purge: Remove ALL saved constraint data from the scene.
 WARNING: THIS IS NOT UNDO-ABLE! ================================================
 
 LIMITATIONS AND KNOWN ISSUES:
--- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will
-   recognize the old data exists again and repopulate the tracked list.
 -- This tool supports only one parent constraint at a time. Maya supports
    multiple parent constraints and one of any other kind.
 -- Maintain Visual Transforms: Currently updates offsets in the constraint
@@ -71,12 +69,10 @@ class ConstraintManager(object):
             om.MGlobal.displayError("Maya version unsupported. Use 2016 or newer (requires node UUID).")
             sys.exit()
 
-        # Script Properties
         self.name = "ConstraintManager"
         self.window = self.name + "Window"
         self.helpWindow = self.name + "Help"
 
-        # Initial property states
         self.ConstList = {}
 
         # Dimensions and margins
@@ -112,12 +108,9 @@ class ConstraintManager(object):
         if cmds.window(self.window, exists=True):
             cmds.showWindow(self.window)
         else:
-            # self.DestroyUI()
             self.ShowUI()
-
             # Cleans stale data after file open; prevents compounding stale data across sessions.
-            self.openCallbackPkl = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.CheckPkl)
-            self.openCallbackClean = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.CleanData)
+            self.openCall = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.OpenCallback)
             self.newCallback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, self.CheckPkl)
 
     def ShowUI(self):
@@ -362,13 +355,10 @@ class ConstraintManager(object):
         print("Started constraint manager")
 
     def DestroyUI(self):
-        # if cmds.window(self.window, exists=True):
-        #     cmds.deleteUI(self.window)
         if cmds.window(self.helpWindow, exists=True):
             cmds.deleteUI(self.helpWindow)
 
-        om.MSceneMessage.removeCallback(self.openCallbackPkl)
-        om.MSceneMessage.removeCallback(self.openCallbackClean)
+        om.MSceneMessage.removeCallback(self.openCall)
         om.MSceneMessage.removeCallback(self.newCallback)
 
     def HelpUI(self):
@@ -393,7 +383,6 @@ class ConstraintManager(object):
             'Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!\n'
             '\n'
             'LIMITATIONS AND KNOWN ISSUES:\n'
-            '-- Undo: Undo is supported. If needed, undo and re-run the script. ConMan will recognize the old data exists again and repopulate the tracked list.\n'
             '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
             '\n'
@@ -464,7 +453,7 @@ class ConstraintManager(object):
         resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 50
         cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
 
-    def ListUpdate(self, activeObj):
+    def ListUpdate(self, activeObj, clean=None):
         textlist = self.itemList
         ListKeys = iter(self.ConstList)
         ConstListOrdered = []
@@ -484,7 +473,10 @@ class ConstraintManager(object):
 
         for key in list(self.ConstList):
             if key not in iter(ConstListTemp):
-                pass
+                if clean is True:
+                    del self.ConstList[key]
+                else:
+                    pass
             else:
                 ConstListOrdered.append(key)
 
@@ -716,7 +708,6 @@ class ConstraintManager(object):
             self.ListUpdate(newEntry)
             self.UpdateUI()
 
-        # Warning for less than two selected objects
         else:
             om.MGlobal.displayWarning("Must select two or more objects to constrain.")
 
@@ -754,7 +745,7 @@ class ConstraintManager(object):
             cmds.disable(self.name + "Layout2Col", v=True)
         else:
             cmds.disable(self.name + "Layout2Col", v=False)
-            # Disable target switch if only one item in target list
+            # Disable switch button if only one item in target list
             if cmds.optionMenu(self.SwitchList, q=True, ni=True) == 1:
                 cmds.disable(self.swObj, v=True)
             else:
@@ -1137,8 +1128,7 @@ class ConstraintManager(object):
             constObj = None
             selObjs = []
 
-        RO = RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
-        return RO
+        return RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
 
     def RetrieveConn(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
@@ -1262,16 +1252,18 @@ class ConstraintManager(object):
 
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
+    def OpenCallback(self, arg=None):
+        self.CheckPkl()
+        self.CleanData()
+
     def CheckPkl(self, arg=None):
         if arg == "Write":
-            # Write fileInfo() entry
             binDump = pickle.dumps(self.ConstList, protocol=2)
             encoded = base64.b64encode(binDump)
             cmds.fileInfo("ConMan_data", encoded)
 
         else:
             if cmds.fileInfo("ConMan_data", q=True) != []:
-                # Read fileInfo() entry
                 binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
                 decoded = base64.b64decode(binLoad)
                 unPickled = pickle.loads(decoded)
@@ -1284,56 +1276,15 @@ class ConstraintManager(object):
 
         if arg == "Purge":
             if cmds.confirmDialog(
-                    message="Purge all saved constraint data?\nThis cannot be undone!", icon="critical", title="Purge Constraint Data",
+                    message="Purge all saved constraint data?\nThis cannot be undone!",
+                    icon="critical", title="Purge Constraint Data",
                     b=("Purge", "Cancel"), defaultButton="Purge", cancelButton="Cancel"
             ) == "Purge":
                 self.ConstList = {}
                 cmds.fileInfo(rm="ConMan_data")
                 om.MGlobal.displayWarning("Constraint data has been purged.")
         else:
-            textlist = self.itemList
-            ListKeys = iter(self.ConstList)
-            ConstListOrdered = []
-            ConstListTemp = {}
-
-            listIndex = cmds.textScrollList(textlist, q=True, sii=True)
-
-            cmds.textScrollList(textlist, e=True, ra=True)
-
-            for key in ListKeys:
-                try:
-                    obj = cmds.ls(key[0])[0]
-                    const = cmds.ls(self.ConstList[key][0])
-                    if cmds.objExists(obj):
-                        if cmds.objExists(const[0]):
-                            ConstListTemp[key] = self.ConstList[key]
-                except:
-                    pass
-
-            for key in list(self.ConstList):
-                if key not in iter(ConstListTemp):
-                    del self.ConstList[key]
-                else:
-                    ConstListOrdered.append(key)
-
-            ConstListOrdered.sort()
-
-            for key in ConstListOrdered:
-                objName = cmds.ls(key[0])[0]  # Object name from UUID
-                constType = key[1]  # Constraint type
-                listEntry = "{}  |  {}".format(objName, constType)
-                cmds.textScrollList(textlist, e=True, append=listEntry)
-
-            if (activeObj is None or activeObj == "") or (cmds.textScrollList(textlist, q=True, ni=True) == 0):
-                pass
-            elif activeObj in cmds.textScrollList(textlist, q=True, ai=True):
-                cmds.textScrollList(textlist, e=True, si=activeObj)
-            elif cmds.textScrollList(textlist, q=True, ni=True) >= listIndex[0]:
-                cmds.textScrollList(textlist, e=True, sii=listIndex)
-            else:
-                listLen = cmds.textScrollList(textlist, q=True, ni=True)
-                cmds.textScrollList(textlist, e=True, sii=listLen)
-
+            self.ListUpdate(activeObj, clean=True)
             om.MGlobal.displayInfo("Constraint data has been cleaned.")
 
         self.UpdateUI()
