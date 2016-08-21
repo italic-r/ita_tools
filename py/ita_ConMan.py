@@ -424,19 +424,19 @@ class ConstraintManager(object):
     def UpdateUI(self):
         textList = self.itemList
         listItem = cmds.textScrollList(textList, q=True, sii=True)
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
 
-        if activeObj is not None and cmds.objExists(activeObj):
-            if constUUID is not None and cmds.objExists(constObj):
+        if o.activeObj is not None and cmds.objExists(o.activeObj):
+            if o.constUUID is not None and cmds.objExists(o.constObj):
                 pass
             else:
-                self.ListUpdate(activeObj)
+                self.ListUpdate(o.activeObj)
                 try:
                     cmds.textScrollList(textList, e=True, sii=listItem)
                 except:
                     pass
         else:
-            self.ListUpdate(activeObj)
+            self.ListUpdate(o.activeObj)
             try:
                 cmds.textScrollList(textList, e=True, sii=listItem)
             except:
@@ -501,8 +501,8 @@ class ConstraintManager(object):
             cmds.textScrollList(textlist, e=True, sii=listLen)
 
     def ConstSel(self):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
-        cmds.select(activeObj, r=True)
+        o = self.RetrieveObj()
+        cmds.select(o.activeObj, r=True)
 
     def AddConst(self):
         axes = ("x", "y", "z")
@@ -694,18 +694,18 @@ class ConstraintManager(object):
             om.MGlobal.displayWarning("Must select two or more objects to constrain.")
 
     def RemoveConst(self, arg=None):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
 
         if arg == "FromScene":
             try:
-                cmds.delete(constObj)
+                cmds.delete(o.constObj)
             except:
                 om.MGlobal.displayInfo("Nothing to remove.")
         elif arg == "FromList":
             pass
 
         try:
-            del self.ConstList[(activeObjU, constType)]
+            del self.ConstList[(o.activeObjU, o.constType)]
         except KeyError:
             om.MGlobal.displayInfo("No item selected. Cannot remove.")
 
@@ -713,12 +713,12 @@ class ConstraintManager(object):
 
     def SpaceSwitchMenu(self):
         textlist = self.itemList
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
         menuList = cmds.optionMenu(self.SwitchList, q=True, ill=True)
 
         if menuList:
             cmds.deleteUI(menuList)
-        for obj in selObjs:
+        for obj in o.selObjs:
             objName = cmds.ls(obj)[0]
             cmds.menuItem(p=self.SwitchList, label=objName)
 
@@ -734,42 +734,42 @@ class ConstraintManager(object):
                 cmds.disable(self.swObj, v=False)
 
     def SwitchConst(self, arg=None):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
         currentTime = cmds.currentTime(q=True)
-        ws = cmds.xform(activeObj, q=True, matrix=True, worldSpace=True)
-        selObjsNames = [cmds.ls(obj)[0] for obj in selObjs]
+        ws = cmds.xform(o.activeObj, q=True, matrix=True, worldSpace=True)
+        selObjsNames = [cmds.ls(obj)[0] for obj in o.selObjs]
 
         wOn = 1.0
         wOff = 0.0
 
         # Channel keys before
-        if constType == "Parent":
+        if o.constType == "Parent":
             parList = (TX, TY, TZ, RX, RY, RZ) = self.RetrieveConn()
             chanList = (".tx", ".ty", ".tz", ".rx", ".ry", ".rz")
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
                 for pair in zip(parList, chanList):
                     if pair[0]:
-                        oldTime = cmds.getAttr(activeObj + pair[1], t=currentTime - 1)
-                        cmds.setKeyframe(activeObj + pair[1], t=currentTime - 1, v=oldTime)
+                        oldTime = cmds.getAttr(o.activeObj + pair[1], t=currentTime - 1)
+                        cmds.setKeyframe(o.activeObj + pair[1], t=currentTime - 1, v=oldTime)
 
         else:
             connList = (ConnX, ConnY, ConnZ) = self.RetrieveConn()
             chanList = ("x", "y", "z")
-            if constType == "Point":
+            if o.constType == "Point":
                 cType = "t"
-            elif constType == "Orient":
+            elif o.constType == "Orient":
                 cType = "r"
-            elif constType == "Scale":
+            elif o.constType == "Scale":
                 cType = "s"
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
                 for pair in zip(connList, chanList):
                     if pair[0]:
-                        oldTime = cmds.getAttr(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1)
-                        cmds.setKeyframe(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1, v=oldTime)
+                        oldTime = cmds.getAttr(o.activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1)
+                        cmds.setKeyframe(o.activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1, v=oldTime)
 
         # Constraint blend attribute
         try:
-            blendAttr = "{}.blend{}1".format(activeObj, constType)
+            blendAttr = "{}.blend{}1".format(o.activeObj, o.constType)
             PrevKey = cmds.findKeyframe(blendAttr, which="previous")
             PrevKeyVal = cmds.getAttr(blendAttr, time=PrevKey)
 
@@ -782,14 +782,14 @@ class ConstraintManager(object):
                     else:
                         cmds.setKeyframe(blendAttr, t=currentTime, v=wOn)
                         cmds.setAttr(blendAttr, wOn)
-                    cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                    cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
 
                 else:
                     if arg == "OFF":
                         cmds.setAttr(blendAttr, wOff)
                     else:
                         cmds.setAttr(blendAttr, wOn)
-                    cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                    cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
             else:
                 if cmds.checkBox(self.SwitchKey, q=True, value=True):
                     cmds.setKeyframe(blendAttr, t=currentTime - 1, v=PrevKeyVal)
@@ -810,18 +810,18 @@ class ConstraintManager(object):
             pass
 
         # Weights and offsets
-        if constType == "Parent":
-            for obj in selObjs:
-                selObjsInd = selObjs.index(obj)
+        if o.constType == "Parent":
+            for obj in o.selObjs:
+                selObjsInd = o.selObjs.index(obj)
 
                 weightAttr = cmds.connectionInfo(
-                    '{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True
+                    '{}.target[{}].targetWeight'.format(o.constObj, selObjsInd), sfd=True
                 )
                 PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
                 PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
 
-                PaT = '{}.target[{}].targetOffsetTranslate'.format(constObj, selObjsInd)
-                PaR = '{}.target[{}].targetOffsetRotate'.format(constObj, selObjsInd)
+                PaT = '{}.target[{}].targetOffsetTranslate'.format(o.constObj, selObjsInd)
+                PaR = '{}.target[{}].targetOffsetRotate'.format(o.constObj, selObjsInd)
 
                 PT = '{}.target[{}].targetOffsetTranslate{}'
                 PR = '{}.target[{}].targetOffsetRotate{}'
@@ -838,13 +838,13 @@ class ConstraintManager(object):
                 if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
                     if cmds.checkBox(self.SwitchKey, q=True, v=True):
                         # Set previous offset key
-                        cmds.setKeyframe(PT.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
-                        cmds.setKeyframe(PT.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
-                        cmds.setKeyframe(PT.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
+                        cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
+                        cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
+                        cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
 
-                        cmds.setKeyframe(PR.format(constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
-                        cmds.setKeyframe(PR.format(constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
-                        cmds.setKeyframe(PR.format(constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
+                        cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
+                        cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
+                        cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
 
                         # Set previous weight key
                         cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
@@ -863,9 +863,9 @@ class ConstraintManager(object):
                                 cmds.setKeyframe(weightAttr, t=currentTime, v=wOff)
                                 cmds.setAttr(weightAttr, wOff)
                         # Set current transform
-                        cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                        cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
                         # Update current offset
-                        cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+                        cmds.parentConstraint(selObjsNames, o.activeObj, e=True, mo=True)
                         # Set current offset key
                         cmds.setKeyframe(PaT, t=currentTime)
                         cmds.setKeyframe(PaR, t=currentTime)
@@ -881,9 +881,9 @@ class ConstraintManager(object):
                             else:
                                 cmds.setAttr(weightAttr, wOff)
                         # after set transforms
-                        cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                        cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
                         # after update offset
-                        cmds.parentConstraint(selObjsNames, activeObj, e=True, mo=True)
+                        cmds.parentConstraint(selObjsNames, o.activeObj, e=True, mo=True)
 
                 else:
                     if cmds.checkBox(self.SwitchKey, q=True, v=True):
@@ -916,31 +916,31 @@ class ConstraintManager(object):
                                 cmds.setAttr(weightAttr, wOff)
 
         else:
-            for obj in selObjs:
-                selObjsInd = selObjs.index(obj)
+            for obj in o.selObjs:
+                selObjsInd = o.selObjs.index(obj)
 
                 weightAttr = cmds.connectionInfo(
-                    '{}.target[{}].targetWeight'.format(constObj, selObjsInd), sfd=True
+                    '{}.target[{}].targetWeight'.format(o.constObj, selObjsInd), sfd=True
                 )
                 PrevWeightKey = cmds.findKeyframe(weightAttr, which="previous")
                 PrevWeightVal = cmds.getAttr(weightAttr, time=PrevWeightKey)
 
                 OffsetAx = '{}.offset{}'
 
-                PrevKeyOffX = cmds.findKeyframe(OffsetAx.format(constObj, "X"), which="previous")
-                PrevKeyOffY = cmds.findKeyframe(OffsetAx.format(constObj, "Y"), which="previous")
-                PrevKeyOffZ = cmds.findKeyframe(OffsetAx.format(constObj, "Z"), which="previous")
+                PrevKeyOffX = cmds.findKeyframe(OffsetAx.format(o.constObj, "X"), which="previous")
+                PrevKeyOffY = cmds.findKeyframe(OffsetAx.format(o.constObj, "Y"), which="previous")
+                PrevKeyOffZ = cmds.findKeyframe(OffsetAx.format(o.constObj, "Z"), which="previous")
 
-                PrevValOffX = cmds.getAttr(OffsetAx.format(constObj, "X"), time=PrevKeyOffX)
-                PrevValOffY = cmds.getAttr(OffsetAx.format(constObj, "Y"), time=PrevKeyOffY)
-                PrevValOffZ = cmds.getAttr(OffsetAx.format(constObj, "Z"), time=PrevKeyOffZ)
+                PrevValOffX = cmds.getAttr(OffsetAx.format(o.constObj, "X"), time=PrevKeyOffX)
+                PrevValOffY = cmds.getAttr(OffsetAx.format(o.constObj, "Y"), time=PrevKeyOffY)
+                PrevValOffZ = cmds.getAttr(OffsetAx.format(o.constObj, "Z"), time=PrevKeyOffZ)
 
                 if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
                     if cmds.checkBox(self.SwitchKey, q=True, v=True):
                         # Set previous offset key
-                        cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime - 1, v=PrevValOffX)
-                        cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime - 1, v=PrevValOffY)
-                        cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime - 1, v=PrevValOffZ)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "X"), t=currentTime - 1, v=PrevValOffX)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "Y"), t=currentTime - 1, v=PrevValOffY)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "Z"), t=currentTime - 1, v=PrevValOffZ)
 
                         # Set previous weight key
                         cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
@@ -963,18 +963,18 @@ class ConstraintManager(object):
                                 cmds.setKeyframe(weightAttr, t=currentTime, v=wOff)
                                 cmds.setAttr(weightAttr, wOff)
                         # Set current transform
-                        cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                        cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
                         # Update current offset
-                        if constType == "Point":
-                            cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
-                        elif constType == "Orient":
-                            cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
-                        elif constType == "Scale":
-                            cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+                        if o.constType == "Point":
+                            cmds.pointConstraint(selObjsNames, o.activeObj, e=True, mo=True)
+                        elif o.constType == "Orient":
+                            cmds.orientConstraint(selObjsNames, o.activeObj, e=True, mo=True)
+                        elif o.constType == "Scale":
+                            cmds.scaleConstraint(selObjsNames, o.activeObj, e=True, mo=True)
                         # Set current offset key
-                        cmds.setKeyframe(OffsetAx.format(constObj, "X"), t=currentTime)
-                        cmds.setKeyframe(OffsetAx.format(constObj, "Y"), t=currentTime)
-                        cmds.setKeyframe(OffsetAx.format(constObj, "Z"), t=currentTime)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "X"), t=currentTime)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "Y"), t=currentTime)
+                        cmds.setKeyframe(OffsetAx.format(o.constObj, "Z"), t=currentTime)
 
                     else:
                         # after set weights
@@ -988,14 +988,14 @@ class ConstraintManager(object):
                             else:
                                 cmds.setAttr(weightAttr, wOff)
                         # after set transforms
-                        cmds.xform(activeObj, matrix=ws, worldSpace=True)
+                        cmds.xform(o.activeObj, matrix=ws, worldSpace=True)
                         # after update offset
-                        if constType == "Point":
-                            cmds.pointConstraint(selObjsNames, activeObj, e=True, mo=True)
-                        elif constType == "Orient":
-                            cmds.orientConstraint(selObjsNames, activeObj, e=True, mo=True)
-                        elif constType == "Scale":
-                            cmds.scaleConstraint(selObjsNames, activeObj, e=True, mo=True)
+                        if o.constType == "Point":
+                            cmds.pointConstraint(selObjsNames, o.activeObj, e=True, mo=True)
+                        elif o.constType == "Orient":
+                            cmds.orientConstraint(selObjsNames, o.activeObj, e=True, mo=True)
+                        elif o.constType == "Scale":
+                            cmds.scaleConstraint(selObjsNames, o.activeObj, e=True, mo=True)
 
                 else:
                     if cmds.checkBox(self.SwitchKey, q=True, value=True):
@@ -1032,23 +1032,23 @@ class ConstraintManager(object):
                                 cmds.setAttr(weightAttr, wOff)
 
         # Channel keys after
-        if constType == "Parent":
+        if o.constType == "Parent":
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
                 for pair in zip(parList, chanList):
                     if pair[0]:
-                        cmds.setKeyframe(activeObj + pair[1], t=currentTime)
+                        cmds.setKeyframe(o.activeObj + pair[1], t=currentTime)
 
         else:
-            if constType == "Point":
+            if o.constType == "Point":
                 cType = "t"
-            elif constType == "Orient":
+            elif o.constType == "Orient":
                 cType = "r"
-            elif constType == "Scale":
+            elif o.constType == "Scale":
                 cType = "s"
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
                 for pair in zip(connList, chanList):
                     if pair[0]:
-                        cmds.setKeyframe(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime)
+                        cmds.setKeyframe(o.activeObj + ".{}{}".format(cType, pair[1]), t=currentTime)
 
     def RetrieveObj(self):
         textlist = self.itemList
@@ -1082,7 +1082,7 @@ class ConstraintManager(object):
         return RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
 
     def RetrieveConn(self):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
 
         def _connVal(constType, chType, axis):
             activeConn = cmds.listConnections(activeObj + ".{}{}".format(chType, axis), source=True)
@@ -1096,15 +1096,15 @@ class ConstraintManager(object):
             else:
                 return False
 
-        if constType == "Parent":
+        if o.constType == "Parent":
             RetrievedConn = namedtuple("RetrievedConn", ["TX", "TY", "TZ", "RX", "RY", "RZ"])
 
-            TX = _connVal(constType, "t", "x")
-            TY = _connVal(constType, "t", "y")
-            TZ = _connVal(constType, "t", "z")
-            RX = _connVal(constType, "r", "x")
-            RY = _connVal(constType, "r", "y")
-            RZ = _connVal(constType, "r", "z")
+            TX = _connVal(o.constType, "t", "x")
+            TY = _connVal(o.constType, "t", "y")
+            TZ = _connVal(o.constType, "t", "z")
+            RX = _connVal(o.constType, "r", "x")
+            RY = _connVal(o.constType, "r", "y")
+            RZ = _connVal(o.constType, "r", "z")
 
             return RetrievedConn(TX, TY, TZ, RX, RY, RZ)
 
@@ -1112,16 +1112,16 @@ class ConstraintManager(object):
             RetrievedConn = namedtuple("RetrievedConn", ["ConnX", "ConnY", "ConnZ"])
 
             # Constraint type to determine channels queried
-            if constType == "Point":
+            if o.constType == "Point":
                 chType = "t"
-            elif constType == "Orient":
+            elif o.constType == "Orient":
                 chType = "r"
-            elif constType == "Scale":
+            elif o.constType == "Scale":
                 chType = "s"
 
-            ConnX = _connVal(constType, chType, "x")
-            ConnY = _connVal(constType, chType, "y")
-            ConnZ = _connVal(constType, chType, "z")
+            ConnX = _connVal(o.constType, chType, "x")
+            ConnY = _connVal(o.constType, chType, "y")
+            ConnZ = _connVal(o.constType, chType, "z")
 
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
@@ -1141,7 +1141,7 @@ class ConstraintManager(object):
                 om.MGlobal.displayInfo("No constraint manager data found.")
 
     def CleanData(self, arg=None):
-        activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
+        o = self.RetrieveObj()
 
         if arg == "Purge":
             if cmds.confirmDialog(
@@ -1153,7 +1153,7 @@ class ConstraintManager(object):
                 cmds.fileInfo(rm="ConMan_data")
                 om.MGlobal.displayWarning("Constraint data has been purged.")
         else:
-            self.ListUpdate(activeObj, clean=True)
+            self.ListUpdate(o.activeObj, clean=True)
             om.MGlobal.displayInfo("Constraint data has been cleaned.")
 
         self.UpdateUI()
