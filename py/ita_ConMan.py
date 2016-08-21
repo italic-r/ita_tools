@@ -1114,76 +1114,27 @@ class ConstraintManager(object):
     def RetrieveConn(self):
         activeObj, activeObjU, constType, constUUID, constObj, selObjs = self.RetrieveObj()
 
+        def _connVal(constType, chType, axis):
+            activeConn = cmds.listConnections(activeObj + ".{}{}".format(chType, axis), source=True)
+            nType = cmds.nodeType(activeConn)
+            if nType == "pairBlend":
+                blendConn = cmds.listConnections(activeConn, source=True)
+                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
+                    return True
+            elif nType == "{}Constraint".format(constType.lower()):
+                return True
+            else:
+                return False
+
         if constType == "Parent":
             RetrievedConn = namedtuple("RetrievedConn", ["TX", "TY", "TZ", "RX", "RY", "RZ"])
 
-            activeConn = cmds.listConnections(activeObj + ".tx", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    TX = True
-            elif nType == "parentConstraint":
-                TX = True
-            else:
-                TX = False
-
-            activeConn = cmds.listConnections(activeObj + ".ty", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    TY = True
-            elif nType == "parentConstraint":
-                TY = True
-            else:
-                TY = False
-
-            activeConn = cmds.listConnections(activeObj + ".tz", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    TZ = True
-            elif nType == "parentConstraint":
-                TZ = True
-            else:
-                TZ = False
-
-            # ============
-
-            activeConn = cmds.listConnections(activeObj + ".rx", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    RX = True
-            elif nType == "parentConstraint":
-                RX = True
-            else:
-                RX = False
-
-            activeConn = cmds.listConnections(activeObj + ".ry", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    RY = True
-            elif nType == "parentConstraint":
-                RY = True
-            else:
-                RY = False
-
-            activeConn = cmds.listConnections(activeObj + ".rz", source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "parentConstraint" in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    RZ = True
-            elif nType == "parentConstraint":
-                RZ = True
-            else:
-                RZ = False
+            TX = _connVal(constType, "t", "x")
+            TY = _connVal(constType, "t", "y")
+            TZ = _connVal(constType, "t", "z")
+            RX = _connVal(constType, "r", "x")
+            RY = _connVal(constType, "r", "y")
+            RZ = _connVal(constType, "r", "z")
 
             return RetrievedConn(TX, TY, TZ, RX, RY, RZ)
 
@@ -1198,44 +1149,11 @@ class ConstraintManager(object):
             elif constType == "Scale":
                 chType = "s"
 
-            activeConn = cmds.listConnections(activeObj + ".{}x".format(chType), source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    ConnX = True
-            elif nType == "{}Constraint".format(constType.lower()):
-                ConnX = True
-            else:
-                ConnX = False
-
-            activeConn = cmds.listConnections(activeObj + ".{}y".format(chType), source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    ConnY = True
-            elif nType == "{}Constraint".format(constType.lower()):
-                ConnY = True
-            else:
-                ConnY = False
-
-            activeConn = cmds.listConnections(activeObj + ".{}z".format(chType), source=True)
-            nType = cmds.nodeType(activeConn)
-            if nType == "pairBlend":
-                blendConn = cmds.listConnections(activeConn, source=True)
-                if "{}Constraint".format(constType.lower()) in [cmds.nodeType(nType2) for nType2 in blendConn]:
-                    ConnZ = True
-            elif nType == "{}Constraint".format(constType.lower()):
-                ConnZ = True
-            else:
-                ConnZ = False
+            ConnX = _connVal(constType, chType, "x")
+            ConnY = _connVal(constType, chType, "y")
+            ConnZ = _connVal(constType, chType, "z")
 
             return RetrievedConn(ConnX, ConnY, ConnZ)
-
-    def OpenCallback(self, arg=None):
-        self.CheckPkl()
-        self.CleanData()
 
     def CheckPkl(self, arg=None):
         if arg == "Write":
@@ -1269,6 +1187,10 @@ class ConstraintManager(object):
             om.MGlobal.displayInfo("Constraint data has been cleaned.")
 
         self.UpdateUI()
+
+    def OpenCallback(self, arg=None):
+        self.CheckPkl()
+        self.CleanData()
 
 
 if "CMan" not in locals().keys():
