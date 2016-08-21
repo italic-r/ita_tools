@@ -518,6 +518,16 @@ class ConstraintManager(object):
 
         if len(selNodes) < 1:
             om.MGlobal.displayError("Select a supported constraint node.")
+            sys.exit()
+
+        def _checkConn(constObj, ty, axis):
+            activeConn = cmds.listConnections(constObj + ".c{}{}".format(ty, ax))
+            if activeConn is not None:
+                if cmds.nodeType(activeConn) == "pairBlend":
+                    blendOut = cmds.listConnections(activeConn[0] + ".o{}{}".format(ty, ax), d=True)
+                    return blendOut[0]
+                else:
+                    return activeConn[0]
 
         for obj in selNodes:
             conns = []
@@ -533,50 +543,20 @@ class ConstraintManager(object):
             if cmds.nodeType(constObj) == "parentConstraint":
                 constType = "Parent"
                 for ax in axes:
-                    activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
-                    if activeT is not None:
-                        if cmds.nodeType(activeT) == "pairBlend":
-                            blendOut = cmds.listConnections(activeT[0] + ".ot{}".format(ax), d=True)
-                            conns.append(blendOut[0])
-                        else:
-                            conns.append(activeT[0])
-                    activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
-                    if activeR is not None:
-                        if cmds.nodeType(activeR) == "pairBlend":
-                            blendOut = cmds.listConnections(activeR[0] + ".or{}".format(ax), d=True)
-                            conns.append(blendOut[0])
-                        else:
-                            conns.append(activeR[0])
+                    conns.append(_checkConn(constObj, "t", ax))
+                    conns.append(_checkConn(constObj, "r", ax))
             elif cmds.nodeType(constObj) == "pointConstraint":
                 constType = "Point"
                 for ax in axes:
-                    activeT = cmds.listConnections(constObj + ".ct{}".format(ax))
-                    if activeT is not None:
-                        if cmds.nodeType(activeT) == "pairBlend":
-                            blendOut = cmds.listConnections(activeT[0] + ".ot{}".format(ax), d=True)
-                            conns.append(blendOut[0])
-                        else:
-                            conns.append(activeT[0])
+                    conns.append(_checkConn(constObj, "t", ax))
             elif cmds.nodeType(constObj) == "orientConstraint":
                 constType = "Orient"
                 for ax in axes:
-                    activeR = cmds.listConnections(constObj + ".cr{}".format(ax))
-                    if activeR is not None:
-                        if cmds.nodeType(activeR) == "pairBlend":
-                            blendOut = cmds.listConnections(activeR[0] + ".or{}".format(ax), d=True)
-                            conns.append(blendOut[0])
-                        else:
-                            conns.append(activeR[0])
+                    conns.append(_checkConn(constObj, "r", ax))
             elif cmds.nodeType(constObj) == "scaleConstraint":
                 constType = "Scale"
                 for ax in axes:
-                    activeS = cmds.listConnections(constObj + ".cs{}".format(ax))
-                    if activeS is not None:
-                        if cmds.nodeType(activeS) == "pairBlend":
-                            blendOut = cmds.listConnections(activeS[0] + ".os{}".format(ax), d=True)
-                            conns.append(blendOut[0])
-                        else:
-                            conns.append(activeS[0])
+                    conns.append(_checkConn(constObj, "s", ax))
             else:
                 om.MGlobal.displayError("Only parent, point, orient and scale constraints are supported.")
                 sys.exit()
@@ -585,7 +565,7 @@ class ConstraintManager(object):
             activeObj = list(set(conns))[0]
             activeUUID = cmds.ls(activeObj, uuid=True)[0]
             selectedUUID = []
-            selObjs = [
+            selObjs = [  # Cannot use generator because gens are lazy
                 cmds.ls(obj, uuid=True)[0]
                 for obj in set(cmds.listConnections(constObj + ".tg"))
                 if "constraint" not in cmds.nodeType(obj, i=True)
