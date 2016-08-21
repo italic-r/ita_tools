@@ -744,29 +744,17 @@ class ConstraintManager(object):
 
         # Channel keys before
         if constType == "Parent":
-            TX, TY, TZ, RX, RY, RZ = self.RetrieveConn()
+            parList = (TX, TY, TZ, RX, RY, RZ) = self.RetrieveConn()
+            chanList = (".tx", ".ty", ".tz", ".rx", ".ry", ".rz")
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
-                if TX:
-                    oldTime = cmds.getAttr(activeObj + ".tx", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".tx", t=currentTime - 1, v=oldTime)
-                if TY:
-                    oldTime = cmds.getAttr(activeObj + ".ty", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".ty", t=currentTime - 1, v=oldTime)
-                if TZ:
-                    oldTime = cmds.getAttr(activeObj + ".tz", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".tz", t=currentTime - 1, v=oldTime)
-                if RX:
-                    oldTime = cmds.getAttr(activeObj + ".rx", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".rx", t=currentTime - 1, v=oldTime)
-                if RY:
-                    oldTime = cmds.getAttr(activeObj + ".ry", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".ry", t=currentTime - 1, v=oldTime)
-                if RZ:
-                    oldTime = cmds.getAttr(activeObj + ".rz", t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".rz", t=currentTime - 1, v=oldTime)
+                for pair in zip(parList, chanList):
+                    if pair[0]:
+                        oldTime = cmds.getAttr(activeObj + pair[1], t=currentTime - 1)
+                        cmds.setKeyframe(activeObj + pair[1], t=currentTime - 1, v=oldTime)
 
         else:
-            ConnX, ConnY, ConnZ = self.RetrieveConn()
+            connList = (ConnX, ConnY, ConnZ) = self.RetrieveConn()
+            chanList = ("x", "y", "z")
             if constType == "Point":
                 cType = "t"
             elif constType == "Orient":
@@ -774,15 +762,10 @@ class ConstraintManager(object):
             elif constType == "Scale":
                 cType = "s"
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
-                if ConnX:
-                    oldTime = cmds.getAttr(activeObj + ".{}x".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".{}x".format(cType), t=currentTime - 1, v=oldTime)
-                if ConnY:
-                    oldTime = cmds.getAttr(activeObj + ".{}y".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".{}y".format(cType), t=currentTime - 1, v=oldTime)
-                if ConnZ:
-                    oldTime = cmds.getAttr(activeObj + ".{}z".format(cType), t=currentTime - 1)
-                    cmds.setKeyframe(activeObj + ".{}z".format(cType), t=currentTime - 1, v=oldTime)
+                for pair in zip(connList, chanList):
+                    if pair[0]:
+                        oldTime = cmds.getAttr(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1)
+                        cmds.setKeyframe(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime - 1, v=oldTime)
 
         # Constraint blend attribute
         try:
@@ -1051,21 +1034,11 @@ class ConstraintManager(object):
         # Channel keys after
         if constType == "Parent":
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
-                if TX:
-                    cmds.setKeyframe(activeObj + ".tx", t=currentTime)
-                if TY:
-                    cmds.setKeyframe(activeObj + ".ty", t=currentTime)
-                if TZ:
-                    cmds.setKeyframe(activeObj + ".tz", t=currentTime)
-                if RX:
-                    cmds.setKeyframe(activeObj + ".rx", t=currentTime)
-                if RY:
-                    cmds.setKeyframe(activeObj + ".ry", t=currentTime)
-                if RZ:
-                    cmds.setKeyframe(activeObj + ".rz", t=currentTime)
+                for pair in zip(parList, chanList):
+                    if pair[0]:
+                        cmds.setKeyframe(activeObj + pair[1], t=currentTime)
 
         else:
-            ConnX, ConnY, ConnZ = self.RetrieveConn()
             if constType == "Point":
                 cType = "t"
             elif constType == "Orient":
@@ -1073,12 +1046,9 @@ class ConstraintManager(object):
             elif constType == "Scale":
                 cType = "s"
             if cmds.checkBox(self.SwitchKey, q=True, v=True):
-                if ConnX:
-                    cmds.setKeyframe(activeObj + ".{}x".format(cType), t=currentTime)
-                if ConnY:
-                    cmds.setKeyframe(activeObj + ".{}y".format(cType), t=currentTime)
-                if ConnZ:
-                    cmds.setKeyframe(activeObj + ".{}z".format(cType), t=currentTime)
+                for pair in zip(connList, chanList):
+                    if pair[0]:
+                        cmds.setKeyframe(activeObj + ".{}{}".format(cType, pair[1]), t=currentTime)
 
     def RetrieveObj(self):
         textlist = self.itemList
