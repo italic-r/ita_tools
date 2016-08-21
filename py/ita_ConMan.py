@@ -1085,7 +1085,7 @@ class ConstraintManager(object):
         o = self.RetrieveObj()
 
         def _connVal(constType, chType, axis):
-            activeConn = cmds.listConnections(activeObj + ".{}{}".format(chType, axis), source=True)
+            activeConn = cmds.listConnections(o.activeObj + ".{}{}".format(chType, axis), source=True)
             nType = cmds.nodeType(activeConn)
             if nType == "pairBlend":
                 blendConn = cmds.listConnections(activeConn, source=True)
@@ -1165,7 +1165,7 @@ class ConstraintManager(object):
 
 if "CMan" not in locals().keys():
     CMan = ConstraintManager()
-elif "CMan" in locals().keys() and not cmds.window(CMan.window, exists=True):
+elif "CMan" in locals().keys() and cmds.window(CMan.window, exists=True) is False:
     CMan = ConstraintManager()
 else:
     cmds.showWindow(CMan.window)
