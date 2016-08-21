@@ -355,6 +355,8 @@ class ConstraintManager(object):
         print("Started constraint manager")
 
     def DestroyUI(self):
+        self.CheckPkl(arg="Write")
+
         if cmds.window(self.helpWindow, exists=True):
             cmds.deleteUI(self.helpWindow)
 
@@ -1290,4 +1292,9 @@ class ConstraintManager(object):
         self.UpdateUI()
 
 
-CMan = ConstraintManager()
+if "CMan" not in locals().keys():
+    CMan = ConstraintManager()
+elif "CMan" in locals().keys() and not cmds.window(CMan.window, exists=True):
+    CMan = ConstraintManager()
+else:
+    cmds.showWindow(CMan.window)
