@@ -920,7 +920,6 @@ class ConstraintManager(object):
                             else:
                                 cmds.setKeyframe(weightAttr, t=currentTime, v=wOff)
                                 cmds.setAttr(weightAttr, wOff)
-                        cmds.setAttr(weightAttr, wOff)
 
                     else:
                         if arg == "OFF":
