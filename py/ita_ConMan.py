@@ -1167,5 +1167,3 @@ if "CMan" not in locals().keys():
     CMan = ConstraintManager()
 elif "CMan" in locals().keys() and cmds.window(CMan.window, exists=True) is False:
     CMan = ConstraintManager()
-else:
-    cmds.showWindow(CMan.window)
