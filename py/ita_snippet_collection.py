@@ -168,6 +168,7 @@ def TanLock(arg=None):
 
 
 def skCluster():
+    """Turns off custom normals on skin clusters (old problem in old Mayas)"""
     sceneGeo = cmds.ls(g=True)
     if len(sceneGeo) != 0:
         charSC = [skin for skin in cmds.listConnections(sceneGeo, type='skinCluster')]
@@ -178,7 +179,7 @@ def skCluster():
 
 def cacheVP():
     """
-    Cache viewport geometry for playback
+    //Cache viewport geometry for playback
 
     undoInfo -stateWithoutFlush off;
 
