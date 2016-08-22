@@ -169,10 +169,11 @@ def TanLock(arg=None):
 
 def skCluster():
     sceneGeo = cmds.ls(g=True)
-    charSC = [skin for skin in cmds.listConnections(sceneGeo, type='skinCluster')]
+    if len(sceneGeo) != 0:
+        charSC = [skin for skin in cmds.listConnections(sceneGeo, type='skinCluster')]
 
-    for sc in charSC:
-        cmds.setAttr((sc + '.deformUserNormals'), False)
+        for sc in charSC:
+            cmds.setAttr((sc + '.deformUserNormals'), False)
 
 
 def cacheVP():
