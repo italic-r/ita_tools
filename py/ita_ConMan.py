@@ -532,6 +532,7 @@ class ConstraintManager(object):
         for obj in selNodes:
             conns = []
             if cmds.nodeType(obj) not in supported:
+                om.MGlobal.displayInfo("Node not a supported constraint")
                 continue
             else:
                 pass
