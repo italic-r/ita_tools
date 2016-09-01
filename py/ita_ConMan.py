@@ -537,49 +537,44 @@ class ConstraintManager(object):
             else:
                 pass
 
-            constObj = obj
-            constUUID = cmds.ls(constObj, uuid=True)[0]
-
             # Check constraint type and targets
-            if cmds.nodeType(constObj) == "parentConstraint":
+            if cmds.nodeType(obj) == "parentConstraint":
                 constType = "Parent"
+                selObjs = cmds.parentConstraint(obj, q=True, tl=True)
                 for ax in axes:
-                    conns.append(_checkConn(constObj, "t", ax))
-                    conns.append(_checkConn(constObj, "r", ax))
-            elif cmds.nodeType(constObj) == "pointConstraint":
+                    conns.append(_checkConn(obj, "t", ax))
+                    conns.append(_checkConn(obj, "r", ax))
+            elif cmds.nodeType(obj) == "pointConstraint":
                 constType = "Point"
+                selObjs = cmds.pointConstraint(obj, q=True, tl=True)
                 for ax in axes:
-                    conns.append(_checkConn(constObj, "t", ax))
-            elif cmds.nodeType(constObj) == "orientConstraint":
+                    conns.append(_checkConn(obj, "t", ax))
+            elif cmds.nodeType(obj) == "orientConstraint":
                 constType = "Orient"
+                selObjs = cmds.orientConstraint(obj, q=True, tl=True)
                 for ax in axes:
-                    conns.append(_checkConn(constObj, "r", ax))
-            elif cmds.nodeType(constObj) == "scaleConstraint":
+                    conns.append(_checkConn(obj, "r", ax))
+            elif cmds.nodeType(obj) == "scaleConstraint":
                 constType = "Scale"
+                selObjs = cmds.scaleConstraint(obj, q=True, tl=True)
                 for ax in axes:
-                    conns.append(_checkConn(constObj, "s", ax))
+                    conns.append(_checkConn(obj, "s", ax))
             else:
                 om.MGlobal.displayError("Only parent, point, orient and scale constraints are supported.")
                 sys.exit()
 
-            # Check connections
+            # Set names, data for storage
+            constObj = obj
+            constUUID = cmds.ls(constObj, uuid=True)[0]
             activeObj = list(set(conns))[0]
             activeUUID = cmds.ls(activeObj, uuid=True)[0]
             selectedUUID = []
-            selObjs = [  # Cannot use generator because gens are lazy
-                cmds.ls(obj, uuid=True)[0]
-                for obj in set(cmds.listConnections(constObj + ".tg"))
-                if "constraint" not in cmds.nodeType(obj, i=True)
-            ]
 
-            # Sort targets in UUID list
-            for ind in range(len(selObjs)):
-                activeTG = cmds.listConnections(
-                    constObj + ".target[{}].targetParentMatrix".format(ind)
-                )
-                selectedUUID.append(cmds.ls(activeTG[0], uuid=True)[0])
+            # Get target UUIDs
+            for obj in selObjs:
+                selectedUUID.append(cmds.ls(obj, uuid=True)[0])
 
-            # Add to list?
+            # Add to list
             self.ConstList[(activeUUID, constType)] = constUUID, tuple(selectedUUID)
             newEntry = "{}  |  {}".format(activeObj, constType)
             self.ListUpdate(newEntry)
