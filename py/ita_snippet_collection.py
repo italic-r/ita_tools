@@ -239,3 +239,18 @@ def resetVP():
     cmds.modelEditor(panType, e=True, ca=True)
     cmds.modelEditor(panType, e=True, mt=True)
     cmds.modelEditor(panType, e=True, tsl=True)
+
+
+def useOSD():
+    """
+    Use OSD non-adaptive, 1 subdivision, enable OCL, low OCL tesselation.
+    """
+
+    selMesh = cmds.ls(type='mesh')
+
+    for msh in selMesh:
+        cmds.setAttr(msh + ".useGlobalSmoothDrawType", False)
+        cmds.setAttr(msh + ".smoothDrawType", 2)
+        cmds.setAttr(msh + ".smoothLevel", 1)
+        cmds.setAttr(msh + ".enableOpenCL", True)
+        cmds.setAttr(msh + ".smoothTessLevel", 2)
