@@ -1,17 +1,16 @@
 '''
-Copyright Jeffrey "Italic_" Hoover 2016
-
 This script is licensed under the Apache 2.0 license.
 See details of this license here:
 https://www.apache.org/licenses/LICENSE-2.0
 
 To use the script, run:
-import DefaultCameraChecker
-DefaultCameraChecker.init()
+import ita_DefaultCameraChecker
+ita_DefaultCameraChecker.init()
 
 To reset default PB camera, run:
-import DefaultCameraChecker
-reload(DefaultCameraChecker)
+import ita_DefaultCameraChecker
+reload(ita_DefaultCameraChecker)
+ita_DefaultCameraChecker.init()
 
 To disable 2D Pan & Zoom removal, comment out line 148 with a #
 
@@ -19,9 +18,9 @@ For help, call:
 DefaultCameraChecker.helpCall()
 or open the help from the script UI.
 
-Jeffrey "Italic_" Hoover
-22 March 2016
-v2.1
+Jeffrey "italic" Hoover
+16 October 2016
+v2.2
 '''
 
 import maya.cmds as cmds
@@ -180,7 +179,7 @@ def helpCall(*args):
         'Help - opens this help window.\n'
         '\n'
         'by Jeffrey "Italic_" Hoover'
-        )
+    )
 
     if cmds.window(helpID, exists=True):
         cmds.deleteUI(helpID)
@@ -249,8 +248,3 @@ def init():
         cmds.lookThru(activepanel, customPBcam)  # Global default PB cam
         blast()
         cmds.lookThru(activepanel, cam)  # Return to original camera
-
-init()
-
-if __name__ == "__main__":
-    init()
