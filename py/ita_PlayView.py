@@ -3,11 +3,16 @@
 cmds.lsUI(windows)
 Primary window: "MayaWindow"
 
+# Get top-left corner coordinates and width/height of window
+cmds.window(windowname, q, topLeftCorner, widthHeight)
+
 # Visible panels only
 cmds.getPanel(vis=True)
 
 # Full path of panel + control + window
-cmds.panel(panelname, q, control)
+p = cmds.panel(panelname, q, control)
+# Only parent controls + window
+ctrl = "|".join(p.split("|")[:-1])
 
 # Layout preset to determine button layout
 cmds.paneLayout(controlname, q, configuration, activePane, activePaneIndex, parent)
@@ -19,13 +24,10 @@ cmds.paneLayout(controlname, q, configuration, activePane, activePaneIndex, pare
     "quad"
 
 # Similar to paneLayout
-cmds.layout(layoutname, q, configuration) == "single"
+cmds.layout(layoutname, q, configuration)
 
-# Get top-left corner coordinates and width/height of window
-cmds.window(windowname, q, topLeftCorner, widthHeight)
-
-# Explicitly set focus to a particular panel
-cmds.setFocus(panelname)
+# Explicitly set focus to a particular panel - do not use window or layout names
+cmds.setFocus('modelPanel1')
 
 place a window + button at center of each window, without frame?
 for w in windows:
@@ -40,7 +42,7 @@ import maya.mel as mel
 
 windowID = 'PlayView'
 helpID = 'PlayViewHelp'
-custom_viewport = ""  # Saves modelEditor name for future playback
+custom_viewport = ""  # Saves modelPanel name for future playback
 
 
 def get_layout_config(window):
