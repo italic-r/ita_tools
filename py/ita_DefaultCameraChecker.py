@@ -229,7 +229,6 @@ def check_camera_name():
 
 def init():
     """Initiate camera name comparison."""
-    global customPBcam
     global customPBcamTmp
     customPBcamTmp = ""
 
