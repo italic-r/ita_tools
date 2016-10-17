@@ -1,10 +1,16 @@
 """
-cmds.lsUI(windows=True)
+# Window ID strings only
+cmds.lsUI(windows)
 Primary window: "MayaWindow"
 
-cmds.panel(panelname, q=True, control=True)
+# Visible panels only
+cmds.getPanel(vis=True)
 
-cmds.paneLayout(controlname, q=True, configuration=True)
+# Full path of panel + control + window
+cmds.panel(panelname, q, control)
+
+# Layout preset to determine button layout
+cmds.paneLayout(controlname, q, configuration, activePane, activePaneIndex, parent)
     "single",
     "horizontal2", "vertical2",
     "horizontal3", "vertical3",
@@ -12,10 +18,13 @@ cmds.paneLayout(controlname, q=True, configuration=True)
     "horizontal4", "vertical4", "top4", "left4", "bottom4", "right4",
     "quad"
 
-cmds.layout(layoutname, q=True, configuration=True) == "single"
+# Similar to paneLayout
+cmds.layout(layoutname, q, configuration) == "single"
 
-cmds.window(windowname, q=True, tlc=True, wh=True)
+# Get top-left corner coordinates and width/height of window
+cmds.window(windowname, q, topLeftCorner, widthHeight)
 
+# Explicitly set focus to a particular panel
 cmds.setFocus(panelname)
 
 place a window + button at center of each window, without frame?
@@ -34,6 +43,10 @@ helpID = 'PlayViewHelp'
 custom_viewport = ""  # Saves modelEditor name for future playback
 
 
+def get_layout_config(window):
+    pass
+
+
 def draw_window_main(pWindowTitle):
     """Draw the main window."""
     destroy_window()
@@ -41,51 +54,35 @@ def draw_window_main(pWindowTitle):
     cmds.window(
         windowID,
         title=pWindowTitle,
-        sizeable=True,
+        sizeable=False,
         resizeToFitChildren=True
     )
-
     rowcol = cmds.rowColumnLayout(
         numberOfColumns=1,
-        columnWidth=[(1, 250)],
+        columnWidth=[(1, 245)],
         columnOffset=[(1, 'both', 5)]
     )
-
-    cmds.text(label='You are trying to playblast from a default camera!')
-    cmds.separator(h=10, style='none')
-    cmds.rowLayout(
-        parent=rowcol,
-        numberOfColumns=3,
-        columnAttach=[(1, 'left', 1),
-                      (2, 'left', 1),
-                      (3, 'both', 1)],
-        columnWidth=[(1, 35),  # Total == 250 - margins
-                     (2, 85),
-                     (3, 112)]
-    )
-    cmds.button(label='Help')
-    makeDefault = cmds.checkBox(label='Make Default')
-
-    makeDefaultMenu = cmds.optionMenu(label='')
-    cmds.menuItem(label='')
-
+    cmds.text(label='Select a viewport to play from.')
+    cmds.separator(h=5, style='none')
     cmds.rowLayout(
         parent=rowcol,
         numberOfColumns=3,
         columnAttach=[
-            (1, 'both', 2),
-            (2, 'both', 2),
-            (3, 'both', 2)
+            (1, 'both', 0),
+            (2, 'both', 5),
+            (3, 'both', 0)
         ],
         columnWidth=[
-            (1, 123),
-            (2, 50),
-            (3, 60)
+            (1, 75),  # Total == 250 - margins
+            (2, 90),
+            (3, 75)
         ]
     )
-    cmds.separator(h=10, style='none')
-    cmds.button(label='OK!')
-    cmds.button(label='Continue')
+    cmds.button(label='Help', command=help_call)
+    makeDefault = cmds.checkBox(label='Make Default')
+    cmds.button(label='Cancel', command=destroy_window)
+
+    cmds.separator(parent=rowcol, h=5, style='none')
 
     cmds.showWindow()
 
