@@ -25,9 +25,69 @@ cmds.window(windowname, q=True, tlc=True, wh=True)
 
 cmds.setFocus(panelname)
 
-scale elements by 0.15 (1920/1080 -> 288/162)
-
+place a window + button at center of each window, without frame?
+for w in windows:
+    get layout config,
+    make single window,
+    button grid layout to match,
+    any button closes all windows
 """
+
+
+def draw_window_main(pWindowTitle):
+    """Draw the warning window."""
+    # destroy_window()
+
+    cmds.window(
+        windowID,
+        title=pWindowTitle,
+        sizeable=True,
+        resizeToFitChildren=True
+    )
+
+    rowcol = cmds.rowColumnLayout(
+        numberOfColumns=1,
+        columnWidth=[(1, 250)],
+        columnOffset=[(1, 'both', 5)]
+    )
+
+    cmds.text(label='You are trying to playblast from a default camera!')
+    cmds.separator(h=10, style='none')
+    cmds.rowLayout(
+        parent=rowcol,
+        numberOfColumns=3,
+        columnAttach=[(1, 'left', 1),
+                      (2, 'left', 1),
+                      (3, 'both', 1)],
+        columnWidth=[(1, 35),  # Total == 250 - margins
+                     (2, 85),
+                     (3, 112)]
+    )
+    cmds.button(label='Help')
+    makeDefault = cmds.checkBox(label='Make Default')
+
+    makeDefaultMenu = cmds.optionMenu(label='')
+    cmds.menuItem(label='')
+
+    cmds.rowLayout(
+        parent=rowcol,
+        numberOfColumns=3,
+        columnAttach=[
+            (1, 'both', 2),
+            (2, 'both', 2),
+            (3, 'both', 2)
+        ],
+        columnWidth=[
+            (1, 123),
+            (2, 50),
+            (3, 60)
+        ]
+    )
+    cmds.separator(h=10, style='none')
+    cmds.button(label='OK!')
+    cmds.button(label='Continue')
+
+    cmds.showWindow()
 
 
 def help_call(*args):
