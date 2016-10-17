@@ -1,10 +1,3 @@
-import maya.cmds as cmds
-import maya.mel as mel
-
-windowID = 'PlayView'
-helpID = 'PlayViewHelp'
-custom_viewport = ""  # Saves modelEditor name for future playback
-
 """
 cmds.lsUI(windows=True)
 Primary window: "MayaWindow"
@@ -33,10 +26,17 @@ for w in windows:
     any button closes all windows
 """
 
+import maya.cmds as cmds
+import maya.mel as mel
+
+windowID = 'PlayView'
+helpID = 'PlayViewHelp'
+custom_viewport = ""  # Saves modelEditor name for future playback
+
 
 def draw_window_main(pWindowTitle):
-    """Draw the warning window."""
-    # destroy_window()
+    """Draw the main window."""
+    destroy_window()
 
     cmds.window(
         windowID,
