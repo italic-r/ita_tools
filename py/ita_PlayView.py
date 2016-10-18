@@ -45,10 +45,6 @@ helpID = 'PlayViewHelp'
 custom_viewport = ""  # Saves modelPanel name for future playback
 
 
-def get_layout_config(window):
-    pass
-
-
 def draw_window_main(pWindowTitle):
     """Draw the main window."""
     destroy_window()
@@ -87,6 +83,18 @@ def draw_window_main(pWindowTitle):
     cmds.separator(parent=rowcol, h=5, style='none')
 
     cmds.showWindow()
+
+
+def get_layout_config(control):
+    """Get layout's configuration."""
+    return cmds.paneLayout(control, q=True, configuration=True)
+
+
+def get_window_center(window):
+    """Get window's center position."""
+    WH = [l // 2 for l in cmds.window(window, q=True, wh=True)]
+    TLC = cmds.window(window, q=True, tlc=True)
+    return [sum(x) for x in zip(WH, TLC)]
 
 
 def help_call(*args):
