@@ -90,6 +90,359 @@ def get_layout_config(control):
     return cmds.paneLayout(control, q=True, configuration=True)
 
 
+def button_grid(layout_config=None, *args):
+    """Make a UI grid layout based on result from get_layout_config()."""
+
+    if layout_config == "single":
+        # 3*3, center button
+        RC = cmds.columnLayout()
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "quad":
+        # 4*4
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "horizontal2":
+        # 3*4, center 2 buttons
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "vertical2":
+        # 4*3, center 2 buttons
+        RC = cmds.rowColumnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "horizontal3":
+        # 3*5, center 3 buttons
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+
+        return RC
+    elif layout_config == "vertical3":
+        # 5*3, center 3 buttons
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "top3":
+        # 4*4, top 2, buttom 1
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "left3":
+        # 4*4
+        # RC = cmds.columnLayout()
+
+        # cmds.rowLayout(parent=RC, nc=1)
+        # cmds.separator(h=5, style='none')
+
+        # cmds.rowLayout(parent=RC, nc=1)
+        # cmds.separator(h=5, style='none')
+
+        # return RC
+        pass
+    elif layout_config == "bottom3":
+        # 4*4
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[2])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+        pass
+    elif layout_config == "right3":
+        # 4*4
+        # RC = cmds.columnLayout()
+
+        # cmds.rowLayout(parent=RC, nc=1)
+        # cmds.separator(h=5, style='none')
+
+        # cmds.rowLayout(parent=RC, nc=1)
+        # cmds.separator(h=5, style='none')
+
+        # return RC
+        pass
+    elif layout_config == "horizontal4":
+        # 3*6
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "vertical4":
+        # 6*3
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=6)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.button(label="", command=args[2])
+        cmds.button(label="", command=args[3])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "top4":
+        # 5*4
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[1])
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "left4":
+        # 4*5
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "bottom4":
+        # 5*4
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=5)
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.button(label="", command=args[2])
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+    elif layout_config == "right4":
+        # 4*5
+        RC = cmds.columnLayout()
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=5)
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[1])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=5)
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[0])
+        cmds.button(label="", command=args[2])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=5)
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.separator(h=5, style='none')
+        cmds.button(label="", command=args[3])
+        cmds.separator(h=5, style='none')
+
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.separator(h=5, style='none')
+
+        return RC
+
+
 def get_window_center(window):
     """Get window's center position."""
     WH = [l // 2 for l in cmds.window(window, q=True, wh=True)]
@@ -132,7 +485,12 @@ def destroy_window(*args):
 
 
 def prefs_play_all(*args):
+    """Check user prefs for viewport playback type."""
     if cmds.playbackOptions(q=True, v=True) == "all":
         return False
     else:
         return True
+
+
+def init():
+    """Funtion to call to start the script."""
