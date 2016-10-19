@@ -239,16 +239,27 @@ def button_grid(layout_config=None, *args):
         return RC
     elif layout_config == "left3":
         # 4*4
-        # RC = cmds.columnLayout()
+        RC = cmds.columnLayout()
+        row1 = cmds.rowLayout(nc=4)
 
-        # cmds.rowLayout(parent=RC, nc=1)
-        # cmds.separator(h=5, style='none')
+        col1 = cmds.columnLayout(p=row1, cw=5)
+        cmds.separator(p=col1, style='none')
 
-        # cmds.rowLayout(parent=RC, nc=1)
-        # cmds.separator(h=5, style='none')
+        col2 = cmds.columnLayout(p=row1)
+        cmds.separator(p=col2, h=5, style='none')
+        cmds.button(p=col2, label="", command=args[0])
+        cmds.button(p=col2, label="", command=args[2])
+        cmds.separator(p=col2, h=5, style='none')
 
-        # return RC
-        pass
+        col3 = cmds.columnLayout(p=row1)
+        cmds.separator(p=col3, h=5, style='none')
+        cmds.button(p=col3, label="", command=args[1])
+        cmds.separator(p=col3, h=5, style='none')
+
+        col4 = cmds.columnLayout(p=row1, cw=5)
+        cmds.separator(p=col4, style='none')
+
+        return RC
     elif layout_config == "bottom3":
         # 4*4
         RC = cmds.columnLayout()
@@ -274,16 +285,27 @@ def button_grid(layout_config=None, *args):
         pass
     elif layout_config == "right3":
         # 4*4
-        # RC = cmds.columnLayout()
+        RC = cmds.columnLayout()
+        row1 = cmds.rowLayout(nc=4)
 
-        # cmds.rowLayout(parent=RC, nc=1)
-        # cmds.separator(h=5, style='none')
+        col1 = cmds.columnLayout(p=row1, cw=5)
+        cmds.separator(p=col1, style='none')
 
-        # cmds.rowLayout(parent=RC, nc=1)
-        # cmds.separator(h=5, style='none')
+        col2 = cmds.columnLayout(p=row1)
+        cmds.separator(p=col2, h=5, style='none')
+        cmds.button(p=col2, label="", command=args[0])
+        cmds.separator(p=col2, h=5, style='none')
 
-        # return RC
-        pass
+        col3 = cmds.columnLayout(p=row1)
+        cmds.separator(p=col3, h=5, style='none')
+        cmds.button(p=col3, label="", command=args[1])
+        cmds.button(p=col3, label="", command=args[2])
+        cmds.separator(p=col3, h=5, style='none')
+
+        col4 = cmds.columnLayout(p=row1, cw=5)
+        cmds.separator(p=col4, style='none')
+
+        return RC
     elif layout_config == "horizontal4":
         # 3*6
         RC = cmds.columnLayout()
