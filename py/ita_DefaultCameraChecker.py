@@ -40,27 +40,33 @@ def draw_warning(pWindowTitle, pbContinue, setTempCam):
     """Draw the warning window."""
     destroyWindow()
 
-    cmds.window(windowID,
-                title=pWindowTitle,
-                sizeable=True,
-                resizeToFitChildren=True)
-
-    rowcol = cmds.rowColumnLayout(numberOfColumns=1,
-                                  columnWidth=[(1, 250)],
-                                  columnOffset=[(1, 'both', 5)]
-                                  )
-
+    cmds.window(
+        windowID,
+        title=pWindowTitle,
+        sizeable=True,
+        resizeToFitChildren=True
+    )
+    rowcol = cmds.rowColumnLayout(
+        numberOfColumns=1,
+        columnWidth=[(1, 250)],
+        columnOffset=[(1, 'both', 5)]
+    )
     cmds.text(label='You are trying to playblast from a default camera!')
     cmds.separator(h=10, style='none')
-    cmds.rowLayout(parent=rowcol,
-                   numberOfColumns=3,
-                   columnAttach=[(1, 'left', 1),
-                                 (2, 'left', 1),
-                                 (3, 'both', 1)],
-                   columnWidth=[(1, 35),  # Total == 250 - margins
-                                (2, 85),
-                                (3, 112)]
-                   )
+    cmds.rowLayout(
+        parent=rowcol,
+        numberOfColumns=3,
+        columnAttach=[
+            (1, 'left', 1),
+            (2, 'left', 1),
+            (3, 'both', 1)
+        ],
+        columnWidth=[
+            (1, 35),  # Total == 250 - margins
+            (2, 85),
+            (3, 112)
+        ]
+    )
     cmds.button(label='Help', command=helpCall)
     makeDefault = cmds.checkBox(label='Make Default')
 
@@ -76,15 +82,20 @@ def draw_warning(pWindowTitle, pbContinue, setTempCam):
         else:
             cmds.menuItem(label=camera)
 
-    cmds.rowLayout(parent=rowcol,
-                   numberOfColumns=3,
-                   columnAttach=[(1, 'both', 2),
-                                 (2, 'both', 2),
-                                 (3, 'both', 2)],
-                   columnWidth=[(1, 123),
-                                (2, 50),
-                                (3, 60)]
-                   )
+    cmds.rowLayout(
+        parent=rowcol,
+        numberOfColumns=3,
+        columnAttach=[
+            (1, 'both', 2),
+            (2, 'both', 2),
+            (3, 'both', 2)
+        ],
+        columnWidth=[
+            (1, 123),
+            (2, 50),
+            (3, 60)
+        ]
+    )
     cmds.separator(h=10, style='none')
     cmds.button(label='OK!', command=partial(pbContinue,
                                              makeDefault,
@@ -99,7 +110,6 @@ def pbContinue(makeDefault, makeDefaultMenu, *args):
     activepanel = cmds.getPanel(withFocus=True)
     cam = cmds.modelEditor(activepanel, query=True, camera=True)
     global customPBcam
-    global customPBcamTmp
 
     if cmds.checkBox(makeDefault, query=True, value=True) is True:
         customPBcam = customPBcamTmp
@@ -121,7 +131,7 @@ def pbContinue(makeDefault, makeDefaultMenu, *args):
 
 
 def setTempCam(camName):
-    """Set temp default camera for pbContinue"""
+    """Set temp camera for pbContinue"""
     global customPBcamTmp
     customPBcamTmp = camName
 
@@ -150,11 +160,12 @@ def blast(*args):
         ResX = cmds.getAttr("defaultResolution.width")
         ResY = cmds.getAttr("defaultResolution.height")
 
-        cmds.playblast(filename=("movies/" + fileNameShort[0] + ".mov"),
-                       forceOverwrite=True, format="qt", compression="png",
-                       offScreen=True, width=ResX, height=ResY, quality=100,
-                       percent=100, sound=SoundNode)
-
+        cmds.playblast(
+            filename=("movies/" + fileNameShort[0] + ".mov"),
+            forceOverwrite=True, format="qt", compression="png",
+            offScreen=True, width=ResX, height=ResY, quality=100,
+            percent=100, sound=SoundNode
+        )
     else:
         cmds.error("No resolution data in file. \
                     Please set resolution and save.")
@@ -184,18 +195,22 @@ def helpCall(*args):
     if cmds.window(helpID, exists=True):
         cmds.deleteUI(helpID)
 
-    cmds.window(helpID,
-                title='DefaultCameraCheckerHelp',
-                widthHeight=[300, 200],
-                sizeable=True,
-                resizeToFitChildren=True)
+    cmds.window(
+        helpID,
+        title='DefaultCameraCheckerHelp',
+        widthHeight=[300, 200],
+        sizeable=True,
+        resizeToFitChildren=True
+    )
     cmds.columnLayout(width=300)
-    cmds.scrollField(wordWrap=True,
-                     text=helpText,
-                     editable=False,
-                     width=300,
-                     height=200,
-                     font='smallPlainLabelFont')
+    cmds.scrollField(
+        wordWrap=True,
+        text=helpText,
+        editable=False,
+        width=300,
+        height=200,
+        font='smallPlainLabelFont'
+    )
 
     cmds.showWindow()
 
@@ -213,10 +228,7 @@ def check_camera_name():
     Return its status compared to stockCamNames."""
     activepanel = cmds.getPanel(withFocus=True)
 
-    if cmds.getPanel(typeOf=activepanel) != 'modelPanel':
-        return None
-
-    elif cmds.getPanel(typeOf=activepanel) == 'modelPanel':
+    if cmds.getPanel(typeOf=activepanel) == 'modelPanel':
         cam = cmds.modelEditor(activepanel, query=True, camera=True)
         if cam in stockCamNames:
             return True
