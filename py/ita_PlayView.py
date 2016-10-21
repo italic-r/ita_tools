@@ -6,8 +6,8 @@ Primary window: "MayaWindow"
 # Get top-left corner coordinates and width/height of window
 cmds.window(windowname, q, topLeftCorner, widthHeight)
 
-# Visible panels only
-cmds.getPanel(vis=True)
+# Visible panels only, panel with focus
+cmds.getPanel(vis, withFocus)
 
 # Full path of panel + control + window
 p = cmds.panel(panelname, q, control)
@@ -44,17 +44,22 @@ from functools import partial
 windowID = 'PlayView'
 helpID = 'PlayViewHelp'
 custom_viewport = ""  # Saves modelPanel name for future playback
+custom_viewport_tmp = ""  # Temp variable
 
 
-def draw_window_main(pWindowTitle):
+def gui(pWindowTitle, winID, TLC):
     """Draw the main window."""
     destroy_window()
 
+    WH = (250, 150)
+
     cmds.window(
-        windowID,
+        winID,
         title=pWindowTitle,
         sizeable=False,
-        resizeToFitChildren=True
+        resizeToFitChildren=True,
+        tlc=TLC,
+        wh=WH
     )
     rowcol = cmds.rowColumnLayout(
         numberOfColumns=1,
@@ -81,10 +86,10 @@ def draw_window_main(pWindowTitle):
     makeDefault = cmds.checkBox(label='Make Default')
     cmds.button(label='Cancel', command=destroy_window)
 
-    cmds.separator(parent=rowcol, h=5, style='none')
+    cmds.separator(parent=rowcol, h=1, style='none')
 
     # lconfig = get_layout_config(control)
-    # button_grid(lconfig)
+    # button_grid(lconfig, cmds.checkBox(makeDefault, q=True, value=True))
 
     cmds.showWindow()
 
@@ -94,7 +99,7 @@ def get_layout_config(control):
     return cmds.paneLayout(control, q=True, configuration=True)
 
 
-def play_view(default=False, view):
+def play_view(view, default=False):
     """Play with specific viewport."""
 
 
@@ -506,10 +511,36 @@ def help_call(*args):
     cmds.showWindow()
 
 
+def draw_PlayView(pWindowTitle):
+    wInd = 0
+    WH = (-125, -75)  # Window dimensions are 250*150, negated for addition
+    for w in get_windows():
+        for ME in cmds.getPanel(vis=True):
+            if cmds.panel(ME, q=True, control=True).startswith(w):
+                WC = get_window_center(w)
+                TLC = [sum(x) for x in zip(WC, WH)]
+                print(TLC)
+                gui(pWindowTitle, windowID + str(wInd), (500, 500))
+                wInd += 1
+
+
+def get_windows(*args):
+    """Get all available windows."""
+    return cmds.lsUI(windows=True)
+
+
+def get_layout(window):
+    """Get layout of given window."""
+    for widget in sorted(cmds.lsUI(long=True, controlLayouts=True)):
+        if widget.startswith(window):
+            yield widget
+
+
 def destroy_window(*args):
     """If PlayView windows exist, destroy them."""
-    if cmds.window(windowID, exists=True):
-        cmds.deleteUI(windowID)
+    for w in get_windows():
+        if w.startswith(windowID):
+            cmds.deleteUI(w)
     if cmds.window(helpID, exists=True):
         cmds.deleteUI(helpID)
 
@@ -524,3 +555,13 @@ def prefs_play_all(*args):
 
 def init():
     """Funtion to call to start the script."""
+    global custom_viewport_tmp
+    custom_viewport_tmp = ""
+
+    if custom_viewport == "":
+        draw_PlayView('PlayView')
+    else:
+        play_view(custom_viewport, default=True)
+
+destroy_window()
+init()
