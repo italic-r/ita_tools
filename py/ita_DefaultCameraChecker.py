@@ -153,8 +153,8 @@ def blast(*args):
     # Disable 2D Pan & Zoom in current viewport
     activepanel = cmds.getPanel(withFocus=True)
     cam = cmds.modelEditor(activepanel, query=True, camera=True)
-    camShape = cmds.listRelatives(cam, shapes=True)
-    cmds.setAttr(camShape[0] + '.panZoomEnabled', False)
+    # camShape = cmds.listRelatives(cam, shapes=True)[0]
+    cmds.setAttr(cam + '.panZoomEnabled', False)
 
     if cmds.ls(renderResolutions=True):
         ResX = cmds.getAttr("defaultResolution.width")
