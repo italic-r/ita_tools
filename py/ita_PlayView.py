@@ -47,25 +47,43 @@ custom_viewport = ""  # Saves modelPanel name for future playback
 custom_viewport_tmp = ""  # Temp variable
 
 
-def gui(pWindowTitle, winID, TLC):
+def playforward():
+    return mel.eval(
+        "undoInfo -stateWithoutFlush off;"
+        "playButtonForward;"
+        "undoInfo -stateWithoutFlush on;"
+    )
+
+
+def play_view(view, make_default):
+    """Play with specific viewport."""
+    if cmds.button(make_default, q=True, value=True):
+        custom_viewport = view
+    else:
+        custom_viewport = ""
+    cmds.setFocus(view)
+    playforward()
+
+
+def gui(ctrl, pWindowTitle, winID, TLC):
     """Draw the main window."""
     destroy_window()
 
-    WH = (250, 150)
-
-    cmds.window(
+    win_draw = cmds.window(
         winID,
         title=pWindowTitle,
+        titleBar=False,
         sizeable=False,
         resizeToFitChildren=True,
         tlc=TLC,
-        wh=WH
+        wh=(250, 150)
     )
     rowcol = cmds.rowColumnLayout(
         numberOfColumns=1,
         columnWidth=[(1, 245)],
         columnOffset=[(1, 'both', 5)]
     )
+    cmds.separator(h=5, style='none')
     cmds.text(label='Select a viewport to play from.')
     cmds.separator(h=5, style='none')
     cmds.rowLayout(
@@ -88,27 +106,25 @@ def gui(pWindowTitle, winID, TLC):
 
     cmds.separator(parent=rowcol, h=1, style='none')
 
-    # lconfig = get_layout_config(control)
-    # button_grid(lconfig, cmds.checkBox(makeDefault, q=True, value=True))
+    lconfig = get_layout_config(ctrl)
+    lconfigarray = get_layout_control(ctrl)
+    print("Format: {}".format(lconfig), "Children: {}".format(lconfigarray))
+    # get child array
+    button_grid(rowcol, lconfig, makeDefault, lconfigarray)
 
     cmds.showWindow()
 
-
-def get_layout_config(control):
-    """Get layout's configuration."""
-    return cmds.paneLayout(control, q=True, configuration=True)
-
-
-def play_view(view, default=False):
-    """Play with specific viewport."""
+    cmds.window(
+        win_draw, e=True, tlc=TLC
+    )
 
 
-def button_grid(layout_config=None, default=False, *args):
+def button_grid(parent, layout_config=None, default=False, *args):
     """Make a UI grid layout based on result from get_layout_config()."""
 
     if layout_config == "single":
         # 3*3, center button
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
 
@@ -123,7 +139,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "quad":
         # 4*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -149,7 +165,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "horizontal2":
         # 3*4, center 2 buttons
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -170,7 +186,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "vertical2":
         # 4*3, center 2 buttons
-        RC = cmds.rowColumnLayout()
+        RC = cmds.rowColumnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -187,7 +203,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "horizontal3":
         # 3*5, center 3 buttons
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -212,7 +228,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "vertical3":
         # 5*3, center 3 buttons
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -230,7 +246,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "top3":
         # 4*4, top 2, buttom 1
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -252,7 +268,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "left3":
         # 4*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
         row1 = cmds.rowLayout(nc=4)
 
         col1 = cmds.columnLayout(p=row1, cw=5)
@@ -275,7 +291,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "bottom3":
         # 4*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -298,7 +314,7 @@ def button_grid(layout_config=None, default=False, *args):
         pass
     elif layout_config == "right3":
         # 4*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
         row1 = cmds.rowLayout(nc=4)
 
         col1 = cmds.columnLayout(p=row1, cw=5)
@@ -321,7 +337,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "horizontal4":
         # 3*6
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -352,7 +368,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "vertical4":
         # 6*3
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -371,7 +387,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "top4":
         # 5*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -394,7 +410,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "left4":
         # 4*5
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -423,7 +439,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "bottom4":
         # 5*4
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -446,7 +462,7 @@ def button_grid(layout_config=None, default=False, *args):
         return RC
     elif layout_config == "right4":
         # 4*5
-        RC = cmds.columnLayout()
+        RC = cmds.columnLayout(p=parent)
 
         cmds.rowLayout(parent=RC, nc=1)
         cmds.separator(h=5, style='none')
@@ -476,13 +492,6 @@ def button_grid(layout_config=None, default=False, *args):
         cmds.separator(h=5, style='none')
 
         return RC
-
-
-def get_window_center(window):
-    """Get window's center position."""
-    WH = [l // 2 for l in cmds.window(window, q=True, wh=True)]
-    TLC = cmds.window(window, q=True, tlc=True)
-    return [sum(x) for x in zip(WH, TLC)]
 
 
 def help_call(*args):
@@ -514,13 +523,14 @@ def help_call(*args):
 def draw_PlayView(pWindowTitle):
     wInd = 0
     WH = (-125, -75)  # Window dimensions are 250*150, negated for addition
-    for w in get_windows():
-        for ME in cmds.getPanel(vis=True):
+    for ME in cmds.getPanel(vis=True):  # if ME is a modelEditor
+        for w in get_windows():
             if cmds.panel(ME, q=True, control=True).startswith(w):
                 WC = get_window_center(w)
                 TLC = [sum(x) for x in zip(WC, WH)]
-                print(TLC)
-                gui(pWindowTitle, windowID + str(wInd), (500, 500))
+                ctrl = cmds.panel(ME, q=True, control=True)
+                print(w, "TLC:" + str(TLC), "WC:" + str(WC))
+                gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
                 wInd += 1
 
 
@@ -529,11 +539,36 @@ def get_windows(*args):
     return cmds.lsUI(windows=True)
 
 
+def get_window_center(window):
+    """Get window's center position."""
+    WH = [l // 2 for l in cmds.window(window, q=True, wh=True)]
+    TLC = cmds.window(window, q=True, tlc=True)
+    return [sum(x) for x in zip(WH, TLC)]
+
+
 def get_layout(window):
     """Get layout of given window."""
     for widget in sorted(cmds.lsUI(long=True, controlLayouts=True)):
         if widget.startswith(window):
             yield widget
+
+
+def get_layout_control(ctrl):
+    """Get layout's control."""
+    return "|".join(ctrl.split("|")[:-1])
+
+
+def get_layout_config(ctrl):
+    """Get layout's configuration."""
+    control = get_layout_control(ctrl)
+    ctrllayout = cmds.paneLayout(control, q=True, configuration=True)
+    return ctrllayout
+
+
+def get_layout_child_array(ctrl):
+    """Get layout's child array."""
+    control = get_layout_control(ctrl)
+    return cmds.paneLayout(control, q=True, childArray=True)
 
 
 def destroy_window(*args):
@@ -555,13 +590,17 @@ def prefs_play_all(*args):
 
 def init():
     """Funtion to call to start the script."""
-    global custom_viewport_tmp
-    custom_viewport_tmp = ""
-
-    if custom_viewport == "":
-        draw_PlayView('PlayView')
+    if cmds.play(q=True, state=True) is True:
+        playforward()
     else:
-        play_view(custom_viewport, default=True)
+        global custom_viewport_tmp
+        custom_viewport_tmp = ""
+
+        if custom_viewport == "":
+            draw_PlayView('PlayView')
+        else:
+            play_view(custom_viewport, default=True)
+
 
 destroy_window()
 init()
