@@ -38,7 +38,7 @@ def play_button(*args):
 
 def play_view(make_default, view, *args):
     """Play with specific viewport."""
-    print(view)
+    sys.stdout.writelines(["{}\n".format(view)])
     if cmds.checkBox(make_default, q=True, value=True):
         custom_viewport = view
     else:
@@ -89,7 +89,7 @@ def gui(ctrl, pWindowTitle, winID, TLC, *args):
 
     lconfig = get_layout_config(ctrl)
     lconfigarray = get_layout_child_array(ctrl)
-    print("Format: {}".format(lconfig), "Children: {}".format(lconfigarray))
+    sys.stdout.writelines(["Format: {}\n".format(lconfig), "Children: {}\n".format(lconfigarray)])
     button_grid(rowcol, lconfigarray, lconfig, makeDefault)
 
     cmds.showWindow()
@@ -510,10 +510,10 @@ def draw_PlayView(pWindowTitle, *args):
                 WH.reverse()
                 TLC = [sum(x) for x in zip(WC, WH)]
 
+                sys.stdout.writelines(["\n{}\n".format(w), "TLC: {}\n".format(TLC), "WC: {}\n".format(WC)])
+
                 ctrl = cmds.panel(panel, q=True, control=True)
                 gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
-
-                print("{}".format(w), "TLC: {}".format(TLC), "WC: {}".format(WC))
                 wInd += 1
 
 
@@ -583,9 +583,10 @@ def init(*args):
             global custom_viewport_tmp
             custom_viewport_tmp = ""
 
-            print("{}".format(custom_viewport))
+            sys.stdout.writelines(["Default: {}\n".format(custom_viewport)])
 
             if custom_viewport == "":
+                destroy_window()
                 draw_PlayView('PlayView')
             else:
                 play_view(custom_viewport, default=True)
