@@ -1,53 +1,34 @@
 """
-# Window ID strings only
-cmds.lsUI(windows)
 Primary window: "MayaWindow"
-
-# Get top-left corner coordinates and width/height of window
-cmds.window(windowname, q, topLeftCorner, widthHeight)
-
-# Visible panels only, panel with focus
-cmds.getPanel(vis, withFocus)
 
 # Full path of panel + control + window
 p = cmds.panel(panelname, q, control)
-# Only parent controls + window
-ctrl = "|".join(p.split("|")[:-1])
 
 # Layout preset to determine button layout
 cmds.paneLayout(controlname, q, configuration, activePane, activePaneIndex, parent)
-    "single",
-    "horizontal2", "vertical2",
-    "horizontal3", "vertical3",
-    "top3", "left3", "bottom3", "right3",
-    "horizontal4", "vertical4", "top4", "left4", "bottom4", "right4",
-    "quad"
 
 # Similar to paneLayout
 cmds.layout(layoutname, q, configuration)
 
-# Explicitly set focus to a particular panel - do not use window or layout names
-cmds.setFocus('modelPanel1')
-
-place a window + button at center of each window, without frame?
-for w in windows:
-    get layout config,
-    make single window,
-    button grid layout to match,
-    any button closes all windows
+# Window props
+widthHeight [x, y]
+topleftcorner [y down, x right]
 """
 
+import sys
 import maya.cmds as cmds
 import maya.mel as mel
 from functools import partial
 
+sys.stdout = sys.__stdout__
+
 windowID = 'PlayView'
 helpID = 'PlayViewHelp'
-custom_viewport = ""  # Saves modelPanel name for future playback
+custom_viewport = ""  # Saves panel name for future playback
 custom_viewport_tmp = ""  # Temp variable
 
 
-def play_button():
+def play_button(*args):
     return mel.eval(
         "undoInfo -stateWithoutFlush off;"
         "playButtonForward;"
@@ -55,20 +36,20 @@ def play_button():
     )
 
 
-def play_view(view, make_default):
+def play_view(make_default, view, *args):
     """Play with specific viewport."""
-    if cmds.button(make_default, q=True, value=True):
+    print(view)
+    if cmds.checkBox(make_default, q=True, value=True):
         custom_viewport = view
     else:
         custom_viewport = ""
     cmds.setFocus(view)
+    destroy_window()
     play_button()
 
 
-def gui(ctrl, pWindowTitle, winID, TLC):
+def gui(ctrl, pWindowTitle, winID, TLC, *args):
     """Draw the main window."""
-    destroy_window()
-
     win_draw = cmds.window(
         winID,
         title=pWindowTitle,
@@ -118,7 +99,7 @@ def gui(ctrl, pWindowTitle, winID, TLC):
     )
 
 
-def button_grid(parent, child_array, layout_config=None, default=False):
+def button_grid(parent, child_array, layout_config=None, default=False, *args):
     """Make a UI grid layout based on result from get_layout_config()."""
 
     if layout_config == "single":
@@ -519,17 +500,20 @@ def help_call(*args):
     cmds.showWindow()
 
 
-def draw_PlayView(pWindowTitle):
+def draw_PlayView(pWindowTitle, *args):
     wInd = 0
-    WH = (-125, -75)  # Window dimensions are 250*150, negated for addition
-    for ME in cmds.getPanel(vis=True):  # if ME is a modelEditor
+    WH = [-125, -75]  # Window dimensions are 250*150, negated for addition
+    for panel in cmds.getPanel(vis=True):
         for w in get_windows():
-            if cmds.panel(ME, q=True, control=True).startswith(w):
+            if cmds.panel(panel, q=True, control=True).startswith(w):
                 WC = get_window_center(w)
+                WH.reverse()
                 TLC = [sum(x) for x in zip(WC, WH)]
-                ctrl = cmds.panel(ME, q=True, control=True)
-                print(w, "TLC:" + str(TLC), "WC:" + str(WC))
+
+                ctrl = cmds.panel(panel, q=True, control=True)
                 gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
+
+                print("{}".format(w), "TLC: {}".format(TLC), "WC: {}".format(WC))
                 wInd += 1
 
 
@@ -538,33 +522,34 @@ def get_windows(*args):
     return cmds.lsUI(windows=True)
 
 
-def get_window_center(window):
+def get_window_center(window, *args):
     """Get window's center position."""
     WH = [l // 2 for l in cmds.window(window, q=True, wh=True)]
+    WH.reverse()
     TLC = cmds.window(window, q=True, tlc=True)
-    return [sum(x) for x in zip(WH, TLC)]
+    return [sum(x) for x in zip(TLC, WH)]
 
 
-def get_layout(window):
+def get_layout(window, *args):
     """Get layout of given window."""
     for widget in sorted(cmds.lsUI(long=True, controlLayouts=True)):
         if widget.startswith(window):
             yield widget
 
 
-def get_layout_control(ctrl):
+def get_layout_control(ctrl, *args):
     """Get layout's control."""
     return "|".join(ctrl.split("|")[:-1])
 
 
-def get_layout_config(ctrl):
+def get_layout_config(ctrl, *args):
     """Get layout's configuration."""
     control = get_layout_control(ctrl)
     ctrllayout = cmds.paneLayout(control, q=True, configuration=True)
     return ctrllayout
 
 
-def get_layout_child_array(ctrl):
+def get_layout_child_array(ctrl, *args):
     """Get layout's child array."""
     control = get_layout_control(ctrl)
     return cmds.paneLayout(control, q=True, childArray=True)
@@ -587,7 +572,7 @@ def prefs_play_all(*args):
         return True
 
 
-def init():
+def init(*args):
     """Funtion to call to start the script."""
     if not prefs_play_all():
         play_button()
@@ -598,11 +583,9 @@ def init():
             global custom_viewport_tmp
             custom_viewport_tmp = ""
 
+            print("{}".format(custom_viewport))
+
             if custom_viewport == "":
                 draw_PlayView('PlayView')
             else:
                 play_view(custom_viewport, default=True)
-
-
-destroy_window()
-init()
