@@ -1,6 +1,11 @@
 """
 PlayView: Save a viewport for single-view playback mode.
 
+This script will benefit you if your playback mode is set to "active"
+instead of "all." Otherwise it will play forward as normal. Use the given
+button grid to select a viewport to play through. Set it as default to save
+it for future playback. Set this script to a hotkey for easy reuse.
+
 import ita_PlayView
 #reload(ita_PlayView)  # To reset default
 ita_PlayView.init()
@@ -17,12 +22,10 @@ https://www.apache.org/licenses/LICENSE-2.0
 """
 
 import logging
-import sys
 import maya.cmds as cmds
 import maya.mel as mel
 from functools import partial
 
-sys.stdout = sys.__stdout__
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
@@ -393,25 +396,33 @@ def help_call(*args):
 
 
 def draw_PlayView(pWindowTitle, *args):
+    ctrl_set = set()
     wInd = 0
     WH = [-125, -75]  # Window dimensions are 250*150, negated for addition
-    # XXX
-    # save window + config in dict
-    # loop dict and create window for each key (window + config/ctrl/layout)
+
     for panel in cmds.getPanel(vis=True):
         for w in get_windows():
             if cmds.panel(panel, q=True, control=True).startswith(w):
+                try:
+                    ctrl = cmds.modelPanel(panel, q=True, control=True)
+                    ctrl_set.add(ctrl)
+                except:
+                    pass
+
+    for ctrl in ctrl_set:
+        for w in get_windows():
+            if ctrl.startswith(w):
                 WC = get_window_center(w)
                 WH.reverse()
                 TLC = [sum(x) for x in zip(WC, WH)]
 
-                ctrl = cmds.panel(panel, q=True, control=True)
                 gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
-                wInd += 1
 
                 log.debug("Window: {}{}".format(windowID, wInd))
                 log.debug("Control: {}".format(ctrl))
                 log.debug("Panel: {}".format(panel))
+
+                wInd += 1
 
 
 def get_windows(*args):
