@@ -8,6 +8,7 @@ it for future playback. Set this script to a hotkey for easy reuse.
 
 import ita_PlayView
 #reload(ita_PlayView)  # To reset default
+#ita_PlayView.destroy_window()  # To destroy all PlayView windows
 ita_PlayView.init()
 
 (c) Jeffrey "italic" Hoover
@@ -27,7 +28,7 @@ import maya.mel as mel
 from functools import partial
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 windowID = 'PlayView'
 helpID = 'PlayViewHelp'
@@ -64,6 +65,14 @@ def play_view_caller(make_default, view, *args):
 
 def gui(ctrl, pWindowTitle, winID, TLC, *args):
     """Draw window."""
+
+    lconfig = get_layout_config(ctrl)
+    lconfigarray = get_layout_child_array(ctrl)
+
+    log.debug("Layout: {}".format(ctrl))
+    log.debug("Layout config: {}".format(lconfig))
+    log.debug("Children: {}".format(lconfigarray))
+
     win_draw = cmds.window(
         winID,
         title=pWindowTitle,
@@ -71,11 +80,11 @@ def gui(ctrl, pWindowTitle, winID, TLC, *args):
         sizeable=False,
         resizeToFitChildren=True,
         tlc=TLC,
-        wh=(250, 150)
+        wh=(255, 200)
     )
     rowcol = cmds.rowColumnLayout(
         numberOfColumns=1,
-        columnWidth=[(1, 245)],
+        columnWidth=[(1, 250)],
         columnOffset=[(1, 'both', 5)]
     )
     cmds.separator(h=5, style='none')
@@ -99,19 +108,10 @@ def gui(ctrl, pWindowTitle, winID, TLC, *args):
     makeDefault = cmds.checkBox(label='Make Default')
     cmds.button(label='Cancel', command=destroy_window)
 
-    cmds.separator(parent=rowcol, h=1, style='none')
-
-    lconfig = get_layout_config(ctrl)
-    lconfigarray = get_layout_child_array(ctrl)
-
-    log.debug("Layout config: {}".format(lconfig))
-    log.debug("Children: {}".format(lconfigarray))
-
     button_grid(rowcol, lconfigarray, makeDefault, lconfig)
 
     cmds.showWindow()
-
-    cmds.window(win_draw, e=True, tlc=TLC)
+    cmds.window(win_draw, e=True, tlc=TLC, wh=(255, 200))
 
 
 def button_grid(parent, child_array, make_default, layout_config=None, *args):
@@ -122,242 +122,163 @@ def button_grid(parent, child_array, make_default, layout_config=None, *args):
     cmds.separator(h=5, style='none')
 
     if layout_config == "single":
-        # 3*3, center button
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 1*1, center button
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=135, label="", command=partial(play_view_caller, make_default, child_array[0]))
 
     elif layout_config == "quad":
-        # 4*4
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        # 2*2
+        cmds.rowLayout(parent=RC, nc=2)
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=2)
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[3]))
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[2]))
 
     elif layout_config == "horizontal2":
-        # 3*4, center 2 buttons
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 1*2
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "vertical2":
-        # 4*3, center 2 buttons
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        # 2*1
+        cmds.rowLayout(parent=RC, nc=2)
+        cmds.button(w=(240 / 2), h=135, label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 2), h=135, label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "horizontal3":
-        # 3*5, center 3 buttons
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 1*3
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 3), label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 3), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 3), label="", command=partial(play_view_caller, make_default, child_array[2]))
 
     elif layout_config == "vertical3":
-        # 5*3, center 3 buttons
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        # 3*1
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.button(w=(240 / 3), h=135, label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 3), h=135, label="", command=partial(play_view_caller, make_default, child_array[1]))
+        cmds.button(w=(240 / 3), h=135, label="", command=partial(play_view_caller, make_default, child_array[2]))
 
     elif layout_config == "top3":
-        # 4*4, top 2, buttom 1
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        # 2*1
+        cmds.rowLayout(parent=RC, nc=2)
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=child_array[2])
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 2), label="", command=child_array[2])
 
     elif layout_config == "left3":
-        # 4*4
-        row1 = cmds.rowLayout(p=RC, nc=4)
+        # 2*2
+        row1 = cmds.rowLayout(p=RC, nc=2)
 
-        col1 = cmds.columnLayout(p=row1, cw=5)
-        cmds.separator(p=col1, style='none')
+        col1 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=(130 / 2), p=col1, label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.separator(h=5, style='none')
+        cmds.button(w=(240 / 2), h=(130 / 2), p=col1, label="", command=partial(play_view_caller, make_default, child_array[2]))
 
         col2 = cmds.columnLayout(p=row1)
-        cmds.separator(p=col2, h=5, style='none')
-        cmds.button(p=col2, label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(p=col2, label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(p=col2, h=5, style='none')
-
-        col3 = cmds.columnLayout(p=row1)
-        cmds.separator(p=col3, h=5, style='none')
-        cmds.button(p=col3, label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(p=col3, h=5, style='none')
-
-        col4 = cmds.columnLayout(p=row1, cw=5)
-        cmds.separator(p=col4, style='none')
+        cmds.button(w=(240 / 2), h=135, p=col2, label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "bottom3":
-        # 4*4
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 2*1
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=2)
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[2]))
+        cmds.button(w=(240 / 2), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "right3":
-        # 4*4
-        row1 = cmds.rowLayout(p=RC, nc=4)
+        # 2*2
+        row1 = cmds.rowLayout(p=RC, nc=2)
 
-        col1 = cmds.columnLayout(p=row1, cw=5)
-        cmds.separator(p=col1, style='none')
+        col1 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=135, p=col1, label="", command=partial(play_view_caller, make_default, child_array[0]))
 
         col2 = cmds.columnLayout(p=row1)
-        cmds.separator(p=col2, h=5, style='none')
-        cmds.button(p=col2, label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(p=col2, h=5, style='none')
-
-        col3 = cmds.columnLayout(p=row1)
-        cmds.separator(p=col3, h=5, style='none')
-        cmds.button(p=col3, label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.button(p=col3, label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(p=col3, h=5, style='none')
-
-        col4 = cmds.columnLayout(p=row1, cw=5)
-        cmds.separator(p=col4, style='none')
+        cmds.button(w=(240 / 2), h=(130 / 2), p=col2, label="", command=partial(play_view_caller, make_default, child_array[1]))
+        cmds.separator(h=5, style='none')
+        cmds.button(w=(240 / 2), h=(130 / 2), p=col2, label="", command=partial(play_view_caller, make_default, child_array[2]))
 
     elif layout_config == "horizontal4":
-        # 3*6
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 1*4
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 4), label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 4), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 4), label="", command=partial(play_view_caller, make_default, child_array[2]))
 
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 4), label="", command=partial(play_view_caller, make_default, child_array[3]))
 
     elif layout_config == "vertical4":
-        # 6*3
-        cmds.rowLayout(parent=RC, nc=6)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.separator(h=5, style='none')
+        # 4*1
+        cmds.rowLayout(parent=RC, nc=4)
+        cmds.button(w=(240 / 4), h=135, label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 4), h=135, label="", command=partial(play_view_caller, make_default, child_array[1]))
+        cmds.button(w=(240 / 4), h=135, label="", command=partial(play_view_caller, make_default, child_array[2]))
+        cmds.button(w=(240 / 4), h=135, label="", command=partial(play_view_caller, make_default, child_array[3]))
 
     elif layout_config == "top4":
-        # 5*4
-        cmds.rowLayout(parent=RC, nc=1)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        # 3*2
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[2]))
 
         cmds.rowLayout(parent=RC, nc=1)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.separator(h=5, style='none')
+        cmds.button(w=240, h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[3]))
 
     elif layout_config == "left4":
-        # 4*5
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
+        # 2*3
+        row1 = cmds.rowLayout(p=RC, nc=2)
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        col1 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col1, label="", command=partial(play_view_caller, make_default, child_array[0]))
+        cmds.separator(h=4, style='none')
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col1, label="", command=partial(play_view_caller, make_default, child_array[3]))
+        cmds.separator(h=4, style='none')
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col1, label="", command=partial(play_view_caller, make_default, child_array[2]))
 
-        cmds.rowLayout(parent=RC, nc=4)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
+        col2 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=135, p=col2, label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "bottom4":
-        # 5*4
-        cmds.rowLayout(parent=RC, nc=3)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.separator(h=5, style='none')
+        # 3*2
+        cmds.rowLayout(parent=RC, nc=1)
+        cmds.button(w=240, h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=5)
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        cmds.rowLayout(parent=RC, nc=3)
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[3]))
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[2]))
+        cmds.button(w=(240 / 3), h=(135 / 2), label="", command=partial(play_view_caller, make_default, child_array[1]))
 
     elif layout_config == "right4":
-        # 4*5
-        cmds.rowLayout(parent=RC, nc=5)
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[1]))
-        cmds.separator(h=5, style='none')
+        # 2*3
+        row1 = cmds.rowLayout(p=RC, nc=2)
 
-        cmds.rowLayout(parent=RC, nc=5)
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[0]))
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[2]))
-        cmds.separator(h=5, style='none')
+        col1 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=135, p=col1, label="", command=partial(play_view_caller, make_default, child_array[0]))
 
-        cmds.rowLayout(parent=RC, nc=5)
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
-        cmds.separator(h=5, style='none')
-        cmds.button(label="", command=partial(play_view_caller, make_default, child_array[3]))
-        cmds.separator(h=5, style='none')
+        col2 = cmds.columnLayout(p=row1)
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col2, label="", command=partial(play_view_caller, make_default, child_array[1]))
+        cmds.separator(h=4, style='none')
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col2, label="", command=partial(play_view_caller, make_default, child_array[2]))
+        cmds.separator(h=4, style='none')
+        cmds.button(w=(240 / 2), h=(135 / 3) - 3, p=col2, label="", command=partial(play_view_caller, make_default, child_array[3]))
 
     cmds.rowLayout(parent=RC, nc=1)
     cmds.separator(h=5, style='none')
@@ -398,29 +319,31 @@ def help_call(*args):
 def draw_PlayView(pWindowTitle, *args):
     ctrl_set = set()
     wInd = 0
-    WH = [-125, -75]  # Window dimensions are 250*150, negated for addition
+    WH = (-75, -125)  # Window dimensions are 250*150, negated for addition
 
     for panel in cmds.getPanel(vis=True):
-        for w in get_windows():
-            if cmds.panel(panel, q=True, control=True).startswith(w):
-                try:
-                    ctrl = cmds.modelPanel(panel, q=True, control=True)
-                    ctrl_set.add(ctrl)
-                except:
-                    pass
+        try:
+            ctrl = cmds.modelPanel(panel, q=True, control=True)
+            ctrl_set.add(get_layout_control(ctrl))
 
-    for ctrl in ctrl_set:
+            log.debug("Panel: {}".format(ctrl))
+            log.debug("Control: {}".format(ctrl_set))
+        except:
+            pass
+
+    for parent in ctrl_set:
         for w in get_windows():
-            if ctrl.startswith(w):
+            if parent.startswith(w):
                 WC = get_window_center(w)
-                WH.reverse()
                 TLC = [sum(x) for x in zip(WC, WH)]
 
-                gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
+                log.debug("Window center: {}".format(WC))
+                log.debug("Top-left corner: {}".format(TLC))
+
+                gui(parent, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
 
                 log.debug("Window: {}{}".format(windowID, wInd))
-                log.debug("Control: {}".format(ctrl))
-                log.debug("Panel: {}".format(panel))
+                log.debug("Control: {}".format(parent))
 
                 wInd += 1
 
@@ -438,13 +361,6 @@ def get_window_center(window, *args):
     return [sum(x) for x in zip(TLC, WH)]
 
 
-def get_layout(window, *args):
-    """Get layout of given window. By bob.w"""
-    for widget in sorted(cmds.lsUI(long=True, controlLayouts=True)):
-        if widget.startswith(window):
-            yield widget
-
-
 def get_layout_control(ctrl, *args):
     """Get layout's control."""
     return "|".join(ctrl.split("|")[:-1])
@@ -452,15 +368,12 @@ def get_layout_control(ctrl, *args):
 
 def get_layout_config(ctrl, *args):
     """Get layout's configuration."""
-    control = get_layout_control(ctrl)
-    ctrllayout = cmds.paneLayout(control, q=True, configuration=True)
-    return ctrllayout
+    return cmds.paneLayout(ctrl, q=True, configuration=True)
 
 
 def get_layout_child_array(ctrl, *args):
     """Get layout's child array."""
-    control = get_layout_control(ctrl)
-    return cmds.paneLayout(control, q=True, childArray=True)
+    return cmds.paneLayout(ctrl, q=True, childArray=True)
 
 
 def destroy_window(*args):
