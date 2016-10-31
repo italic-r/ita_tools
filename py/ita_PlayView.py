@@ -1,18 +1,19 @@
 """
-Primary window: "MayaWindow"
+PlayView: Save a viewport for single-view playback mode.
 
-# Full path of panel + control + window
-p = cmds.panel(panelname, q, control)
+import ita_PlayView
+#reload(ita_PlayView)  # To reset default
+ita_PlayView.init()
 
-# Layout preset to determine button layout
-cmds.paneLayout(controlname, q, configuration, activePane, activePaneIndex, parent)
+(c) Jeffrey "italic" Hoover
+italic DOT rendezvous AT gmail DOT com
+30 October 2016
 
-# Similar to paneLayout
-cmds.layout(layoutname, q, configuration)
-
-# Window props
-widthHeight [x, y]
-topleftcorner [y down, x right]
+Licensed under the Apache 2.0 license.
+This script can be used for non-commercial
+and commercial projects free of charge.
+For more information, visit:
+https://www.apache.org/licenses/LICENSE-2.0
 """
 
 import logging
@@ -31,7 +32,7 @@ custom_viewport = ""  # Saves panel name for future playback
 
 
 def play_button(*args):
-    log.info("Playing...")
+    """Play functionality."""
     return mel.eval(
         "undoInfo -stateWithoutFlush off;"
         "playButtonForward;"
@@ -40,21 +41,26 @@ def play_button(*args):
 
 
 def play_view(view):
+    """Play with specified viewport."""
     cmds.setFocus(view)
     destroy_window()
     play_button()
 
 
 def play_view_caller(make_default, view, *args):
-    """Play with specific viewport."""
+    """
+    Caller to make use of Default checkbox.
+    Ultimately call play_view() to play with specific view.
+    """
     if cmds.checkBox(make_default, q=True, v=True) is True:
         global custom_viewport
         custom_viewport = view
+        log.info("Default viewport for playback is now {}.".format(custom_viewport))
     play_view(view)
 
 
 def gui(ctrl, pWindowTitle, winID, TLC, *args):
-    """Draw the main window."""
+    """Draw window."""
     win_draw = cmds.window(
         winID,
         title=pWindowTitle,
@@ -102,13 +108,11 @@ def gui(ctrl, pWindowTitle, winID, TLC, *args):
 
     cmds.showWindow()
 
-    cmds.window(
-        win_draw, e=True, tlc=TLC
-    )
+    cmds.window(win_draw, e=True, tlc=TLC)
 
 
 def button_grid(parent, child_array, make_default, layout_config=None, *args):
-    """Make a UI grid layout based on result from get_layout_config()."""
+    """UI grid based on layout from get_layout_config()."""
 
     RC = cmds.columnLayout(p=parent)
     cmds.rowLayout(parent=RC, nc=1)
@@ -355,9 +359,6 @@ def button_grid(parent, child_array, make_default, layout_config=None, *args):
     cmds.rowLayout(parent=RC, nc=1)
     cmds.separator(h=5, style='none')
 
-    log.info("{}".format(make_default))
-    log.info("{}".format(layout_config))
-
     return RC
 
 
@@ -394,6 +395,7 @@ def help_call(*args):
 def draw_PlayView(pWindowTitle, *args):
     wInd = 0
     WH = [-125, -75]  # Window dimensions are 250*150, negated for addition
+    # XXX
     # save window + config in dict
     # loop dict and create window for each key (window + config/ctrl/layout)
     for panel in cmds.getPanel(vis=True):
@@ -403,11 +405,13 @@ def draw_PlayView(pWindowTitle, *args):
                 WH.reverse()
                 TLC = [sum(x) for x in zip(WC, WH)]
 
-                log.info("Window for {}".format(panel))
-
                 ctrl = cmds.panel(panel, q=True, control=True)
                 gui(ctrl, pWindowTitle, "{}{}".format(windowID, wInd), TLC)
                 wInd += 1
+
+                log.debug("Window: {}{}".format(windowID, wInd))
+                log.debug("Control: {}".format(ctrl))
+                log.debug("Panel: {}".format(panel))
 
 
 def get_windows(*args):
@@ -471,7 +475,6 @@ def init(*args):
         if cmds.play(q=True, state=True) is True:
             play_button()
         else:
-            log.info("Default: {}".format(custom_viewport))
             if custom_viewport == "":
                 draw_PlayView('PlayView')
             else:
