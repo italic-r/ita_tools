@@ -6,6 +6,12 @@ instead of "all." Otherwise it will play forward as normal. Use the given
 button grid to select a viewport to play through. Set it as default to save
 it for future playback. Set this script to a hotkey for easy reuse.
 
+Help: Open a help window with this information in it.
+Cancel: Close PlayView without setting defaults or playback.
+Make Default: Save selected viewport to prevent future prompts.
+Select a viewport with the provided buttons. One window will pop up for each
+window with a viewport in it.
+
 import ita_PlayView
 #reload(ita_PlayView)  # To reset default
 #ita_PlayView.destroy_window()  # To destroy all PlayView windows
@@ -289,8 +295,21 @@ def button_grid(parent, child_array, make_default, layout_config=None, *args):
 def help_call(*args):
     """Open a text window with help information."""
     helpText = (
-        'PlayView: Always play a specific viewport.\n'
-        'by Jeffrey "italic" Hoover'
+        "PlayView: Always play a specific viewport.\n"
+        "\n"
+        "Cancel: Close PlayView without setting defaults or playback.\n"
+        "Make Default: Save selected viewport to prevent future prompts.\n"
+        "Select a viewport with the provided buttons. One PlayView \n"
+        "window will pop up for each window with a viewport in it.\n"
+        "\n"
+        "(c) Jeffrey 'italic' Hoover\n"
+        "italic DOT rendezvous AT gmail DOT com\n"
+        "\n"
+        "Licensed under the Apache 2.0 license.\n"
+        "This script can be used for non-commercial\n"
+        "and commercial projects free of charge.\n"
+        "For more information, visit:\n"
+        "https://www.apache.org/licenses/LICENSE-2.0\n"
     )
 
     if cmds.window(helpID, exists=True):
