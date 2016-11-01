@@ -4,6 +4,7 @@
 Constraint Manager: create and track constraints for rigging and animation.
 
 THIS SCRIPT IS BETA!
+For Maya >= 2016.
 
 import ita_ConMan
 reload(ita_ConMan)
