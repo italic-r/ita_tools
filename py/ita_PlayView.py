@@ -412,11 +412,12 @@ def prefs_play_all(*args):
 def init(*args):
     """Funtion to call to start the script."""
     destroy_window()
-    if not prefs_play_all():
+    if cmds.play(q=True, state=True) is True:
         play_button()
     else:
-        if cmds.play(q=True, state=True) is True:
+        if not prefs_play_all():
             play_button()
+            log.info("Playback prefs set to update all viewports.")
         else:
             if custom_viewport == "":
                 draw_PlayView('PlayView')
