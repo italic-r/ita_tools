@@ -246,9 +246,7 @@ def useOSD():
     Use OSD non-adaptive, 1 subdivision, enable OCL, low OCL tesselation.
     """
 
-    selMesh = cmds.ls(type='mesh')
-
-    for msh in selMesh:
+    for msh in cmds.ls(type='mesh'):
         cmds.setAttr(msh + ".useGlobalSmoothDrawType", False)
         cmds.setAttr(msh + ".smoothDrawType", 2)
         cmds.setAttr(msh + ".smoothLevel", 1)
