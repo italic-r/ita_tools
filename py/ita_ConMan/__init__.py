@@ -52,7 +52,7 @@ def show():
     global _CMan
     if _CMan is None:
         maya_window = get_maya_window()
-        _CMan = Ui_ConManWindow(maya_window)
+        _CMan = Ui_ConManWindow(parent=maya_window)
         _CMan.setupUi()
     _CMan.show()
 

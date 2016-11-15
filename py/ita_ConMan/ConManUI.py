@@ -613,8 +613,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
 
 if __name__ == "__main__":
     win = QtGui.QApplication([])
-    mainwin = QtGui.QMainWindow()
-    ex = Ui_ConManWindow(mainwin)
-    ex.setupUi()
-    mainwin.show()
+    _CMan = Ui_ConManWindow()
+    _CMan.setupUi()
+    _CMan.show()
     win.exec_()
