@@ -1,1 +1,4 @@
-# ita_ConMan/
+ita_ConMan/img/*
+ita_ConMan/*.pyc
+ita_ConMan/*/*.pyc
+*.swp
