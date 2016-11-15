@@ -603,48 +603,47 @@ class ConstraintManager(object):
             OffZ = cmds.floatField(self.offsetZ, q=True, v=True)
 
             TAll = cmds.checkBox(self.TAll, q=True, v=True)
-            TX = cmds.checkBox(self.TX, q=True, v=True)
-            TY = cmds.checkBox(self.TY, q=True, v=True)
-            TZ = cmds.checkBox(self.TZ, q=True, v=True)
+            Tra = (TX, TY, TZ) = (
+                cmds.checkBox(self.TX, q=True, v=True),
+                cmds.checkBox(self.TY, q=True, v=True),
+                cmds.checkBox(self.TZ, q=True, v=True)
+            )
 
             RAll = cmds.checkBox(self.RAll, q=True, v=True)
-            RX = cmds.checkBox(self.RX, q=True, v=True)
-            RY = cmds.checkBox(self.RY, q=True, v=True)
-            RZ = cmds.checkBox(self.RZ, q=True, v=True)
+            Rot = (RX, RY, RZ) = (
+                cmds.checkBox(self.RX, q=True, v=True),
+                cmds.checkBox(self.RY, q=True, v=True),
+                cmds.checkBox(self.RZ, q=True, v=True)
+            )
 
             SAll = cmds.checkBox(self.SAll, q=True, v=True)
-            SX = cmds.checkBox(self.SX, q=True, v=True)
-            SY = cmds.checkBox(self.SY, q=True, v=True)
-            SZ = cmds.checkBox(self.SZ, q=True, v=True)
+            Sca = (SX, SY, SZ) = (
+                cmds.checkBox(self.SX, q=True, v=True),
+                cmds.checkBox(self.SY, q=True, v=True),
+                cmds.checkBox(self.SZ, q=True, v=True)
+            )
 
             SkipT = []
             SkipR = []
             SkipS = []
 
-            if TX is False:
-                SkipT.append("x")
-            if TY is False:
-                SkipT.append("y")
-            if TZ is False:
-                SkipT.append("z")
+            axes = ("x", "y", "z")
+
+            for t, c in zip(Tra, axes):
+                if not t:
+                    SkipT.append(c)
             if TAll is True:
                 SkipT = ["none"]
 
-            if RX is False:
-                SkipR.append("x")
-            if RY is False:
-                SkipR.append("y")
-            if RZ is False:
-                SkipR.append("z")
+            for r, c in zip(Rot, axes):
+                if not r:
+                    SkipR.append(c)
             if RAll is True:
                 SkipR = ["none"]
 
-            if SX is False:
-                SkipS.append("x")
-            if SY is False:
-                SkipS.append("y")
-            if SZ is False:
-                SkipS.append("z")
+            for s, c in zip(Sca, axes):
+                if not s:
+                    SkipS.append(c)
             if SAll is True:
                 SkipS = ["none"]
 
