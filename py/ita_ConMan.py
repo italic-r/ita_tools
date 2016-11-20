@@ -1,3 +1,4 @@
+#!/usr/autodesk/maya/bin/mayapy
 # encoding: utf-8
 
 """
@@ -57,8 +58,16 @@ import maya.OpenMaya as om
 import sys
 import base64
 import pickle
+import logging
 from collections import namedtuple
 from functools import partial
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(levelname)-15s: %(message)s"
+)
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 class ConstraintManager(object):
@@ -106,13 +115,15 @@ class ConstraintManager(object):
         self.helpPurgeData = "Purge constraint data. \nRemoves all constraint data from \nfile and Python variables. \nWARNING: NOT UNDO-ABLE!"
         self.helpHelpWindow = "Open a help window."
 
-        if cmds.window(self.window, exists=True):
-            cmds.showWindow(self.window)
-        else:
-            self.ShowUI()
-            # Cleans stale data after file open; prevents compounding stale data across sessions.
-            self.openCall = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.OpenCallback)
-            self.newCallback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, self.CheckPkl)
+        log.debug("Window populated")
+
+        self.ShowUI()
+        log.debug("New window created.")
+        # Cleans stale data after file open; prevents compounding stale data across sessions.
+        self.openCall = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.OpenCallback)
+        self.newCallback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, self.CheckPkl)
+
+        log.debug("New callbacks")
 
     def ShowUI(self):
         self.window = cmds.window(
@@ -353,7 +364,7 @@ class ConstraintManager(object):
             cmds.textScrollList(self.itemList, e=True, sii=1)
 
         self.UpdateUI()
-        print("Started constraint manager")
+        log.info("Started constraint manager")
 
     def DestroyUI(self):
         self.CheckPkl(arg="Write")
@@ -363,6 +374,8 @@ class ConstraintManager(object):
 
         om.MSceneMessage.removeCallback(self.openCall)
         om.MSceneMessage.removeCallback(self.newCallback)
+
+        log.debug("Callbacks removed")
 
     def HelpUI(self):
         helpText = (
@@ -443,6 +456,8 @@ class ConstraintManager(object):
             except:
                 pass
 
+        log.debug("UI updated")
+
         self.UpdateUISize()
         self.SpaceSwitchMenu()
         self.CheckPkl(arg="Write")
@@ -455,6 +470,8 @@ class ConstraintManager(object):
             resizeHeight = (resizeHeight + cmds.frameLayout(self.name + 'Layout2', q=True, h=True)) - 20
         resizeHeight = (resizeHeight + cmds.textScrollList(self.name + 'ScrollList', q=True, h=True)) - 50
         cmds.window(self.window, e=1, w=self.windowWidth, h=resizeHeight)
+
+        log.debug("UI size updated")
 
     def ListUpdate(self, activeObj, clean=None):
         textlist = self.itemList
@@ -501,9 +518,13 @@ class ConstraintManager(object):
             listLen = cmds.textScrollList(textlist, q=True, ni=True)
             cmds.textScrollList(textlist, e=True, sii=listLen)
 
+        log.debug("List updated...")
+
     def ConstSel(self):
         o = self.RetrieveObj()
         cmds.select(o.activeObj, r=True)
+
+        log.debug("Selected %s" % (o.activeObj))
 
     def AddConst(self):
         axes = ("x", "y", "z")
@@ -580,6 +601,9 @@ class ConstraintManager(object):
             newEntry = "{}  |  {}".format(activeObj, constType)
             self.ListUpdate(newEntry)
             self.UpdateUI()
+
+            log.debug("Added constraint")
+        log.debug("Finished adding constraints")
 
     def CreateConst(self, arg=None):
         # Check for two or more selected objects
@@ -686,6 +710,8 @@ class ConstraintManager(object):
             self.ListUpdate(newEntry)
             self.UpdateUI()
 
+            log.debug("Created constraint")
+
         else:
             om.MGlobal.displayWarning("Must select two or more objects to constrain.")
 
@@ -706,6 +732,8 @@ class ConstraintManager(object):
             om.MGlobal.displayInfo("No item selected. Cannot remove.")
 
         self.UpdateUI()
+
+        log.debug("Removed constraint")
 
     def SpaceSwitchMenu(self):
         textlist = self.itemList
@@ -728,6 +756,8 @@ class ConstraintManager(object):
                 cmds.disable(self.swObj, v=True)
             else:
                 cmds.disable(self.swObj, v=False)
+
+        log.debug("Switch menu populated")
 
     def SwitchConst(self, arg=None):
         o = self.RetrieveObj()
@@ -902,6 +932,8 @@ class ConstraintManager(object):
             for pair in zip(parList, chanList):
                 if pair[0]:
                     cmds.setKeyframe(o.activeObj + pair[1], t=currentTime)
+
+        log.debug("Switched parent target")
 
     def SwitchOther(self, arg=None):
         o = self.RetrieveObj()
@@ -1092,6 +1124,8 @@ class ConstraintManager(object):
                 if pair[0]:
                     cmds.setKeyframe(o.activeObj + ".{}{}".format(cType, pair[1]), t=currentTime)
 
+        log.debug("Switched {} target".format(o.constType))
+
     def RetrieveObj(self):
         textlist = self.itemList
         listItem = cmds.textScrollList(textlist, q=True, si=True)
@@ -1103,23 +1137,29 @@ class ConstraintManager(object):
         try:
             activeObj = listItem[0].split("  |  ")[0]
             constType = listItem[0].split("  |  ")[1]
+            log.debug("Retrieved: {} | {}".format(activeObj, constType))
         except:
             activeObj = None
             constType = None
+            log.debug("Could not parse textlist entry")
 
         try:
             activeObjU = cmds.ls(activeObj, uuid=True)[0]
+            log.debug("UUID: {}: {}".format(activeObj, activeObjU))
         except:
             activeObjU = None
+            log.debug("Could not get UUID of {}".format(activeObj))
 
         try:
             constUUID = self.ConstList.get((activeObjU, constType))[0]
             selObjs = self.ConstList.get((activeObjU, constType))[1]
             constObj = cmds.ls(constUUID)[0]
+            log.debug("Constraint UUID: {}, Targets: {}".format(constUUID, selObjs))
         except:
             constUUID = None
             constObj = None
             selObjs = []
+            log.debug("Could not get constraint node name, UUID or target list.")
 
         return RetrievedObj(activeObj, activeObjU, constType, constUUID, constObj, selObjs)
 
@@ -1148,6 +1188,8 @@ class ConstraintManager(object):
             RY = _connVal(o.constType, "r", "y")
             RZ = _connVal(o.constType, "r", "z")
 
+            log.debug("{} connections returned.".format(o.constType))
+
             return RetrievedConn(TX, TY, TZ, RX, RY, RZ)
 
         else:
@@ -1165,6 +1207,8 @@ class ConstraintManager(object):
             ConnY = _connVal(o.constType, chType, "y")
             ConnZ = _connVal(o.constType, chType, "z")
 
+            log.debug("{} connections returned.".format(o.constType))
+
             return RetrievedConn(ConnX, ConnY, ConnZ)
 
     def CheckPkl(self, arg=None):
@@ -1173,12 +1217,15 @@ class ConstraintManager(object):
             encoded = base64.b64encode(binDump)
             cmds.fileInfo("ConMan_data", encoded)
 
+            log.debug("Pickle data written")
+
         else:
             if cmds.fileInfo("ConMan_data", q=True) != []:
                 binLoad = cmds.fileInfo("ConMan_data", q=True)[0]
                 decoded = base64.b64decode(binLoad)
                 unPickled = pickle.loads(decoded)
                 self.ConstList = unPickled
+                log.debug("Pickle data read")
             else:
                 om.MGlobal.displayInfo("No constraint manager data found.")
 
@@ -1201,11 +1248,14 @@ class ConstraintManager(object):
         self.UpdateUI()
 
     def OpenCallback(self, arg=None):
+        log.debug("Calling OpenCallback...")
         self.CheckPkl()
         self.CleanData()
 
 
 if "CMan" not in locals().keys():
     CMan = ConstraintManager()
+    log.debug("New ConMan instance")
 elif "CMan" in locals().keys() and cmds.window(CMan.window, exists=True) is False:
     CMan = ConstraintManager()
+    log.debug("ConMan in locals(), but window not shown. New ConMan instance created.")
