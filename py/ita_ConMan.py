@@ -67,7 +67,7 @@ logging.basicConfig(
     format="%(levelname)-15s: %(message)s"
 )
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARN)
 
 
 class ConstraintManager(object):
