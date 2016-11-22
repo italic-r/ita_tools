@@ -21,7 +21,6 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QtCore.QSize(250, 425))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setFamily("Arial")
@@ -58,6 +57,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ObjList.setFrameShape(QtGui.QFrame.NoFrame)
         self.ObjList.setFrameShadow(QtGui.QFrame.Plain)
         self.ObjList.setObjectName("ObjList")
+        self.ObjList.setToolTip("Click to see switching options.\nDouble click to select constrained object.")
         self.LayoutVert1.addWidget(self.ObjList)
         #
         self.ButtonRow1 = QtGui.QHBoxLayout()
@@ -80,6 +80,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonAdd.setIconSize(QtCore.QSize(40, 40))
         self.ButtonAdd.setFlat(False)
         self.ButtonAdd.setObjectName("ButtonAdd")
+        self.ButtonAdd.setToolTip("Add selected constraint nodes to the list.")
         self.ButtonRow1.addWidget(self.ButtonAdd)
         #
         self.ButtonParent = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -97,6 +98,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonParent.setIconSize(QtCore.QSize(40, 40))
         self.ButtonParent.setFlat(False)
         self.ButtonParent.setObjectName("ButtonParent")
+        self.ButtonParent.setToolTip("Create a parent constraint with options below.")
         self.ButtonRow1.addWidget(self.ButtonParent)
         #
         self.ButtonPoint = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -114,6 +116,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonPoint.setIconSize(QtCore.QSize(40, 40))
         self.ButtonPoint.setFlat(False)
         self.ButtonPoint.setObjectName("ButtonPoint")
+        self.ButtonPoint.setToolTip("Create a point constraint with options below.")
         self.ButtonRow1.addWidget(self.ButtonPoint)
         #
         self.ButtonOrient = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -131,6 +134,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonOrient.setIconSize(QtCore.QSize(40, 40))
         self.ButtonOrient.setFlat(False)
         self.ButtonOrient.setObjectName("ButtonOrient")
+        self.ButtonOrient.setToolTip("Create an orient constraint with options below.")
         self.ButtonRow1.addWidget(self.ButtonOrient)
         #
         self.ButtonScale = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -148,6 +152,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonScale.setIconSize(QtCore.QSize(40, 40))
         self.ButtonScale.setFlat(False)
         self.ButtonScale.setObjectName("ButtonScale")
+        self.ButtonScale.setToolTip("Create a scale constraint with options below.")
         self.ButtonRow1.addWidget(self.ButtonScale)
         #
         self.ButtonRemove = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -165,6 +170,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonRemove.setIconSize(QtCore.QSize(40, 40))
         self.ButtonRemove.setFlat(False)
         self.ButtonRemove.setObjectName("ButtonRemove")
+        self.ButtonRemove.setToolTip("Click to remove constraint from list. Double click to delete from scene.")
         self.ButtonRow1.addWidget(self.ButtonRemove)
         self.LayoutVert1.addLayout(self.ButtonRow1)
         #
@@ -197,6 +203,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.OptionsGrid.setVerticalSpacing(2)
         self.OptionsGrid.setObjectName("OptionsGrid")
         #
+        # Labels
         self.LabelOffset = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -207,27 +214,6 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.LabelOffset.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.LabelOffset.setObjectName("LabelOffset")
         self.OptionsGrid.addWidget(self.LabelOffset, 1, 0, 1, 1)
-        #
-        self.CheckRoX = QtGui.QCheckBox(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.CheckRoX.sizePolicy().hasHeightForWidth())
-        self.CheckRoX.setSizePolicy(sizePolicy)
-        self.CheckRoX.setFont(font)
-        self.CheckRoX.setObjectName("CheckRoX")
-        self.OptionsGrid.addWidget(self.CheckRoX, 5, 1, 1, 1)
-        #
-        self.CheckOffset = QtGui.QCheckBox(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.CheckOffset.sizePolicy().hasHeightForWidth())
-        self.CheckOffset.setSizePolicy(sizePolicy)
-        self.CheckOffset.setText("")
-        self.CheckOffset.setChecked(True)
-        self.CheckOffset.setObjectName("CheckOffset")
-        self.OptionsGrid.addWidget(self.CheckOffset, 0, 1, 1, 1)
         #
         self.LabelMOffset = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
@@ -240,16 +226,16 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.LabelMOffset.setObjectName("LabelMOffset")
         self.OptionsGrid.addWidget(self.LabelMOffset, 0, 0, 1, 1)
         #
-        self.CheckTrAll = QtGui.QCheckBox(self.gridLayoutWidget)
+        self.LabelTr = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.CheckTrAll.sizePolicy().hasHeightForWidth())
-        self.CheckTrAll.setSizePolicy(sizePolicy)
-        self.CheckTrAll.setFont(font)
-        self.CheckTrAll.setChecked(True)
-        self.CheckTrAll.setObjectName("CheckTrAll")
-        self.OptionsGrid.addWidget(self.CheckTrAll, 2, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.LabelTr.sizePolicy().hasHeightForWidth())
+        self.LabelTr.setSizePolicy(sizePolicy)
+        self.LabelTr.setFont(font)
+        self.LabelTr.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelTr.setObjectName("LabelTr")
+        self.OptionsGrid.addWidget(self.LabelTr, 2, 0, 1, 1)
         #
         self.LabelRo = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
@@ -262,26 +248,52 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.LabelRo.setObjectName("LabelRo")
         self.OptionsGrid.addWidget(self.LabelRo, 4, 0, 1, 1)
         #
-        self.CheckRoAll = QtGui.QCheckBox(self.gridLayoutWidget)
+        self.LabelSc = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.CheckRoAll.sizePolicy().hasHeightForWidth())
-        self.CheckRoAll.setSizePolicy(sizePolicy)
-        self.CheckRoAll.setFont(font)
-        self.CheckRoAll.setChecked(True)
-        self.CheckRoAll.setObjectName("CheckRoAll")
-        self.OptionsGrid.addWidget(self.CheckRoAll, 4, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.LabelSc.sizePolicy().hasHeightForWidth())
+        self.LabelSc.setSizePolicy(sizePolicy)
+        self.LabelSc.setFont(font)
+        self.LabelSc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelSc.setObjectName("LabelSc")
+        self.OptionsGrid.addWidget(self.LabelSc, 6, 0, 1, 1)
         #
-        self.CheckRoY = QtGui.QCheckBox(self.gridLayoutWidget)
+        self.LabelWeight = QtGui.QLabel(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.CheckRoY.sizePolicy().hasHeightForWidth())
-        self.CheckRoY.setSizePolicy(sizePolicy)
-        self.CheckRoY.setFont(font)
-        self.CheckRoY.setObjectName("CheckRoY")
-        self.OptionsGrid.addWidget(self.CheckRoY, 5, 2, 1, 1)
+        sizePolicy.setHeightForWidth(self.LabelWeight.sizePolicy().hasHeightForWidth())
+        self.LabelWeight.setSizePolicy(sizePolicy)
+        self.LabelWeight.setFont(font)
+        self.LabelWeight.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.LabelWeight.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelWeight.setObjectName("LabelWeight")
+        self.OptionsGrid.addWidget(self.LabelWeight, 8, 0, 1, 1)
+        #
+        # Checkboxes
+        self.CheckOffset = QtGui.QCheckBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CheckOffset.sizePolicy().hasHeightForWidth())
+        self.CheckOffset.setSizePolicy(sizePolicy)
+        self.CheckOffset.setText("")
+        self.CheckOffset.setChecked(True)
+        self.CheckOffset.setObjectName("CheckOffset")
+        self.OptionsGrid.addWidget(self.CheckOffset, 0, 1, 1, 1)
+        #
+        # Translate checkboxes
+        self.CheckTrAll = QtGui.QCheckBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CheckTrAll.sizePolicy().hasHeightForWidth())
+        self.CheckTrAll.setSizePolicy(sizePolicy)
+        self.CheckTrAll.setFont(font)
+        self.CheckTrAll.setChecked(True)
+        self.CheckTrAll.setObjectName("CheckTrAll")
+        self.OptionsGrid.addWidget(self.CheckTrAll, 2, 1, 1, 1)
         #
         self.CheckTrX = QtGui.QCheckBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
@@ -303,17 +315,6 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.CheckTrY.setObjectName("CheckTrY")
         self.OptionsGrid.addWidget(self.CheckTrY, 3, 2, 1, 1)
         #
-        self.LabelTr = QtGui.QLabel(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.LabelTr.sizePolicy().hasHeightForWidth())
-        self.LabelTr.setSizePolicy(sizePolicy)
-        self.LabelTr.setFont(font)
-        self.LabelTr.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.LabelTr.setObjectName("LabelTr")
-        self.OptionsGrid.addWidget(self.LabelTr, 2, 0, 1, 1)
-        #
         self.CheckTrZ = QtGui.QCheckBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -323,6 +324,38 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.CheckTrZ.setFont(font)
         self.CheckTrZ.setObjectName("CheckTrZ")
         self.OptionsGrid.addWidget(self.CheckTrZ, 3, 3, 1, 1)
+        #
+        # Rotate checkboxes
+        self.CheckRoAll = QtGui.QCheckBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CheckRoAll.sizePolicy().hasHeightForWidth())
+        self.CheckRoAll.setSizePolicy(sizePolicy)
+        self.CheckRoAll.setFont(font)
+        self.CheckRoAll.setChecked(True)
+        self.CheckRoAll.setObjectName("CheckRoAll")
+        self.OptionsGrid.addWidget(self.CheckRoAll, 4, 1, 1, 1)
+        #
+        self.CheckRoX = QtGui.QCheckBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CheckRoX.sizePolicy().hasHeightForWidth())
+        self.CheckRoX.setSizePolicy(sizePolicy)
+        self.CheckRoX.setFont(font)
+        self.CheckRoX.setObjectName("CheckRoX")
+        self.OptionsGrid.addWidget(self.CheckRoX, 5, 1, 1, 1)
+        #
+        self.CheckRoY = QtGui.QCheckBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CheckRoY.sizePolicy().hasHeightForWidth())
+        self.CheckRoY.setSizePolicy(sizePolicy)
+        self.CheckRoY.setFont(font)
+        self.CheckRoY.setObjectName("CheckRoY")
+        self.OptionsGrid.addWidget(self.CheckRoY, 5, 2, 1, 1)
         #
         self.CheckRoZ = QtGui.QCheckBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
@@ -334,17 +367,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.CheckRoZ.setObjectName("CheckRoZ")
         self.OptionsGrid.addWidget(self.CheckRoZ, 5, 3, 1, 1)
         #
-        self.LabelSc = QtGui.QLabel(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.LabelSc.sizePolicy().hasHeightForWidth())
-        self.LabelSc.setSizePolicy(sizePolicy)
-        self.LabelSc.setFont(font)
-        self.LabelSc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.LabelSc.setObjectName("LabelSc")
-        self.OptionsGrid.addWidget(self.LabelSc, 6, 0, 1, 1)
-        #
+        # Scale checkboxes
         self.CheckScAll = QtGui.QCheckBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -376,18 +399,6 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.CheckScY.setObjectName("CheckScY")
         self.OptionsGrid.addWidget(self.CheckScY, 7, 2, 1, 1)
         #
-        self.LabelWeight = QtGui.QLabel(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.LabelWeight.sizePolicy().hasHeightForWidth())
-        self.LabelWeight.setSizePolicy(sizePolicy)
-        self.LabelWeight.setFont(font)
-        self.LabelWeight.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.LabelWeight.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.LabelWeight.setObjectName("LabelWeight")
-        self.OptionsGrid.addWidget(self.LabelWeight, 8, 0, 1, 1)
-        #
         self.CheckScZ = QtGui.QCheckBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -398,19 +409,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.CheckScZ.setObjectName("CheckScZ")
         self.OptionsGrid.addWidget(self.CheckScZ, 7, 3, 1, 1)
         #
-        self.SpinWeight = QtGui.QDoubleSpinBox(self.gridLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.SpinWeight.sizePolicy().hasHeightForWidth())
-        self.SpinWeight.setSizePolicy(sizePolicy)
-        self.SpinWeight.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
-        self.SpinWeight.setMaximum(1.0)
-        self.SpinWeight.setSingleStep(0.1)
-        self.SpinWeight.setProperty("value", 1.0)
-        self.SpinWeight.setObjectName("SpinWeight")
-        self.OptionsGrid.addWidget(self.SpinWeight, 8, 1, 1, 1)
-        #
+        # Spin boxes
         self.SpinOffsetX = QtGui.QDoubleSpinBox(self.gridLayoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -440,6 +439,20 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.SpinOffsetZ.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
         self.SpinOffsetZ.setObjectName("SpinOffsetZ")
         self.OptionsGrid.addWidget(self.SpinOffsetZ, 1, 3, 1, 1)
+        #
+        self.SpinWeight = QtGui.QDoubleSpinBox(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.SpinWeight.sizePolicy().hasHeightForWidth())
+        self.SpinWeight.setSizePolicy(sizePolicy)
+        self.SpinWeight.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        self.SpinWeight.setMaximum(1.0)
+        self.SpinWeight.setSingleStep(0.1)
+        self.SpinWeight.setProperty("value", 1.0)
+        self.SpinWeight.setObjectName("SpinWeight")
+        self.OptionsGrid.addWidget(self.SpinWeight, 8, 1, 1, 1)
+        #
         self.tabWidget.addTab(self.ConstraintOptions, "")
         #
         self.Switch = QtGui.QWidget()
@@ -460,6 +473,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.MenuSwitchTarget.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.MenuSwitchTarget.setFrame(True)
         self.MenuSwitchTarget.setObjectName("MenuSwitchTarget")
+        self.MenuSwitchTarget.setToolTip("Select a target to switch to...")
         self.SwitchCol.addWidget(self.MenuSwitchTarget)
         #
         self.ButtonRow3 = QtGui.QHBoxLayout()
@@ -471,6 +485,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonOff.setSizePolicy(sizePolicy)
         self.ButtonOff.setMinimumHeight(25)
         self.ButtonOff.setObjectName("ButtonOff")
+        self.ButtonOff.setToolTip("Turn all target weights OFF.")
         self.ButtonRow3.addWidget(self.ButtonOff)
         #
         self.ButtonAll = QtGui.QPushButton(self.verticalLayoutWidget_2)
@@ -478,6 +493,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonAll.setSizePolicy(sizePolicy)
         self.ButtonOff.setMinimumHeight(25)
         self.ButtonAll.setObjectName("ButtonAll")
+        self.ButtonAll.setToolTip("Turn all target weights ON.")
         self.ButtonRow3.addWidget(self.ButtonAll)
         #
         self.ButtonSwitch = QtGui.QPushButton(self.verticalLayoutWidget_2)
@@ -485,17 +501,21 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonSwitch.setSizePolicy(sizePolicy)
         self.ButtonOff.setMinimumHeight(25)
         self.ButtonSwitch.setObjectName("ButtonSwitch")
+        self.ButtonSwitch.setToolTip("Weight constraint to a single target.")
         self.ButtonRow3.addWidget(self.ButtonSwitch)
         self.SwitchCol.addLayout(self.ButtonRow3)
         #
         self.CheckVisTrans = QtGui.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckVisTrans.setChecked(True)
         self.CheckVisTrans.setObjectName("CheckVisTrans")
+        self.CheckVisTrans.setToolTip("Keep object in the same position\nby updating constraint offsets.")
         self.SwitchCol.addWidget(self.CheckVisTrans)
         #
         self.CheckKey = QtGui.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckKey.setChecked(True)
         self.CheckKey.setObjectName("CheckKey")
+        self.CheckKey.setToolTip("Key offsets, transforms and blend attributes.")
+        #
         self.SwitchCol.addWidget(self.CheckKey)
         self.tabWidget.addTab(self.Switch, "")
         self.LayoutVert1.addWidget(self.tabWidget)
@@ -515,6 +535,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         font.setPointSize(8)
         self.ButtonHelp.setFont(font)
         self.ButtonHelp.setObjectName("ButtonHelp")
+        self.ButtonHelp.setToolTip("Open help documentation.")
         self.ButtonRow2.addWidget(self.ButtonHelp)
         #
         self.ButtonClean = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -523,6 +544,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         font.setPointSize(8)
         self.ButtonClean.setFont(font)
         self.ButtonClean.setObjectName("ButtonClean")
+        self.ButtonClean.setToolTip("Clean stale ConMan data.")
         self.ButtonRow2.addWidget(self.ButtonClean)
         #
         self.ButtonPurge = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -531,6 +553,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         font.setPointSize(8)
         self.ButtonPurge.setFont(font)
         self.ButtonPurge.setObjectName("ButtonPurge")
+        self.ButtonPurge.setToolTip("Remove all ConMan data. \nWARNING: CANNOT BE UNDONE")
         self.ButtonRow2.addWidget(self.ButtonPurge)
         self.LayoutVert1.addLayout(self.ButtonRow2)
         self.setCentralWidget(self.centralwidget)
@@ -575,25 +598,30 @@ class Ui_ConManWindow(QtGui.QMainWindow):
     def retranslateUi(self):
         """Fill in UI text and special commands."""
         self.setWindowTitle(QtGui.QApplication.translate("ConManWindow", "Constraint Manager", None, QtGui.QApplication.UnicodeUTF8))
-        self.ObjList.setProperty("+selectCommand", QtGui.QApplication.translate("ConManWindow", "\"print(\'selected\')\"", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonAdd.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "\"log.info(\"Pressed ADD\")\"", None, QtGui.QApplication.UnicodeUTF8))
+        self.ObjList.setProperty("+selectCommand", QtGui.QApplication.translate("ConManWindow", "print('Selected new list item.')", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonAdd.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "\'print('Pressed ADD')\'", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonParent.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed PARENT\")'", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonPoint.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed POINT\")'", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonOrient.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed ORIENT\")'", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonScale.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed SCALE\")'", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonRemove.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed REMOVE\")'", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelOffset.setText(QtGui.QApplication.translate("ConManWindow", "Offset", None, QtGui.QApplication.UnicodeUTF8))
-        self.CheckRoX.setText(QtGui.QApplication.translate("ConManWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelMOffset.setText(QtGui.QApplication.translate("ConManWindow", "Maintain Off", None, QtGui.QApplication.UnicodeUTF8))
-        self.CheckTrAll.setText(QtGui.QApplication.translate("ConManWindow", "All", None, QtGui.QApplication.UnicodeUTF8))
+        self.LabelTr.setText(QtGui.QApplication.translate("ConManWindow", "Translate", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelRo.setText(QtGui.QApplication.translate("ConManWindow", "Rotate", None, QtGui.QApplication.UnicodeUTF8))
-        self.CheckRoAll.setText(QtGui.QApplication.translate("ConManWindow", "All", None, QtGui.QApplication.UnicodeUTF8))
-        self.CheckRoY.setText(QtGui.QApplication.translate("ConManWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
+        self.LabelSc.setText(QtGui.QApplication.translate("ConManWindow", "Scale", None, QtGui.QApplication.UnicodeUTF8))
+        self.LabelWeight.setText(QtGui.QApplication.translate("ConManWindow", "Weight", None, QtGui.QApplication.UnicodeUTF8))
+        self.CheckTrAll.setText(QtGui.QApplication.translate("ConManWindow", "All", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckTrX.setText(QtGui.QApplication.translate("ConManWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckTrY.setText(QtGui.QApplication.translate("ConManWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
-        self.LabelTr.setText(QtGui.QApplication.translate("ConManWindow", "Translate", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckTrZ.setText(QtGui.QApplication.translate("ConManWindow", "Z", None, QtGui.QApplication.UnicodeUTF8))
+        self.CheckRoAll.setText(QtGui.QApplication.translate("ConManWindow", "All", None, QtGui.QApplication.UnicodeUTF8))
+        self.CheckRoX.setText(QtGui.QApplication.translate("ConManWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
+        self.CheckRoY.setText(QtGui.QApplication.translate("ConManWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckRoZ.setText(QtGui.QApplication.translate("ConManWindow", "Z", None, QtGui.QApplication.UnicodeUTF8))
-        self.LabelSc.setText(QtGui.QApplication.translate("ConManWindow", "Scale", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckScAll.setText(QtGui.QApplication.translate("ConManWindow", "All", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckScX.setText(QtGui.QApplication.translate("ConManWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckScY.setText(QtGui.QApplication.translate("ConManWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
-        self.LabelWeight.setText(QtGui.QApplication.translate("ConManWindow", "Weight", None, QtGui.QApplication.UnicodeUTF8))
         self.CheckScZ.setText(QtGui.QApplication.translate("ConManWindow", "Z", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.ConstraintOptions), QtGui.QApplication.translate("ConManWindow", "Constraint Options", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonOff.setText(QtGui.QApplication.translate("ConManWindow", "OFF", None, QtGui.QApplication.UnicodeUTF8))
@@ -604,16 +632,103 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Switch), QtGui.QApplication.translate("ConManWindow", "Switch", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonHelp.setText(QtGui.QApplication.translate("ConManWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonClean.setText(QtGui.QApplication.translate("ConManWindow", "Clean Stale", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonPurge.setText(QtGui.QApplication.translate("ConManWindow", "Purge", None, QtGui.QApplication.UnicodeUTF8))
+        self.ButtonPurge.setText(QtGui.QApplication.translate("ConManWindow", "Purge...", None, QtGui.QApplication.UnicodeUTF8))
 
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
         self.MenuSwitchTarget.addItems(selObjs)
 
 
+class ConManHelpWindow(QtGui.QMainWindow):
+
+    def __init__(self, parent=None):
+        super(ConManHelpWindow, self).__init__(parent=parent)
+
+        self.helpText = (
+            'ConMan: A constraint manager for rigging and animation.\n'
+            '\n'
+            'Create common constraints (parent, point, orient, scale) with the given options.\n'
+            'Remove a constraint from the list with the trash icon; delete from the scene with double click.\n'
+            '\n'
+            'Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.\n'
+            '"OFF" turns off all weights and blend attributes.\n'
+            '"ON" turns on all weights and blend attributes.\n'
+            '"SWITCH" activates a single target and blend attributes and deactivates the rest.\n'
+            '\n'
+            'Maintain Visual Transforms: Update constraint offsets to maintain the object\'s world-space transforms.\n'
+            '\n'
+            'Key: Animate the switch across two frames (current and immediately previous).\n'
+            '\n'
+            'Constraint data is saved in the scene file.\n'
+            '\n'
+            'Clean Stale: Remove old data of non-existant objects. Any data not shown in the list is removed.\n'
+            'Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!\n'
+            '\n'
+            'LIMITATIONS AND KNOWN ISSUES:\n'
+            '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
+            '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
+            '\n'
+            '\n'
+            '(c) Jeffrey "italic" Hoover\n'
+            'italic DOT rendezvous AT gmail DOT com\n'
+            '\n'
+            'Licensed under the Apache 2.0 license.\n'
+            'This script can be used for non-commercial\n'
+            'and commercial projects free of charge.\n'
+            'For more information, visit:\n'
+            'https://www.apache.org/licenses/LICENSE-2.0\n'
+        )
+
+    def show_ui(self):
+        self.setObjectName("ConManHelpWindow")
+        self.resize(300, 250)
+        self.setMinimumSize(300, 250)
+        self.setMaximumSize(300, 400)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        font.setFamily("Arial")
+        self.setFont(font)
+        #
+        self.centralwidget = QtGui.QWidget(self)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
+        self.centralwidget.setSizePolicy(sizePolicy)
+        self.centralwidget.setMinimumSize(QtCore.QSize(300, 250))
+        self.centralwidget.setMaximumSize(QtCore.QSize(300, 400))
+        self.centralwidget.setObjectName("centralwidget")
+        #
+        self.verticalLayoutWidget = QtGui.QWidget(self.centralwidget)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 300, 250))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        #
+        self.LayoutVert1 = QtGui.QVBoxLayout(self.verticalLayoutWidget)
+        self.LayoutVert1.setSpacing(2)
+        self.LayoutVert1.setContentsMargins(-1, -1, -1, -1)
+        self.LayoutVert1.setObjectName("LayoutVert1")
+        #
+        self.textwidget = QtGui.QWidget()
+        #
+        self.textblock = QtGui.QTextDocument(self.textwidget)
+        self.textblock.setPlainText(self.helpText)
+        self.LayoutVert1.addWidget(self.textwidget)
+        #
+        self.setCentralWidget(self.centralwidget)
+        self.show()
+
 if __name__ == "__main__":
     win = QtGui.QApplication([])
-    _CMan = Ui_ConManWindow()
-    _CMan.setupUi()
-    _CMan.show()
+    _CManHelp = ConManHelpWindow()
+    _CManHelp.show_ui()
+    #===========================================================================
+    # _CMan = Ui_ConManWindow()
+    # _CMan.setupUi()
+    # _CMan.show()
+    #===========================================================================
     win.exec_()
