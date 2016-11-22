@@ -668,7 +668,6 @@ class ConManHelpWindow(QtGui.QMainWindow):
             '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
             '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
             '\n'
-            '\n'
             '(c) Jeffrey "italic" Hoover\n'
             'italic DOT rendezvous AT gmail DOT com\n'
             '\n'
@@ -684,7 +683,7 @@ class ConManHelpWindow(QtGui.QMainWindow):
         self.resize(300, 250)
         self.setMinimumSize(300, 250)
         self.setMaximumSize(300, 400)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
@@ -695,7 +694,7 @@ class ConManHelpWindow(QtGui.QMainWindow):
         self.setFont(font)
         #
         self.centralwidget = QtGui.QWidget(self)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
@@ -704,31 +703,29 @@ class ConManHelpWindow(QtGui.QMainWindow):
         self.centralwidget.setMaximumSize(QtCore.QSize(300, 400))
         self.centralwidget.setObjectName("centralwidget")
         #
-        self.verticalLayoutWidget = QtGui.QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 300, 250))
-        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
-        #
-        self.LayoutVert1 = QtGui.QVBoxLayout(self.verticalLayoutWidget)
-        self.LayoutVert1.setSpacing(2)
-        self.LayoutVert1.setContentsMargins(-1, -1, -1, -1)
-        self.LayoutVert1.setObjectName("LayoutVert1")
-        #
-        self.textwidget = QtGui.QWidget()
-        #
-        self.textblock = QtGui.QTextDocument(self.textwidget)
-        self.textblock.setPlainText(self.helpText)
-        self.LayoutVert1.addWidget(self.textwidget)
+        # XXX: Make expandable
+        self.textwidget = QtGui.QPlainTextEdit(self.centralwidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        self.textwidget.setSizePolicy(sizePolicy)
+        self.textwidget.setMinimumSize(QtCore.QSize(300, 250))
+        self.textwidget.setMaximumSize(QtCore.QSize(300, 400))
+        self.textwidget.setReadOnly(True)
+        self.textwidget.setObjectName("TextWidget")
+        self.textwidget.setPlainText(self.helpText)
         #
         self.setCentralWidget(self.centralwidget)
-        self.show()
+
 
 if __name__ == "__main__":
     win = QtGui.QApplication([])
-    _CManHelp = ConManHelpWindow()
-    _CManHelp.show_ui()
     #===========================================================================
     # _CMan = Ui_ConManWindow()
     # _CMan.setupUi()
     # _CMan.show()
     #===========================================================================
+    _CManHelp = ConManHelpWindow()
+    _CManHelp.show_ui()
+    _CManHelp.show()
     win.exec_()
