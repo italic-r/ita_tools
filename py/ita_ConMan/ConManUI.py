@@ -4,6 +4,8 @@
 
 from utils.qtshim import QtCore, QtGui, Signal
 
+_CManHelp = None
+
 
 class Ui_ConManWindow(QtGui.QMainWindow):
 
@@ -536,6 +538,7 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonHelp.setFont(font)
         self.ButtonHelp.setObjectName("ButtonHelp")
         self.ButtonHelp.setToolTip("Open help documentation.")
+        self.ButtonHelp.clicked.connect(self.show_help_ui)
         self.ButtonRow2.addWidget(self.ButtonHelp)
         #
         self.ButtonClean = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -634,6 +637,15 @@ class Ui_ConManWindow(QtGui.QMainWindow):
         self.ButtonClean.setText(QtGui.QApplication.translate("ConManWindow", "Clean Stale", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonPurge.setText(QtGui.QApplication.translate("ConManWindow", "Purge...", None, QtGui.QApplication.UnicodeUTF8))
 
+    def show_help_ui(self):
+        global _CManHelp
+        if _CManHelp is None:
+            # maya_window = get_maya_window()
+            # _CManHelp = ConManHelpWindow(parent=maya_window)
+            _CManHelp = ConManHelpWindow()
+            _CManHelp.show_ui()
+        _CManHelp.show()
+
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
         self.MenuSwitchTarget.addItems(selObjs)
@@ -645,44 +657,52 @@ class ConManHelpWindow(QtGui.QMainWindow):
         super(ConManHelpWindow, self).__init__(parent=parent)
 
         self.helpText = (
-            'ConMan: A constraint manager for rigging and animation.\n'
-            '\n'
-            'Create common constraints (parent, point, orient, scale) with the given options.\n'
-            'Remove a constraint from the list with the trash icon; delete from the scene with double click.\n'
-            '\n'
-            'Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.\n'
-            '"OFF" turns off all weights and blend attributes.\n'
-            '"ON" turns on all weights and blend attributes.\n'
-            '"SWITCH" activates a single target and blend attributes and deactivates the rest.\n'
-            '\n'
-            'Maintain Visual Transforms: Update constraint offsets to maintain the object\'s world-space transforms.\n'
-            '\n'
-            'Key: Animate the switch across two frames (current and immediately previous).\n'
-            '\n'
-            'Constraint data is saved in the scene file.\n'
-            '\n'
-            'Clean Stale: Remove old data of non-existant objects. Any data not shown in the list is removed.\n'
-            'Purge: Remove ALL saved constraint data from the scene. WARNING: THIS IS NOT UNDO-ABLE!\n'
-            '\n'
-            'LIMITATIONS AND KNOWN ISSUES:\n'
-            '-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.\n'
-            '-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.\n'
-            '\n'
-            '(c) Jeffrey "italic" Hoover\n'
-            'italic DOT rendezvous AT gmail DOT com\n'
-            '\n'
-            'Licensed under the Apache 2.0 license.\n'
-            'This script can be used for non-commercial\n'
-            'and commercial projects free of charge.\n'
-            'For more information, visit:\n'
-            'https://www.apache.org/licenses/LICENSE-2.0\n'
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+            "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+            "p, li { white-space: pre-wrap; }\n"
+            "</style></head><body style=\" font-family:\'Sans Serif\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:600;\">ConMan</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">A constraint manager for rigging and animation.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Create</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Create common constraints (parent, point, orient, scale) with the given options.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Remove</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Remove a constraint from the list with the trash icon; delete from the scene with double click.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Switch</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">OFF</span> turns off all weights and blend attributes.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">ON</span> turns on all weights and blend attributes.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">SWITCH</span> activates a single target and blend attributes and deactivates the rest.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Maintain Visual Transforms</span>: Update constraint offsets to maintain the object\'s world-space transforms.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Key</span>: Animate the switch across two frames (current and immediately previous).</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Constraint data is saved in the scene file.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Clean Stale</span>: Remove old data of non-existant objects. Any data not shown in the list is removed.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Purge...</span>: Remove ALL saved constraint data from the scene.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">WARNING: THIS IS NOT UNDO-ABLE!</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">LIMITATIONS AND KNOWN ISSUES:</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">(c) Jeffrey &quot;italic&quot; Hoover</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">italic DOT rendezvous AT gmail DOT com</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Licensed under the Apache 2.0 license.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This script can be used for commercial and non-commercial projects free of charge.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.apache.org/licenses/LICENSE-2.0\"><span style=\" text-decoration: underline; color:#0057ae;\">https://www.apache.org/licenses/LICENSE-2.0</span></a></p></body></html>"
         )
 
     def show_ui(self):
         self.setObjectName("ConManHelpWindow")
-        self.resize(300, 250)
-        self.setMinimumSize(300, 250)
-        self.setMaximumSize(300, 400)
+        self.setWindowTitle("ConMan Help")
+        self.resize(325, 250)
+        self.setMinimumSize(325, 250)
+        self.setMaximumSize(600, 425)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -699,33 +719,37 @@ class ConManHelpWindow(QtGui.QMainWindow):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
         self.centralwidget.setSizePolicy(sizePolicy)
-        self.centralwidget.setMinimumSize(QtCore.QSize(300, 250))
-        self.centralwidget.setMaximumSize(QtCore.QSize(300, 400))
+        self.centralwidget.setMinimumSize(QtCore.QSize(325, 250))
+        self.centralwidget.setMaximumSize(QtCore.QSize(600, 425))
         self.centralwidget.setObjectName("centralwidget")
         #
-        # XXX: Make expandable
-        self.textwidget = QtGui.QPlainTextEdit(self.centralwidget)
+        self.vlayout = QtGui.QVBoxLayout(self.centralwidget)
+        self.vlayout.setSpacing(2)
+        self.vlayout.setContentsMargins(2, 2, 2, 2)
+        self.vlayout.setObjectName("VLayout")
+        #
+        self.textwidget = QtGui.QTextEdit(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         self.textwidget.setSizePolicy(sizePolicy)
-        self.textwidget.setMinimumSize(QtCore.QSize(300, 250))
-        self.textwidget.setMaximumSize(QtCore.QSize(300, 400))
         self.textwidget.setReadOnly(True)
         self.textwidget.setObjectName("TextWidget")
-        self.textwidget.setPlainText(self.helpText)
+        self.textwidget.setHtml(self.helpText)
+        #
+        self.vlayout.addWidget(self.textwidget)
         #
         self.setCentralWidget(self.centralwidget)
 
 
 if __name__ == "__main__":
     win = QtGui.QApplication([])
+    _CMan = Ui_ConManWindow()
+    _CMan.setupUi()
+    _CMan.show()
     #===========================================================================
-    # _CMan = Ui_ConManWindow()
-    # _CMan.setupUi()
-    # _CMan.show()
+    # _CManHelp = ConManHelpWindow()
+    # _CManHelp.show_ui()
+    # _CManHelp.show()
     #===========================================================================
-    _CManHelp = ConManHelpWindow()
-    _CManHelp.show_ui()
-    _CManHelp.show()
     win.exec_()
