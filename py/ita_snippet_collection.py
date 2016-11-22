@@ -157,14 +157,14 @@ def TanLock(arg=None):
             cmds.keyTangent(e=True, wl=False)
             cmds.undoInfo(swf=True)
         else:
-            mel.eval('dR_DoCmd("pointSnapPress")')
+            cmds.snapMode(point=True)
     elif arg == "Release":
         if panType == "graphEditor1":
             cmds.undoInfo(swf=False)
             cmds.keyTangent(e=True, wl=True)
             cmds.undoInfo(swf=True)
         else:
-            mel.eval('dR_DoCmd("pointSnapRelease")')
+            cmds.snapMode(point=False)
 
 
 def skCluster():
