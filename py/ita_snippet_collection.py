@@ -252,3 +252,17 @@ def useOSD():
         cmds.setAttr(msh + ".smoothLevel", 1)
         cmds.setAttr(msh + ".enableOpenCL", True)
         cmds.setAttr(msh + ".smoothTessLevel", 2)
+
+
+def pin_control():
+    # Rigging Dojo: 2016 v.1
+    # key pose overtime python script for Maya
+    # select objects to keyframe, mark a range of time in the Maya timeline and run the script
+
+    aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
+    selection = cmds.ls(sl=True)
+    # selectionActive = cmds.timeControl(aPlayBackSliderPython, query=True, rangeVisible=True)
+    selectedRange = cmds.timeControl(aPlayBackSliderPython, query=True, rangeArray=True)
+    # frameRange = [i for i in range(int(selectedRange), int(selectedRange[1]))]
+    frameRange = range(*map(int, selectedRange))
+    result = cmds.setKeyframe(selection, time=frameRange)  # Set all the keys at the same time
