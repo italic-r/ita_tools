@@ -10,7 +10,7 @@ log.setLevel(logging.INFO)
 
 try:
     from utils.qtshim import QtCore, QtGui, Signal
-    log.info("Imported PySide from qtshim.")
+    log.info("Imported UI libs from qtshim.")
 except ImportError:
     from PySide import QtCore, QtGui
     Signal = QtCore.Signal
