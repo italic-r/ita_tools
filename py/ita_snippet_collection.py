@@ -255,14 +255,13 @@ def useOSD():
 
 
 def pin_control():
-    # Rigging Dojo: 2016 v.1
-    # key pose overtime python script for Maya
-    # select objects to keyframe, mark a range of time in the Maya timeline and run the script
-
+    # Rigging Dojo: 2016 v.2
     aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
     selection = cmds.ls(sl=True)
-    # selectionActive = cmds.timeControl(aPlayBackSliderPython, query=True, rangeVisible=True)
+    selectionActvive = cmds.timeControl(aPlayBackSliderPython, query=True, rangeVisible=True)
     selectedRange = cmds.timeControl(aPlayBackSliderPython, query=True, rangeArray=True)
-    # frameRange = [i for i in range(int(selectedRange), int(selectedRange[1]))]
     frameRange = range(*map(int, selectedRange))
-    result = cmds.setKeyframe(selection, time=frameRange)  # Set all the keys at the same time
+    zeroStartKey = cmds.setKeyframe(selection, time=(selectedRange[0] - 1), id=True)  # zero the frames to base layer adjust as needed
+    startTime = cmds.currentTime(selectedRange[0])  # makesure pose is from the start of the selection
+    keyRange = cmds.setKeyframe(selection, time=frameRange)  # Set all the keys at the same time
+    zeroEndKey = cmds.setKeyframe(selection, time=(selectedRange[1] + 1), id=True)  # zero the frames to base layer adjust as needed
