@@ -1,19 +1,29 @@
+#!/usr/autodesk/maya/bin/mayapy
 # encoding: utf-8
 
+"""
+ConMan2: A tool to create, track and manage constraints.
+
+WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
+ConMan uses maya.cmds
+ConMan2 uses pymel and Qt
+"""
+
 import logging
-from sys import exit
+import pickle
+import base64
 import pymel.core as pmc
-from pymel import versions
-from maya import OpenMaya as om
 import maya.cmds as cmds
+from sys import exit
 from utils.mayautils import UndoChunk, get_maya_window
-from ConManUI import Ui_ConManWindow
+from ConManUI import ConManWindow
 
 logging.basicConfig(
-    level=logging.INFO, format="%(levelname)s: %(message)s",
+    level=logging.DEBUG, format="%(levelname)s: %(message)s",
     filename="conman_log.log", filemode='w'
 )
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 supportedVersion = 2016
 currentVersion = int(cmds.about(version=True).split(" ")[0])
@@ -25,48 +35,149 @@ log.info("Maya 2016+ detected")
 # =============================================================================
 
 _CMan = None
+ConItemList = {}
 
 
-def create_constraint(ctype, actObj, selObjs, maintain_offset, offset):
+def create_con_call():
+    """
+    Called by create buttons.
+    Gather required data:
+        Active obj + UUID
+        Selected objs + UUID list
+        Constraint type
+        Option values (axes, weight, offset)
+    Create constraint
+    Save data
+    """
+    # Get scene data
+    selection = pmc.ls(sl=True, type="transform")
+    actObj = selection[-1]
+    actObjU = get_uuid_list(selection[-1:])[0]
+    selObjs = selection[:-1]
+    selObjsU = get_uuid_list(selObjs)
+    # conType is passed into the function
+
+    log.debug(selection)
+    log.debug(str(actObj))
+    log.debug(str(actObjU))
+    log.debug(selObjs)
+    log.debug(selObjsU)
+    log.debug(conType)
+
+    # Get UI data
+
+    # Create constraint
+
+    # Save data
+
+
+def get_uuid_list(selObjs):
+    selObjsU = [cmds.ls(str(obj), uuid=True)[0] for obj in selObjs]
+    return selObjsU
+
+
+def create_constraint(
+    ctype, actObj, selObjs,
+    offset, maintain_offset, weight,
+    skipT=['none'], skipR=['none'], skipS=['none']
+):
     with UndoChunk:
         if ctype == "Parent":
-            pmc.parentConstraint(actObj, selObjs)
+            pmc.parentConstraint(
+                selObjs, actObj,
+                mo=maintain_offset,
+                weight=weight
+            )
         elif ctype == "Point":
-            pmc.pointConstraint(actObj, selObjs)
+            pmc.pointConstraint(
+                selObjs, actObj,
+                mo=maintain_offset, offset=offset,
+                weight=weight
+            )
         elif ctype == "Orient":
-            pmc.orientConstraint(actObj, selObjs)
+            pmc.orientConstraint(
+                selObjs, actObj,
+                mo=maintain_offset, offset=offset,
+                weight=weight
+            )
         elif ctype == "Scale":
-            pmc.scaleConstraint(actObj, selObjs)
+            pmc.scaleConstraint(
+                selObjs, actObj,
+                mo=maintain_offset, offset=offset,
+                weight=weight
+            )
 
 
-class ConListItem():
-    """Object to hold constraint data: type, active object, target objects."""
+#===============================================================================
+# class ConListItem():
+#     """Object to hold constraint data: type, active object, target objects."""
+#
+#     def __init__(self, con_type, conNode, actObj, selobjs):
+#         self.type = con_type
+#         self.obj = actObj
+#         self.target = selobjs
+#         self.constraint = conNode
+#         # self.target_uuid = [cmds.ls(str(obj), uuid=True)[0] for obj in self.target]
+#         # self.con_uuid = cmds.ls(str(self.constraint), uuid=True)[0]
+#
+#     def uuid(self):
+#         return cmds.ls(str(self.obj), uuid=True)
+#===============================================================================
 
-    def __init__(self, con_type, actObj, selobjs):
-        self.type = con_type
-        self.obj = actObj
-        self.target = selobjs
+
+def pickle_read():
+    """Read pickled data from scene's fileInfo attribute."""
+    global ConItemList
+    sceneInfo = pmc.fileInfo("CMan_data", q=True)
+    decoded = base64.b64decode(sceneInfo)
+    unpickled = pickle.loads(decoded)
+    ConItemList = unpickled
+
+    log.debug(str(sceneInfo))
+    log.debug(str(decoded))
+    log.debug([key for key in ConItemList.keys()])
+
+
+def pickle_write():
+    """Write pickled data into scene's fileInfo attribute."""
+    pickled = pickle.dumps(ConItemList)
+    encoded = base64.b64encode(pickled)
+    sceneInfo = pmc.fileInfo("CMan_data", encoded)
 
 
 def show():
     global _CMan
     if _CMan is None:
         maya_window = get_maya_window()
-        _CMan = Ui_ConManWindow(parent=maya_window)
+        _CMan = ConManWindow(parent=maya_window)
         _CMan.setupUi()
     _CMan.show()
 
 
 def _pytest():
-    ctype = "Parent"
-    ctargets = ["nurbsCurve1", "locator1"]
-    cactive = "PaConst1"
-    clist1 = ConListItem(ctype, cactive, ctargets)
-    print(
-        clist1.type,
-        clist1.obj,
-        clist1.target,
-    )
+    loc1 = pmc.spaceLocator()  # Target
+    loc2 = pmc.spaceLocator()  # Target
+    loc3 = pmc.spaceLocator()  # To be constrained
+    pmc.select(loc1, loc2, loc3)
+    create_con_call("Parent")
+    pConst = pmc.parentConstraint(loc1, loc2, loc3)  # [Targets,] active, options...
+
+    #===========================================================================
+    # show()
+    # global ConItemList
+    # ConItemList[(str(loc), "Parent")] = ConListItem("Parent", pConst, loc, pConst.getTargetList())
+    # _CMan.ObjList.clear()
+    # _CMan.ObjList.addItem(str(pConst))
+    # _CMan.ObjList.addItems(
+    #     ["testline1", "testline2", "testline3", "testline4", "testline5",
+    #      "testline6", "testline7", "testline8", "testline9", "testline10",
+    #      "testline11", "testline12", "testline13", "testline14", "testline15"]
+    # )
+    # _CMan.MenuSwitchTarget.clear()
+    # _CMan.populate_menu([str(obj) for obj in pConst.getTargetList()])
+    #===========================================================================
+
 
 if __name__ == "__main__":
+    """Run"""
     _pytest()

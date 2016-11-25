@@ -550,7 +550,6 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonHelp.setFont(font)
         self.ButtonHelp.setObjectName("ButtonHelp")
         self.ButtonHelp.setToolTip("Open help documentation.")
-        self.ButtonHelp.clicked.connect(self.show_help_ui)
         self.ButtonRow2.addWidget(self.ButtonHelp)
         #
         self.ButtonClean = QtGui.QPushButton(self.verticalLayoutWidget)
@@ -574,6 +573,7 @@ class ConManWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.centralwidget)
         #
         self.retranslateUi()
+        self.set_buttons()
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
         self.setTabOrder(self.ObjList, self.ButtonAdd)
@@ -613,13 +613,6 @@ class ConManWindow(QtGui.QMainWindow):
     def retranslateUi(self):
         """Fill in UI text and special commands."""
         self.setWindowTitle(QtGui.QApplication.translate("ConManWindow", "Constraint Manager", None, QtGui.QApplication.UnicodeUTF8))
-        self.ObjList.setProperty("+selectCommand", QtGui.QApplication.translate("ConManWindow", "print('Selected new list item.')", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonAdd.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "\'print('Pressed ADD')\'", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonParent.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed PARENT\")'", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonPoint.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed POINT\")'", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonOrient.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed ORIENT\")'", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonScale.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed SCALE\")'", None, QtGui.QApplication.UnicodeUTF8))
-        self.ButtonRemove.setProperty("+command", QtGui.QApplication.translate("ConManWindow", "'print(\"Pressed REMOVE\")'", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelOffset.setText(QtGui.QApplication.translate("ConManWindow", "Offset", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelMOffset.setText(QtGui.QApplication.translate("ConManWindow", "Maintain Off", None, QtGui.QApplication.UnicodeUTF8))
         self.LabelTr.setText(QtGui.QApplication.translate("ConManWindow", "Translate", None, QtGui.QApplication.UnicodeUTF8))
@@ -648,6 +641,21 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonHelp.setText(QtGui.QApplication.translate("ConManWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonClean.setText(QtGui.QApplication.translate("ConManWindow", "Clean Stale", None, QtGui.QApplication.UnicodeUTF8))
         self.ButtonPurge.setText(QtGui.QApplication.translate("ConManWindow", "Purge...", None, QtGui.QApplication.UnicodeUTF8))
+
+    def set_buttons(self):
+        #=======================================================================
+        # self.ButtonAdd.clicked.connect(self.show_help_ui)
+        # self.ButtonParent.clicked.connect(self.send_options("Parent"))
+        # self.ButtonPoint.clicked.connect(self.send_options("Point"))
+        # self.ButtonOrient.clicked.connect(self.send_options("Orient"))
+        # self.ButtonScale.clicked.connect(self.send_options("Scale"))
+        # self.ButtonRemove.clicked.connect()
+        #=======================================================================
+        self.ButtonHelp.clicked.connect(self.show_help_ui)
+        #=======================================================================
+        # self.ButtonClean.clicked.connect()
+        # self.ButtonPurge.clicked.connect()
+        #=======================================================================
 
     def show_help_ui(self):
         global _CManHelp
