@@ -22,7 +22,7 @@ _CManHelp = None
 class ConManWindow(QtGui.QMainWindow):
 
     def __init__(self, parent=None):
-        super(Ui_ConManWindow, self).__init__(parent=parent)
+        super(ConManWindow, self).__init__(parent=parent)
 
     def setupUi(self):
         """Set up main UI."""
