@@ -19,7 +19,7 @@ except ImportError:
 _CManHelp = None
 
 
-class Ui_ConManWindow(QtGui.QMainWindow):
+class ConManWindow(QtGui.QMainWindow):
 
     def __init__(self, parent=None):
         super(Ui_ConManWindow, self).__init__(parent=parent)
@@ -756,7 +756,7 @@ class ConManHelpWindow(QtGui.QMainWindow):
 
 if __name__ == "__main__":
     win = QtGui.QApplication([])
-    _CMan = Ui_ConManWindow()
+    _CMan = ConManWindow()
     _CMan.setupUi()
     _CMan.show()
     #===========================================================================
