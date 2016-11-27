@@ -9,18 +9,22 @@ ConMan uses maya.cmds
 ConMan2 uses pymel and Qt
 """
 
+import os
 import logging
 import pickle
 import base64
 import pymel.core as pmc
 import maya.cmds as cmds
 from sys import exit
+from utils.qtshim import QtCore
 from utils.mayautils import UndoChunk, get_maya_window
 from ConManUI import ConManWindow
 
+ConManDir = os.path.dirname(__file__)
+
 logging.basicConfig(
     level=logging.DEBUG, format="%(levelname)s: %(message)s",
-    filename="conman_log.log", filemode='w'
+    filename=os.path.join(ConManDir, "conman_log.log"), filemode='w'
 )
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -38,7 +42,8 @@ _CMan = None
 ConItemList = {}
 
 
-def create_con_call():
+@QtCore.Slot()
+def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     """
     Called by create buttons.
     Gather required data:
@@ -65,10 +70,18 @@ def create_con_call():
     log.debug(conType)
 
     # Get UI data
+    log.debug(Offset)
+    log.debug(mOffset)
+    log.debug(weight)
+    log.debug(skipT)
+    log.debug(skipR)
+    log.debug(skipS)
 
     # Create constraint
+    create_constraint(conType, actObj, selObjs, Offset, mOffset, weight, skipT, skipR, skipS)
 
     # Save data
+    _CMan.ObjList.addItem(str(actObj) + " | " + conType)
 
 
 def get_uuid_list(selObjs):
@@ -81,31 +94,32 @@ def create_constraint(
     offset, maintain_offset, weight,
     skipT=['none'], skipR=['none'], skipS=['none']
 ):
-    with UndoChunk:
-        if ctype == "Parent":
-            pmc.parentConstraint(
-                selObjs, actObj,
-                mo=maintain_offset,
-                weight=weight
-            )
-        elif ctype == "Point":
-            pmc.pointConstraint(
-                selObjs, actObj,
-                mo=maintain_offset, offset=offset,
-                weight=weight
-            )
-        elif ctype == "Orient":
-            pmc.orientConstraint(
-                selObjs, actObj,
-                mo=maintain_offset, offset=offset,
-                weight=weight
-            )
-        elif ctype == "Scale":
-            pmc.scaleConstraint(
-                selObjs, actObj,
-                mo=maintain_offset, offset=offset,
-                weight=weight
-            )
+    # FIXME: UndoChunk exits with error
+    # with UndoChunk:
+    if ctype == "Parent":
+        pmc.parentConstraint(
+            selObjs, actObj,
+            mo=maintain_offset,
+            weight=weight
+        )
+    elif ctype == "Point":
+        pmc.pointConstraint(
+            selObjs, actObj,
+            mo=maintain_offset, offset=offset,
+            weight=weight
+        )
+    elif ctype == "Orient":
+        pmc.orientConstraint(
+            selObjs, actObj,
+            mo=maintain_offset, offset=offset,
+            weight=weight
+        )
+    elif ctype == "Scale":
+        pmc.scaleConstraint(
+            selObjs, actObj,
+            mo=maintain_offset, offset=offset,
+            weight=weight
+        )
 
 
 #===============================================================================
@@ -150,17 +164,21 @@ def show():
     if _CMan is None:
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)
+        _CMan.OptionsSig.connect(create_con_call)
         _CMan.setupUi()
     _CMan.show()
 
 
 def _pytest():
-    loc1 = pmc.spaceLocator()  # Target
-    loc2 = pmc.spaceLocator()  # Target
-    loc3 = pmc.spaceLocator()  # To be constrained
-    pmc.select(loc1, loc2, loc3)
-    create_con_call("Parent")
-    pConst = pmc.parentConstraint(loc1, loc2, loc3)  # [Targets,] active, options...
+    show()
+    #===========================================================================
+    # loc1 = pmc.spaceLocator()  # Target
+    # loc2 = pmc.spaceLocator()  # Target
+    # loc3 = pmc.spaceLocator()  # To be constrained
+    # pmc.select(loc1, loc2, loc3)
+    # create_con_call("Parent")
+    # pConst = pmc.parentConstraint(loc1, loc2, loc3)  # [Targets,] active, options...
+    #===========================================================================
 
     #===========================================================================
     # show()

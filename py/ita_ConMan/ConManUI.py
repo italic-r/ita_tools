@@ -4,7 +4,6 @@
 
 import logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
@@ -20,6 +19,7 @@ _CManHelp = None
 
 
 class ConManWindow(QtGui.QMainWindow):
+    OptionsSig = Signal(str, tuple, bool, float, list, list, list)
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -645,10 +645,12 @@ class ConManWindow(QtGui.QMainWindow):
     def set_buttons(self):
         #=======================================================================
         # self.ButtonAdd.clicked.connect(self.show_help_ui)
-        # self.ButtonParent.clicked.connect(self.send_options("Parent"))
-        # self.ButtonPoint.clicked.connect(self.send_options("Point"))
-        # self.ButtonOrient.clicked.connect(self.send_options("Orient"))
-        # self.ButtonScale.clicked.connect(self.send_options("Scale"))
+        #=======================================================================
+        self.ButtonParent.clicked.connect(lambda: self.send_options("Parent"))
+        self.ButtonPoint.clicked.connect(lambda: self.send_options("Point"))
+        self.ButtonOrient.clicked.connect(lambda: self.send_options("Orient"))
+        self.ButtonScale.clicked.connect(lambda: self.send_options("Scale"))
+        #=======================================================================
         # self.ButtonRemove.clicked.connect()
         #=======================================================================
         self.ButtonHelp.clicked.connect(self.show_help_ui)
@@ -669,6 +671,56 @@ class ConManWindow(QtGui.QMainWindow):
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
         self.MenuSwitchTarget.addItems(selObjs)
+
+    def send_options(self, conType):
+        skipT = []
+        skipR = []
+        skipS = []
+
+        axes = ("x", "y", "z")
+
+        TAll = (TX, TY, TZ) = (
+            self.CheckTrX.isChecked(),
+            self.CheckTrY.isChecked(),
+            self.CheckTrZ.isChecked()
+        )
+        RAll = (RX, RY, RZ) = (
+            self.CheckRoX.isChecked(),
+            self.CheckRoY.isChecked(),
+            self.CheckRoZ.isChecked()
+        )
+        SAll = (SX, SY, SZ) = (
+            self.CheckScX.isChecked(),
+            self.CheckScY.isChecked(),
+            self.CheckScZ.isChecked()
+        )
+
+        for c, a in zip(TAll, axes):
+            if not c:
+                skipT.append(a)
+        for c, a in zip(RAll, axes):
+            if not c:
+                skipR.append(a)
+        for c, a in zip(SAll, axes):
+            if not c:
+                skipS.append(a)
+
+        if self.CheckTrAll.isChecked():
+            skipT = ['none']
+        if self.CheckRoAll.isChecked():
+            skipR = ['none']
+        if self.CheckScAll.isChecked():
+            skipS = ['none']
+
+        mOffset = self.CheckOffset.isChecked()
+        weight = self.SpinWeight.value()
+        Offset = (
+            self.SpinOffsetX.value(),
+            self.SpinOffsetY.value(),
+            self.SpinOffsetZ.value()
+        )
+
+        self.OptionsSig.emit(conType, Offset, mOffset, weight, skipT, skipR, skipS)
 
 
 class ConManHelpWindow(QtGui.QMainWindow):
