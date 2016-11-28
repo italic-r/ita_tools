@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 """
-ConMan2: A tool to create, track and manage constraints.
+ConMan2: A tool to create, track and manage constraints for rigging and animation.
 
 WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
 ConMan uses maya.cmds
@@ -38,12 +38,29 @@ if currentVersion < supportedVersion:
     log.error("Maya 2016+ required.")
     exit()
 log.info("Maya 2016+ detected")
-log.debug(LogFile)
 
 # =============================================================================
 
 _CMan = None
 ConItemList = {}
+
+
+class ConListItem():
+    """Object to hold constraint data: type, active object, target objects."""
+
+    def __init__(self, con_type, conNode, actObj, selobjs):
+        self.type = con_type
+        self.obj = actObj
+        self.target = selobjs
+        self.constraint = conNode
+
+    @property
+    def target_uuid(self):
+        return [cmds.ls(str(obj), uuid=True)[0] for obj in self.target]
+
+    @property
+    def con_uuid(self):
+        return cmds.ls(str(self.constraint), uuid=True)[0]
 
 
 @QtCore.Slot()
@@ -73,15 +90,6 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
         log.debug("Active UUID: {}".format(actObjU))
         log.debug("Target objects: {}".format(selObjs))
         log.debug("Target UUID: {}".format(selObjsU))
-        log.debug("Con type: {}".format(conType))
-
-        # Get UI data
-        log.debug("Offset: {}".format(Offset))
-        log.debug("Maintain offset: {}".format(mOffset))
-        log.debug("Weight: {}".format(weight))
-        log.debug("Skip translate: {}".format(skipT))
-        log.debug("Skip rotate: {}".format(skipR))
-        log.debug("Skip scale: {}".format(skipS))
 
         # with UndoChunk():
         # Create constraint
@@ -133,25 +141,8 @@ def create_constraint(
             weight=weight
         )
 
-    log.debug("Created constraint: {} {}".format(ctype, cObj))
+    log.debug("Created constraint: {}".format(cObj))
     return cObj
-
-
-#===============================================================================
-# class ConListItem():
-#     """Object to hold constraint data: type, active object, target objects."""
-#
-#     def __init__(self, con_type, conNode, actObj, selobjs):
-#         self.type = con_type
-#         self.obj = actObj
-#         self.target = selobjs
-#         self.constraint = conNode
-#         # self.target_uuid = [cmds.ls(str(obj), uuid=True)[0] for obj in self.target]
-#         # self.con_uuid = cmds.ls(str(self.constraint), uuid=True)[0]
-#
-#     def uuid(self):
-#         return cmds.ls(str(self.obj), uuid=True)
-#===============================================================================
 
 
 def pickle_read():
@@ -174,18 +165,21 @@ def pickle_write():
     sceneInfo = pmc.fileInfo("CMan_data", encoded)
 
 
+def register_signals():
+    _CMan.OptionsSig.connect(create_con_call)
+
+
 def show():
     global _CMan
     if _CMan is None:
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)
-        _CMan.OptionsSig.connect(create_con_call)
-        _CMan.setupUi()
+        register_signals()
     _CMan.show()
 
 
 def _pytest():
-    show()
+    """"""
     #===========================================================================
     # loc1 = pmc.spaceLocator()  # Target
     # loc2 = pmc.spaceLocator()  # Target
@@ -193,9 +187,7 @@ def _pytest():
     # pmc.select(loc1, loc2, loc3)
     # create_con_call("Parent")
     # pConst = pmc.parentConstraint(loc1, loc2, loc3)  # [Targets,] active, options...
-    #===========================================================================
-
-    #===========================================================================
+    # #
     # show()
     # global ConItemList
     # ConItemList[(str(loc), "Parent")] = ConListItem("Parent", pConst, loc, pConst.getTargetList())
