@@ -543,10 +543,10 @@ class ConstraintManager(object):
             sys.exit()
 
         def _checkConn(constObj, ty, axis):
-            activeConn = cmds.listConnections(constObj + ".c{}{}".format(ty, ax))
+            activeConn = cmds.listConnections(constObj + ".c{}{}".format(ty, axis))
             if activeConn is not None:
                 if cmds.nodeType(activeConn) == "pairBlend":
-                    blendOut = cmds.listConnections(activeConn[0] + ".o{}{}".format(ty, ax), d=True)
+                    blendOut = cmds.listConnections(activeConn[0] + ".o{}{}".format(ty, axis), d=True)
                     return blendOut[0]
                 else:
                     return activeConn[0]
@@ -1190,7 +1190,7 @@ class ConstraintManager(object):
 
             log.debug("{} connections returned.".format(o.constType))
 
-            return RetrievedConn(TX, TY, TZ, RX, RY, RZ)
+            rc = RetrievedConn(TX, TY, TZ, RX, RY, RZ)
 
         else:
             RetrievedConn = namedtuple("RetrievedConn", ["ConnX", "ConnY", "ConnZ"])
@@ -1209,7 +1209,9 @@ class ConstraintManager(object):
 
             log.debug("{} connections returned.".format(o.constType))
 
-            return RetrievedConn(ConnX, ConnY, ConnZ)
+            rc = RetrievedConn(ConnX, ConnY, ConnZ)
+
+        return rc
 
     def CheckPkl(self, arg=None):
         if arg == "Write":
