@@ -20,21 +20,25 @@ from utils.qtshim import QtCore
 from utils.mayautils import UndoChunk, get_maya_window
 from ConManUI import ConManWindow
 
-ConManDir = os.path.dirname(__file__)
-
+# Set up logging
+ConManDir = os.path.dirname(__name__)
+LogFormat = "%(levelname)s: %(message)s"
+LogFile = os.path.join(ConManDir, "conman_log.log")
 logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)s: %(message)s",
-    filename=os.path.join(ConManDir, "conman_log.log"), filemode='w'
+    level=logging.DEBUG, format=LogFormat,
+    filename=LogFile, filemode='w'
 )
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+# Version check - only supporting 2016+
 supportedVersion = 2016
 currentVersion = int(cmds.about(version=True).split(" ")[0])
 if currentVersion < supportedVersion:
     log.error("Maya 2016+ required.")
     exit()
 log.info("Maya 2016+ detected")
+log.debug(LogFile)
 
 # =============================================================================
 
@@ -54,34 +58,44 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     Create constraint
     Save data
     """
-    # Get scene data
+
     selection = pmc.ls(sl=True, type="transform")
-    actObj = selection[-1]
-    actObjU = get_uuid_list(selection[-1:])[0]
-    selObjs = selection[:-1]
-    selObjsU = get_uuid_list(selObjs)
-    # conType is passed into the function
 
-    log.debug(selection)
-    log.debug(str(actObj))
-    log.debug(str(actObjU))
-    log.debug(selObjs)
-    log.debug(selObjsU)
-    log.debug(conType)
+    if len(selection) >= 2:
+        # Get scene data
+        actObj = selection[-1]
+        actObjU = get_uuid_list(selection[-1:])[0]
+        selObjs = selection[:-1]
+        selObjsU = get_uuid_list(selObjs)
 
-    # Get UI data
-    log.debug(Offset)
-    log.debug(mOffset)
-    log.debug(weight)
-    log.debug(skipT)
-    log.debug(skipR)
-    log.debug(skipS)
+        log.debug("Selection: {}".format(selection))
+        log.debug("Active object: {}".format(actObj))
+        log.debug("Active UUID: {}".format(actObjU))
+        log.debug("Target objects: {}".format(selObjs))
+        log.debug("Target UUID: {}".format(selObjsU))
+        log.debug("Con type: {}".format(conType))
 
-    # Create constraint
-    create_constraint(conType, actObj, selObjs, Offset, mOffset, weight, skipT, skipR, skipS)
+        # Get UI data
+        log.debug("Offset: {}".format(Offset))
+        log.debug("Maintain offset: {}".format(mOffset))
+        log.debug("Weight: {}".format(weight))
+        log.debug("Skip translate: {}".format(skipT))
+        log.debug("Skip rotate: {}".format(skipR))
+        log.debug("Skip scale: {}".format(skipS))
 
-    # Save data
-    _CMan.ObjList.addItem(str(actObj) + " | " + conType)
+        # with UndoChunk():
+        # Create constraint
+        conObj = create_constraint(
+            conType, actObj, selObjs,
+            Offset, mOffset, weight,
+            skipT, skipR, skipS
+        )
+
+        # Save data
+        _CMan.ObjList.addItem(str(conObj))
+
+    else:
+        log.error("Select two or more objects to create a constraint...")
 
 
 def get_uuid_list(selObjs):
@@ -91,35 +105,36 @@ def get_uuid_list(selObjs):
 
 def create_constraint(
     ctype, actObj, selObjs,
-    offset, maintain_offset, weight,
+    offset, mOffset, weight,
     skipT=['none'], skipR=['none'], skipS=['none']
 ):
-    # FIXME: UndoChunk exits with error
-    # with UndoChunk:
     if ctype == "Parent":
-        pmc.parentConstraint(
+        cObj = pmc.parentConstraint(
             selObjs, actObj,
-            mo=maintain_offset,
+            mo=mOffset,
             weight=weight
         )
     elif ctype == "Point":
-        pmc.pointConstraint(
+        cObj = pmc.pointConstraint(
             selObjs, actObj,
-            mo=maintain_offset, offset=offset,
+            mo=mOffset, offset=offset,
             weight=weight
         )
     elif ctype == "Orient":
-        pmc.orientConstraint(
+        cObj = pmc.orientConstraint(
             selObjs, actObj,
-            mo=maintain_offset, offset=offset,
+            mo=mOffset, offset=offset,
             weight=weight
         )
     elif ctype == "Scale":
-        pmc.scaleConstraint(
+        cObj = pmc.scaleConstraint(
             selObjs, actObj,
-            mo=maintain_offset, offset=offset,
+            mo=mOffset, offset=offset,
             weight=weight
         )
+
+    log.debug("Created constraint: {} {}".format(ctype, cObj))
+    return cObj
 
 
 #===============================================================================
@@ -149,7 +164,7 @@ def pickle_read():
 
     log.debug(str(sceneInfo))
     log.debug(str(decoded))
-    log.debug([key for key in ConItemList.keys()])
+    log.debug(ConItemList.keys())
 
 
 def pickle_write():
