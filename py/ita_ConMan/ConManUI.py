@@ -23,8 +23,9 @@ class ConManWindow(QtGui.QMainWindow):
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
-
+        self.settings = QtCore.QSettings("italic", "ConMan2")
         self.setupUi()
+        self.move(self.settings.value("mainwindowposition", QtCore.QPoint(0, 0)))
 
     def setupUi(self):
         """Set up main UI."""
@@ -429,6 +430,10 @@ class ConManWindow(QtGui.QMainWindow):
         # self.ButtonPurge.clicked.connect()
         #=======================================================================
 
+    def closeEvent(self, *args, **kwargs):
+        self.settings.setValue("mainwindowposition", self.pos())
+        QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
+
     def show_help_ui(self):
         global _CManHelp
         if _CManHelp is None:
@@ -546,6 +551,10 @@ class ConManHelpWindow(QtGui.QMainWindow):
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.apache.org/licenses/LICENSE-2.0\"><span style=\" text-decoration: underline; color:#0057ae;\">https://www.apache.org/licenses/LICENSE-2.0</span></a></p></body></html>"
         )
 
+        self.settings = QtCore.QSettings("italic", "ConMan2")
+        self.show_ui()
+        self.move(self.settings.value("helpwindowposition", QtCore.QPoint(0, 0)))
+
     def show_ui(self):
         self.setObjectName("ConManHelpWindow")
         self.setWindowTitle("ConMan Help")
@@ -589,6 +598,10 @@ class ConManHelpWindow(QtGui.QMainWindow):
         self.vlayout.addWidget(self.textwidget)
         #
         self.setCentralWidget(self.centralwidget)
+
+    def closeEvent(self, *args, **kwargs):
+        self.settings.setValue("helpwindowposition", self.pos())
+        QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
 
 
 if __name__ == "__main__":
