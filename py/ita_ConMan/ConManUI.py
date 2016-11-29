@@ -440,7 +440,6 @@ class ConManWindow(QtGui.QMainWindow):
             # maya_window = get_maya_window()
             # _CManHelp = ConManHelpWindow(parent=maya_window)
             _CManHelp = ConManHelpWindow()
-            _CManHelp.show_ui()
         _CManHelp.show()
 
     def populate_menu(self, selObjs):
