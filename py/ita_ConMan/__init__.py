@@ -119,25 +119,25 @@ def create_constraint(
     if ctype == "Parent":
         cObj = pmc.parentConstraint(
             selObjs, actObj,
-            mo=mOffset,
+            mo=mOffset, skipTranslate=skipT, skipRotate=skipR,
             weight=weight
         )
     elif ctype == "Point":
         cObj = pmc.pointConstraint(
             selObjs, actObj,
-            mo=mOffset, offset=offset,
+            mo=mOffset, offset=offset, skip=skipT,
             weight=weight
         )
     elif ctype == "Orient":
         cObj = pmc.orientConstraint(
             selObjs, actObj,
-            mo=mOffset, offset=offset,
+            mo=mOffset, offset=offset, skip=skipR,
             weight=weight
         )
     elif ctype == "Scale":
         cObj = pmc.scaleConstraint(
             selObjs, actObj,
-            mo=mOffset, offset=offset,
+            mo=mOffset, offset=offset, skip=skipS,
             weight=weight
         )
 
