@@ -444,6 +444,9 @@ class ConManWindow(QtGui.QMainWindow):
             _CManHelp = ConManHelpWindow()
         _CManHelp.show()
 
+    def populate_list(self, label):
+        self.ObjList.addItem(label)
+
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
         self.MenuSwitchTarget.addItems(selObjs)

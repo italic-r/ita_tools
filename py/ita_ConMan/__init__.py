@@ -86,8 +86,8 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     """
     Called by create buttons.
     Gather required data:
-        Active obj + UUID
-        Selected objs + UUID list
+        Active obj
+        Selected objs
         Constraint type
         Option values (axes, weight, offset)
     Create constraint
@@ -113,10 +113,11 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
             skipT, skipR, skipS
         )
         conUUID = cmds.ls(str(conObj), uuid=True)[0]
+        log.debug("Constraint object: {}".format(conObj))
 
         # Save data
         store_item(conUUID, conType, conObj, actObj, selObjs)
-        _CMan.ObjList.addItem(ConItemList[conUUID].label)
+        _CMan.populate_list(ConItemList[conUUID].label)
 
     else:
         log.error("Select two or more objects to create a constraint...")
