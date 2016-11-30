@@ -49,18 +49,36 @@ class ConListItem():
     """Object to hold constraint data: type, active object, target objects."""
 
     def __init__(self, con_type, conNode, actObj, selobjs):
-        self.type = con_type
-        self.obj = actObj
-        self.target = selobjs
-        self.constraint = conNode
+        self._type = con_type
+        self._obj = actObj
+        self._target = selobjs
+        self._constraint = conNode
+        self._entry_label = "{} | {}".format(str(self._obj), self._type)
+
+    @property
+    def label(self):
+        return self._entry_label
+
+    @label.setter
+    def label(self, label):
+        self._entry_label = label
+
+    @property
+    def object_uuid(self):
+        return cmds.ls(str(self._obj), uuid=True)
 
     @property
     def target_uuid(self):
-        return [cmds.ls(str(obj), uuid=True)[0] for obj in self.target]
+        return [cmds.ls(str(obj), uuid=True)[0] for obj in self._target]
 
     @property
     def con_uuid(self):
-        return cmds.ls(str(self.constraint), uuid=True)[0]
+        return cmds.ls(str(self._constraint), uuid=True)[0]
+
+
+def store_item(conUUID, conType, conObj, actObj, selObjs):
+    global ConItemList
+    ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
 
 
 @QtCore.Slot()
@@ -81,15 +99,11 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     if len(selection) >= 2:
         # Get scene data
         actObj = selection[-1]
-        actObjU = get_uuid_list(selection[-1:])[0]
         selObjs = selection[:-1]
-        selObjsU = get_uuid_list(selObjs)
 
         log.debug("Selection: {}".format(selection))
         log.debug("Active object: {}".format(actObj))
-        log.debug("Active UUID: {}".format(actObjU))
         log.debug("Target objects: {}".format(selObjs))
-        log.debug("Target UUID: {}".format(selObjsU))
 
         # with UndoChunk():
         # Create constraint
@@ -98,17 +112,14 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
             Offset, mOffset, weight,
             skipT, skipR, skipS
         )
+        conUUID = cmds.ls(str(conObj), uuid=True)[0]
 
         # Save data
-        _CMan.ObjList.addItem(str(conObj))
+        store_item(conUUID, conType, conObj, actObj, selObjs)
+        _CMan.ObjList.addItem(ConItemList[conUUID].label)
 
     else:
         log.error("Select two or more objects to create a constraint...")
-
-
-def get_uuid_list(selObjs):
-    selObjsU = [cmds.ls(str(obj), uuid=True)[0] for obj in selObjs]
-    return selObjsU
 
 
 def create_constraint(
@@ -144,6 +155,8 @@ def create_constraint(
     log.debug("Created constraint: {}".format(cObj))
     return cObj
 
+# =============================================================================
+
 
 def pickle_read():
     """Read pickled data from scene's fileInfo attribute."""
@@ -163,6 +176,8 @@ def pickle_write():
     pickled = pickle.dumps(ConItemList)
     encoded = base64.b64encode(pickled)
     sceneInfo = pmc.fileInfo("CMan_data", encoded)
+
+# =============================================================================
 
 
 def register_signals():
