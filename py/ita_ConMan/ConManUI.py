@@ -246,6 +246,8 @@ class ConManWindow(QtGui.QMainWindow):
         self.SwitchCol.setContentsMargins(5, 5, 5, 5)
         #
         self.MenuSwitchTarget = QtGui.QComboBox(self.verticalLayoutWidget_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        self.MenuSwitchTarget.setSizePolicy(sizePolicy)
         self.MenuSwitchTarget.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.MenuSwitchTarget.setFrame(True)
         self.MenuSwitchTarget.setToolTip("Select a target to switch to...")
@@ -258,11 +260,11 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonOff.setToolTip("Turn all target weights OFF.")
         #
         self.ButtonAll = QtGui.QPushButton(self.verticalLayoutWidget_2)
-        self.ButtonOff.setMinimumHeight(25)
+        self.ButtonAll.setMinimumHeight(25)
         self.ButtonAll.setToolTip("Turn all target weights ON.")
         #
         self.ButtonSwitch = QtGui.QPushButton(self.verticalLayoutWidget_2)
-        self.ButtonOff.setMinimumHeight(25)
+        self.ButtonSwitch.setMinimumHeight(25)
         self.ButtonSwitch.setToolTip("Weight constraint to a single target.")
         #
         self.CheckVisTrans = QtGui.QCheckBox(self.verticalLayoutWidget_2)
