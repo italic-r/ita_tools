@@ -15,6 +15,7 @@ import pickle
 import base64
 import pymel.core as pmc
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
 from sys import exit
 from utils.qtshim import QtCore
 from utils.mayautils import UndoChunk, get_maya_window
@@ -46,14 +47,14 @@ ConItemList = {}
 
 
 class ConListItem():
-    """Object to hold constraint data: type, active object, target objects."""
+    """Object to hold constraint data."""
 
     def __init__(self, con_type, conNode, actObj, selobjs):
         self._type = con_type
         self._obj = actObj
         self._target = selobjs
         self._constraint = conNode
-        self._entry_label = "{} | {}".format(str(self._obj), self._type)
+        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
 
     @property
     def label(self):
@@ -62,6 +63,22 @@ class ConListItem():
     @label.setter
     def label(self, label):
         self._entry_label = label
+
+    @property
+    def con_type(self):
+        return self._type
+
+    @property
+    def obj(self):
+        return self._obj
+
+    @property
+    def target(self):
+        return self._target
+
+    @property
+    def con_node(self):
+        return self._constraint
 
     @property
     def object_uuid(self):
@@ -123,6 +140,47 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
         log.error("Select two or more objects to create a constraint...")
 
 
+@QtCore.Slot()
+def add_con_call():
+    con_types = (
+        pmc.nodetypes.ParentConstraint,
+        pmc.nodetypes.PointConstraint,
+        pmc.nodetypes.OrientConstraint,
+        pmc.nodetypes.ScaleConstraint
+    )
+    for obj in pmc.ls(sl=True):
+        log.debug("Selected node: {}".format(str(obj)))
+        if type(obj) in con_types:
+            if isinstance(obj, pmc.nodetypes.ParentConstraint):
+                conType = "Parent"
+            elif isinstance(obj, pmc.nodetypes.PointConstraint):
+                conType = "Point"
+            elif isinstance(obj, pmc.nodetypes.OrientConstraint):
+                conType = "Orient"
+            elif isinstance(obj, pmc.nodetypes.ScaleConstraint):
+                conType = "Scale"
+
+            actObj = list(set(obj.destinations()))  # Constraint outputs should only be itself (weight attribute) and the constrained object (channel output)
+            actObj.remove(obj)
+            actObj = actObj[0]
+            selObjs = obj.getTargetList()
+            conUUID = cmds.ls(str(obj), uuid=True)[0]
+
+            log.debug("Active obj: {}".format(str(actObj)))
+            log.debug("Targets: {}".format(selObjs))
+            log.debug("conUUID: {}".format(conUUID))
+
+            store_item(conUUID, conType, obj, actObj, selObjs)
+            _CMan.populate_list(ConItemList[conUUID].label)
+
+        else:
+            log.info(
+                "Selected node not a supported constraint. "
+                "Select a parent, point, orient or scale "
+                "constraint to add it the tracker."
+            )
+
+
 def create_constraint(
     ctype, actObj, selObjs,
     offset, mOffset, weight,
@@ -181,8 +239,13 @@ def pickle_write():
 # =============================================================================
 
 
-def register_signals():
+def register():
     _CMan.OptionsSig.connect(create_con_call)
+    _CMan.AddSig.connect(add_con_call)
+    #===========================================================================
+    # om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
+    # om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
+    #===========================================================================
 
 
 def show():
@@ -190,23 +253,14 @@ def show():
     if _CMan is None:
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)
-        register_signals()
+        register()
     _CMan.show()
 
 
 def _pytest():
     """"""
     #===========================================================================
-    # loc1 = pmc.spaceLocator()  # Target
-    # loc2 = pmc.spaceLocator()  # Target
-    # loc3 = pmc.spaceLocator()  # To be constrained
-    # pmc.select(loc1, loc2, loc3)
-    # create_con_call("Parent")
-    # pConst = pmc.parentConstraint(loc1, loc2, loc3)  # [Targets,] active, options...
-    # #
     # show()
-    # global ConItemList
-    # ConItemList[(str(loc), "Parent")] = ConListItem("Parent", pConst, loc, pConst.getTargetList())
     # _CMan.ObjList.clear()
     # _CMan.ObjList.addItem(str(pConst))
     # _CMan.ObjList.addItems(

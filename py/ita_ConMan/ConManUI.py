@@ -20,6 +20,8 @@ _CManHelp = None
 
 class ConManWindow(QtGui.QMainWindow):
     OptionsSig = Signal(str, tuple, bool, float, list, list, list)
+    AddSig = Signal()
+    MenuSig = Signal()
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -295,7 +297,7 @@ class ConManWindow(QtGui.QMainWindow):
         #
         self.place_ui()
         self.retranslate_ui()
-        self.set_buttons()
+        self.set_connections()
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
         self.set_tab_order()
@@ -415,10 +417,8 @@ class ConManWindow(QtGui.QMainWindow):
         self.setTabOrder(self.ButtonHelp, self.ButtonClean)
         self.setTabOrder(self.ButtonClean, self.ButtonPurge)
 
-    def set_buttons(self):
-        #=======================================================================
-        # self.ButtonAdd.clicked.connect(self.show_help_ui)
-        #=======================================================================
+    def set_connections(self):
+        self.ButtonAdd.clicked.connect(self.add_con)
         self.ButtonParent.clicked.connect(lambda: self.send_options("Parent"))
         self.ButtonPoint.clicked.connect(lambda: self.send_options("Point"))
         self.ButtonOrient.clicked.connect(lambda: self.send_options("Orient"))
@@ -430,6 +430,8 @@ class ConManWindow(QtGui.QMainWindow):
         #=======================================================================
         # self.ButtonClean.clicked.connect()
         # self.ButtonPurge.clicked.connect()
+        # self.ObjList.itemClicked.connect(self.item_list_click)
+        # self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
         #=======================================================================
 
     def closeEvent(self, *args, **kwargs):
@@ -507,6 +509,15 @@ class ConManWindow(QtGui.QMainWindow):
         log.debug("Skip scale: {}".format(skipS))
 
         self.OptionsSig.emit(conType, Offset, mOffset, weight, skipT, skipR, skipS)
+
+    def add_con(self):
+        self.AddSig.emit()
+
+    def item_list_click(self):
+        pass
+
+    def item_list_double_click(self):
+        pass
 
 
 class ConManHelpWindow(QtGui.QMainWindow):
