@@ -18,10 +18,69 @@ except ImportError:
 _CManHelp = None
 
 
+class QListItemCon(QtGui.QListWidgetItem):
+    """Extended to save constraint data in an object."""
+
+    def __init__(self, data, parent=None):
+        super(QListItemCon, self).__init__(parent)
+        self._data = data
+
+        self._type = self._data["type"]
+        self._obj = self._data["object"]
+        self._target = self._data["target"]
+        self._constraint = self._data["con_node"]
+        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
+
+    def data(self, role):
+        if role == QtCore.Qt.DisplayRole:
+            return self.label
+        #=======================================================================
+        # # Not necessarily needed; kept for notes.
+        # if role == QtCore.Qt.UserRole
+        #     return self.obj
+        #=======================================================================
+
+    @property
+    def label(self):
+        return self._entry_label
+
+    @label.setter
+    def label(self, label):
+        self._entry_label = label
+
+    @property
+    def con_type(self):
+        return self._type
+
+    @property
+    def obj(self):
+        return self._obj
+
+    @property
+    def target(self):
+        return self._target
+
+    @property
+    def con_node(self):
+        return self._constraint
+
+    @property
+    def object_uuid(self):
+        return cmds.ls(str(self._obj), uuid=True)
+
+    @property
+    def target_uuid(self):
+        return [cmds.ls(str(obj), uuid=True)[0] for obj in self._target]
+
+    @property
+    def con_uuid(self):
+        return cmds.ls(str(self._constraint), uuid=True)[0]
+
+
 class ConManWindow(QtGui.QMainWindow):
     OptionsSig = Signal(str, tuple, bool, float, list, list, list)
     AddSig = Signal()
-    MenuSig = Signal()
+    SelSig = Signal(list)
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -430,28 +489,32 @@ class ConManWindow(QtGui.QMainWindow):
         #=======================================================================
         # self.ButtonClean.clicked.connect()
         # self.ButtonPurge.clicked.connect()
-        # self.ObjList.itemClicked.connect(self.item_list_click)
-        # self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
         #=======================================================================
+        self.ObjList.itemClicked.connect(self.item_list_click)
+        self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
 
     def closeEvent(self, *args, **kwargs):
+        log.debug("Closing main window...")
         self.settings.setValue("mainwindowposition", self.pos())
         QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
 
     def show_help_ui(self):
         global _CManHelp
         if _CManHelp is None:
-            # maya_window = get_maya_window()
-            # _CManHelp = ConManHelpWindow(parent=maya_window)
             _CManHelp = ConManHelpWindow()
         _CManHelp.show()
 
-    def populate_list(self, label):
-        self.ObjList.addItem(label)
+    def populate_list(self, data):
+        listItem = QListItemCon(data)
+        self.ObjList.addItem(listItem)
+        self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
-        self.MenuSwitchTarget.addItems(selObjs)
+        self.MenuSwitchTarget.clear()
+        for ind, item in enumerate(selObjs):
+            self.MenuSwitchTarget.addItem(str(item))
+            self.MenuSwitchTarget.setItemData(ind, str(item), userData=item)
 
     def send_options(self, conType):
         skipT = []
@@ -513,11 +576,18 @@ class ConManWindow(QtGui.QMainWindow):
     def add_con(self):
         self.AddSig.emit()
 
-    def item_list_click(self):
-        pass
+    def iter_list(self):
+        return [self.ObjList.item(i) for i in range(self.ObjList.count())]
 
-    def item_list_double_click(self):
-        pass
+    def item_list_click(self, item):
+        log.debug("Clicked: {}".format(item.text()))
+        log.debug("Targets: {}".format(item.target))
+        self.populate_menu(item.target)
+
+    def item_list_double_click(self, item):
+        log.debug("Double clicked: {}".format(item.text()))
+        log.debug("Selecting: {}".format(item.obj))
+        self.SelSig.emit(item.obj)
 
 
 class ConManHelpWindow(QtGui.QMainWindow):
@@ -615,18 +685,24 @@ class ConManHelpWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
     def closeEvent(self, *args, **kwargs):
+        log.debug("Closing help window...")
         self.settings.setValue("helpwindowposition", self.pos())
         QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
+    generic_data = {
+        "type": "Parent",
+        "object": "active object1",
+        "target": ["sel obj 1", "sel obj 2"],
+        "con_node": "con node name"
+    }
+
     win = QtGui.QApplication([])
     _CMan = ConManWindow()
-    _CMan.setupUi()
     _CMan.show()
-    #===========================================================================
-    # _CManHelp = ConManHelpWindow()
-    # _CManHelp.show_ui()
-    # _CManHelp.show()
-    #===========================================================================
+    _CMan.populate_list(generic_data)
+
     win.exec_()

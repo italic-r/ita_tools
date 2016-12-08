@@ -43,59 +43,14 @@ log.info("Maya 2016+ detected")
 # =============================================================================
 
 _CMan = None
-ConItemList = {}
-
-
-class ConListItem():
-    """Object to hold constraint data."""
-
-    def __init__(self, con_type, conNode, actObj, selobjs):
-        self._type = con_type
-        self._obj = actObj
-        self._target = selobjs
-        self._constraint = conNode
-        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
-
-    @property
-    def label(self):
-        return self._entry_label
-
-    @label.setter
-    def label(self, label):
-        self._entry_label = label
-
-    @property
-    def con_type(self):
-        return self._type
-
-    @property
-    def obj(self):
-        return self._obj
-
-    @property
-    def target(self):
-        return self._target
-
-    @property
-    def con_node(self):
-        return self._constraint
-
-    @property
-    def object_uuid(self):
-        return cmds.ls(str(self._obj), uuid=True)
-
-    @property
-    def target_uuid(self):
-        return [cmds.ls(str(obj), uuid=True)[0] for obj in self._target]
-
-    @property
-    def con_uuid(self):
-        return cmds.ls(str(self._constraint), uuid=True)[0]
-
-
-def store_item(conUUID, conType, conObj, actObj, selObjs):
-    global ConItemList
-    ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
+#===============================================================================
+# ConItemList = {}
+#
+#
+# def store_item(conUUID, conType, conObj, actObj, selObjs):
+#     global ConItemList
+#     ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
+#===============================================================================
 
 
 @QtCore.Slot()
@@ -133,8 +88,13 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
         log.debug("Constraint object: {}".format(conObj))
 
         # Save data
-        store_item(conUUID, conType, conObj, actObj, selObjs)
-        _CMan.populate_list(ConItemList[conUUID].label)
+        con_data = {
+            "type": conType,
+            "object": actObj,
+            "target": selObjs,
+            "con_node": conObj
+        }
+        _CMan.populate_list(con_data)
 
     else:
         log.error("Select two or more objects to create a constraint...")
@@ -170,8 +130,13 @@ def add_con_call():
             log.debug("Targets: {}".format(selObjs))
             log.debug("conUUID: {}".format(conUUID))
 
-            store_item(conUUID, conType, obj, actObj, selObjs)
-            _CMan.populate_list(ConItemList[conUUID].label)
+            con_data = {
+                "type": conType,
+                "object": actObj,
+                "target": selObjs,
+                "con_node": obj
+            }
+            _CMan.populate_list(con_data)
 
         else:
             log.info(
@@ -179,6 +144,12 @@ def add_con_call():
                 "Select a parent, point, orient or scale "
                 "constraint to add it the tracker."
             )
+
+
+@QtCore.Slot()
+def sel_con_node(node):
+    log.debug("Selecting: {}".format(node))
+    pmc.select(node)
 
 
 def create_constraint(
@@ -219,7 +190,6 @@ def create_constraint(
 
 def pickle_read():
     """Read pickled data from scene's fileInfo attribute."""
-    global ConItemList
     sceneInfo = pmc.fileInfo("CMan_data", q=True)
     decoded = base64.b64decode(sceneInfo)
     unpickled = pickle.loads(decoded)
@@ -242,6 +212,7 @@ def pickle_write():
 def register():
     _CMan.OptionsSig.connect(create_con_call)
     _CMan.AddSig.connect(add_con_call)
+    _CMan.SelSig.connect(sel_con_node)
     #===========================================================================
     # om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
     # om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
