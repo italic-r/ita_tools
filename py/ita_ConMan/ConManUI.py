@@ -19,26 +19,23 @@ _CManHelp = None
 
 
 class QListItemCon(QtGui.QListWidgetItem):
-    """Extended to save constraint data in an object."""
+    """
+    Save constraint data for immediate retrieval through the UI.
+    Data saved with scene is stored in __init__.ConItemList.
+    """
 
     def __init__(self, data, parent=None):
         super(QListItemCon, self).__init__(parent)
         self._data = data
-
-        self._type = self._data["type"]
-        self._obj = self._data["object"]
-        self._target = self._data["target"]
-        self._constraint = self._data["con_node"]
-        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
+        self._entry_label = "{} | {} | {}".format(
+            str(self._data["object"]),
+            self._data["type"],
+            str(self._data["con_node"])
+        )
 
     def data(self, role):
         if role == QtCore.Qt.DisplayRole:
             return self.label
-        #=======================================================================
-        # # Not necessarily needed; kept for notes.
-        # if role == QtCore.Qt.UserRole
-        #     return self.obj
-        #=======================================================================
 
     @property
     def label(self):
@@ -50,37 +47,38 @@ class QListItemCon(QtGui.QListWidgetItem):
 
     @property
     def con_type(self):
-        return self._type
+        return self._data["type"]
 
     @property
     def obj(self):
-        return self._obj
+        return self._data["object"]
 
     @property
     def target(self):
-        return self._target
+        return self._data["target"]
 
     @property
     def con_node(self):
-        return self._constraint
+        return self._data["con_node"]
 
     @property
     def object_uuid(self):
-        return cmds.ls(str(self._obj), uuid=True)
+        return cmds.ls(str(self._data["object"]), uuid=True)[0]
 
     @property
     def target_uuid(self):
-        return [cmds.ls(str(obj), uuid=True)[0] for obj in self._target]
+        return [cmds.ls(str(obj), uuid=True)[0] for obj in self._data["target"]]
 
     @property
     def con_uuid(self):
-        return cmds.ls(str(self._constraint), uuid=True)[0]
+        return cmds.ls(str(self._data["con_node"]), uuid=True)[0]
 
 
 class ConManWindow(QtGui.QMainWindow):
     OptionsSig = Signal(str, tuple, bool, float, list, list, list)
     AddSig = Signal()
     SelSig = Signal(list)
+    CloseSig = Signal()
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -495,6 +493,7 @@ class ConManWindow(QtGui.QMainWindow):
 
     def closeEvent(self, *args, **kwargs):
         log.debug("Closing main window...")
+        self.CloseSig.emit()
         self.settings.setValue("mainwindowposition", self.pos())
         QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
 
@@ -503,6 +502,10 @@ class ConManWindow(QtGui.QMainWindow):
         if _CManHelp is None:
             _CManHelp = ConManHelpWindow()
         _CManHelp.show()
+
+    def clear_list(self, arg=None):
+        log.debug("Clearing list")
+        self.ObjList.clear()
 
     def populate_list(self, data):
         listItem = QListItemCon(data)
@@ -620,12 +623,12 @@ class ConManHelpWindow(QtGui.QMainWindow):
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Constraint data is saved in the scene file.</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Clean Stale</span>: Remove old data of non-existant objects. Any data not shown in the list is removed.</p>\n"
+            # "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Clean Stale</span>: Remove old data of non-existant objects. Any data not shown in the list is removed.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Purge...</span>: Remove ALL saved constraint data from the scene.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">WARNING: THIS IS NOT UNDO-ABLE!</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">LIMITATIONS AND KNOWN ISSUES:</p>\n"
-            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.</p>\n"
+            # "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">(c) Jeffrey &quot;italic&quot; Hoover</p>\n"

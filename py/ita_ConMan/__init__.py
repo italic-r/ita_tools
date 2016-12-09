@@ -43,29 +43,51 @@ log.info("Maya 2016+ detected")
 # =============================================================================
 
 _CMan = None
-#===============================================================================
-# ConItemList = {}
-#
-#
-# def store_item(conUUID, conType, conObj, actObj, selObjs):
-#     global ConItemList
-#     ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
-#===============================================================================
+ConItemList = {}
+
+
+class ConListItem():
+    """Object to hold constraint data."""
+
+    def __init__(self, con_type, conObj, actObj, selobjs):
+        self._type = con_type
+        self._obj = actObj
+        self._target = selobjs
+        self._constraint = conObj
+        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
+
+    @property
+    def con_type(self):
+        return self._type
+
+    @property
+    def obj(self):
+        return self._obj
+
+    @property
+    def target(self):
+        return self._target
+
+    @property
+    def con_node(self):
+        return self._constraint
+
+
+def store_item(conUUID, conType, conObj, actObj, selObjs):
+    global ConItemList
+    ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
+
+
+def conlist_clear(arg=None):
+    global ConItemList
+    ConItemList.clear()
+
+
+# =============================================================================
 
 
 @QtCore.Slot()
 def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
-    """
-    Called by create buttons.
-    Gather required data:
-        Active obj
-        Selected objs
-        Constraint type
-        Option values (axes, weight, offset)
-    Create constraint
-    Save data
-    """
-
     selection = pmc.ls(sl=True, type="transform")
 
     if len(selection) >= 2:
@@ -95,6 +117,7 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
             "con_node": conObj
         }
         _CMan.populate_list(con_data)
+        store_item(conUUID, conType, conObj, actObj, selObjs)
 
     else:
         log.error("Select two or more objects to create a constraint...")
@@ -137,6 +160,7 @@ def add_con_call():
                 "con_node": obj
             }
             _CMan.populate_list(con_data)
+            store_item(conUUID, conType, obj, actObj, selObjs)
 
         else:
             log.info(
@@ -152,11 +176,10 @@ def sel_con_node(node):
     pmc.select(node)
 
 
-def create_constraint(
-    ctype, actObj, selObjs,
-    offset, mOffset, weight,
-    skipT=['none'], skipR=['none'], skipS=['none']
-):
+def create_constraint(ctype, actObj, selObjs,
+                      offset, mOffset, weight,
+                      skipT=['none'], skipR=['none'], skipS=['none']
+                      ):
     if ctype == "Parent":
         cObj = pmc.parentConstraint(
             selObjs, actObj,
@@ -185,38 +208,79 @@ def create_constraint(
     log.debug("Created constraint: {}".format(cObj))
     return cObj
 
+
 # =============================================================================
 
 
-def pickle_read():
+def pickle_read(arg=None):
     """Read pickled data from scene's fileInfo attribute."""
-    sceneInfo = pmc.fileInfo("CMan_data", q=True)
-    decoded = base64.b64decode(sceneInfo)
-    unpickled = pickle.loads(decoded)
-    ConItemList = unpickled
+    log.debug("Reading pickle...")
+    try:
+        global ConItemList
+        sceneInfo = pmc.fileInfo("CMan_data", q=True)
+        decoded = base64.b64decode(sceneInfo)
+        unpickled = pickle.loads(decoded)
+        ConItemList = unpickled
 
-    log.debug(str(sceneInfo))
-    log.debug(str(decoded))
-    log.debug(ConItemList.keys())
+        _CMan.clear_list()
+
+        for k, v in ConItemList.iteritems():
+            try:
+                cmds.ls(k)
+                con_data = {
+                    "type": v.con_type,
+                    "object": v.obj,
+                    "target": v.target,
+                    "con_node": v.con_node
+                }
+                _CMan.populate_list(con_data)
+            except MayaNodeError:
+                pass
+
+        log.debug(ConItemList.keys())
+
+        log.debug("Reading pickle success")
+    except KeyError:
+        log.debug("No data found.")
 
 
-def pickle_write():
+@QtCore.Slot()
+def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
+    log.debug("Writing pickle...")
+
     pickled = pickle.dumps(ConItemList)
     encoded = base64.b64encode(pickled)
     sceneInfo = pmc.fileInfo("CMan_data", encoded)
+    cmds.file(modified=True)
+
+    log.debug("Writing pickle success")
+
 
 # =============================================================================
 
 
 def register():
+    log.debug("Registering signal connections and callbacks...")
     _CMan.OptionsSig.connect(create_con_call)
     _CMan.AddSig.connect(add_con_call)
     _CMan.SelSig.connect(sel_con_node)
-    #===========================================================================
-    # om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
-    # om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
-    #===========================================================================
+    _CMan.CloseSig.connect(pickle_write)
+    _CMan.CloseSig.connect(unregister)
+    pickle_write_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
+    pickle_read_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
+    list_clear_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
+    conlist_clear_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, conlist_clear)
+    global callback_list
+    callback_list = [
+        pickle_write_callback, pickle_read_callback,
+        list_clear_callback, conlist_clear_callback
+    ]
+
+
+def unregister():
+    log.debug("Unregistering callbacks...")
+    om.MSceneMessage.removeCallbacks(callback_list)
 
 
 def show():
@@ -225,25 +289,10 @@ def show():
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)
         register()
+        pickle_read()
     _CMan.show()
-
-
-def _pytest():
-    """"""
-    #===========================================================================
-    # show()
-    # _CMan.ObjList.clear()
-    # _CMan.ObjList.addItem(str(pConst))
-    # _CMan.ObjList.addItems(
-    #     ["testline1", "testline2", "testline3", "testline4", "testline5",
-    #      "testline6", "testline7", "testline8", "testline9", "testline10",
-    #      "testline11", "testline12", "testline13", "testline14", "testline15"]
-    # )
-    # _CMan.MenuSwitchTarget.clear()
-    # _CMan.populate_menu([str(obj) for obj in pConst.getTargetList()])
-    #===========================================================================
 
 
 if __name__ == "__main__":
     """Run"""
-    _pytest()
+    show()
