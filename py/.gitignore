@@ -1,4 +1,5 @@
 *__pycache__
+*.ropeproject*
 ita_ConMan/img/*
 ita_ConMan/*.pyc
 ita_ConMan/*/*.pyc
