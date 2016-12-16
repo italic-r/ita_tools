@@ -79,6 +79,7 @@ class ConManWindow(QtGui.QMainWindow):
     AddSig = Signal()
     SelSig = Signal(list)
     CloseSig = Signal()
+    DelSig = Signal(list)
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -480,15 +481,11 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonPoint.clicked.connect(lambda: self.send_options("Point"))
         self.ButtonOrient.clicked.connect(lambda: self.send_options("Orient"))
         self.ButtonScale.clicked.connect(lambda: self.send_options("Scale"))
-        #=======================================================================
-        # self.ButtonRemove.clicked.connect()
-        #=======================================================================
+        self.ButtonRemove.clicked.connect(self.remove_con)
         self.ButtonHelp.clicked.connect(self.show_help_ui)
-        #=======================================================================
         # self.ButtonClean.clicked.connect()
         # self.ButtonPurge.clicked.connect()
-        #=======================================================================
-        self.ObjList.itemClicked.connect(self.item_list_click)
+        self.ObjList.itemEntered.connect(self.item_list_click)
         self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
 
     def closeEvent(self, *args, **kwargs):
@@ -578,6 +575,19 @@ class ConManWindow(QtGui.QMainWindow):
 
     def add_con(self):
         self.AddSig.emit()
+
+    def remove_con(self, arg=None):
+        current_row = self.ObjList.currentRow()
+        current_item = self.ObjList.item(current_row)
+
+        log.debug("Removing {} from list...".format(current_item.label))
+
+        self.DelSig.emit(current_item.con_node)
+
+        removed_item = self.ObjList.takeItem(current_row)
+        del removed_item
+
+        log.debug("Removed {}...".format(current_item.label))
 
     def iter_list(self):
         return [self.ObjList.item(i) for i in range(self.ObjList.count())]

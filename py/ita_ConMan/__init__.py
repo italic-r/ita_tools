@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 """
-ConMan2: A tool to create, track and manage constraints for rigging and animation.
+ConMan2: A tool to create and manage constraints for rigging and animation.
 
 WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
 ConMan uses maya.cmds
@@ -18,7 +18,7 @@ import maya.cmds as cmds
 import maya.api.OpenMaya as om
 from sys import exit
 from utils.qtshim import QtCore
-from utils.mayautils import UndoChunk, get_maya_window
+from utils.mayautils import get_maya_window  # , UndoChunk
 from ConManUI import ConManWindow
 
 # Set up logging
@@ -44,6 +44,7 @@ log.info("Maya 2016+ detected")
 
 _CMan = None
 ConItemList = {}
+callback_list = []
 
 
 class ConListItem():
@@ -54,7 +55,11 @@ class ConListItem():
         self._obj = actObj
         self._target = selobjs
         self._constraint = conObj
-        self._entry_label = "{} | {} | {}".format(str(self._obj), self._type, str(self._constraint))
+        self._entry_label = "{} | {} | {}".format(
+            str(self._obj),
+            self._type,
+            str(self._constraint)
+        )
 
     @property
     def con_type(self):
@@ -143,7 +148,9 @@ def add_con_call():
             elif isinstance(obj, pmc.nodetypes.ScaleConstraint):
                 conType = "Scale"
 
-            actObj = list(set(obj.destinations()))  # Constraint outputs should only be itself (weight attribute) and the constrained object (channel output)
+            # Constraint outputs should only be itself (weight attribute)
+            # and the constrained object (channel output)
+            actObj = list(set(obj.destinations()))
             actObj.remove(obj)
             actObj = actObj[0]
             selObjs = obj.getTargetList()
@@ -168,6 +175,23 @@ def add_con_call():
                 "Select a parent, point, orient or scale "
                 "constraint to add it the tracker."
             )
+
+
+@QtCore.Slot()
+def remove_con(con_node):
+    log.debug("Deleting constraint node...")
+    try:
+        con_node_uuid = str(cmds.ls(str(con_node), uuid=True)[0])
+        pmc.delete(con_node)
+
+        global ConItemList
+        del ConItemList[con_node_uuid]
+
+        log.debug("Deleted constraint.")
+
+    except KeyError:
+        log.debug("Could not remove constraint.")
+        log.debug("Con UUID not a key in ConItemList")
 
 
 @QtCore.Slot()
@@ -251,7 +275,7 @@ def pickle_write(arg=None):
 
     pickled = pickle.dumps(ConItemList)
     encoded = base64.b64encode(pickled)
-    sceneInfo = pmc.fileInfo("CMan_data", encoded)
+    pmc.fileInfo("CMan_data", encoded)
     cmds.file(modified=True)
 
     log.debug("Writing pickle success")
@@ -260,25 +284,33 @@ def pickle_write(arg=None):
 # =============================================================================
 
 
-def register():
+def register_connections():
     log.debug("Registering signal connections and callbacks...")
+
     _CMan.OptionsSig.connect(create_con_call)
     _CMan.AddSig.connect(add_con_call)
+    _CMan.DelSig.connect(remove_con)
     _CMan.SelSig.connect(sel_con_node)
     _CMan.CloseSig.connect(pickle_write)
-    _CMan.CloseSig.connect(unregister)
-    pickle_write_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
-    pickle_read_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
-    list_clear_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
-    conlist_clear_callback = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterNew, conlist_clear)
+    #===========================================================================
+    # _CMan.CloseSig.connect(unregister_callbacks)
+    #===========================================================================
+
+
+def register_callbacks():
+    pkl_write_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
+    pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
+    list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
+    conlist_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, conlist_clear)
+
     global callback_list
     callback_list = [
-        pickle_write_callback, pickle_read_callback,
-        list_clear_callback, conlist_clear_callback
+        pkl_write_cb, pkl_read_cb,
+        list_clear_cb, conlist_clear_cb
     ]
 
 
-def unregister():
+def unregister_callbacks():
     log.debug("Unregistering callbacks...")
     om.MSceneMessage.removeCallbacks(callback_list)
 
@@ -288,8 +320,9 @@ def show():
     if _CMan is None:
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)
-        register()
+        register_connections()
         pickle_read()
+    register_callbacks()
     _CMan.show()
 
 
