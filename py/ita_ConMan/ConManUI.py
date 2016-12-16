@@ -45,6 +45,17 @@ class QListItemCon(QtGui.QListWidgetItem):
     def label(self, label):
         self._entry_label = label
 
+    @QtCore.Slot()
+    def update_label_callback(self):
+        if self.label != "{} | {} | {}".format(
+                str(self._data["object"]),
+                self._data["type"],
+                str(self._data["con_node"])):
+            self.label = "{} | {} | {}".format(
+                str(self._data["object"]),
+                self._data["type"],
+                str(self._data["con_node"]))
+
     @property
     def con_type(self):
         return self._data["type"]
@@ -80,6 +91,7 @@ class ConManWindow(QtGui.QMainWindow):
     SelSig = Signal(list)
     CloseSig = Signal()
     DelSig = Signal(list)
+    RenameSig = Signal()
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -506,6 +518,7 @@ class ConManWindow(QtGui.QMainWindow):
 
     def populate_list(self, data):
         listItem = QListItemCon(data)
+        self.RenameSig.connect(listItem.update_label_callback)
         self.ObjList.addItem(listItem)
         self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 

@@ -233,6 +233,10 @@ def create_constraint(ctype, actObj, selObjs,
     return cObj
 
 
+def rename_cb(arg=None):
+    _CMan.RenameSig.emit()
+
+
 # =============================================================================
 
 
@@ -302,11 +306,13 @@ def register_callbacks():
     pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
     list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
     conlist_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, conlist_clear)
+    obj_name_change_cb = om.MEventMessage.addEventCallback("NameChanged", rename_cb)
 
     global callback_list
     callback_list = [
         pkl_write_cb, pkl_read_cb,
-        list_clear_cb, conlist_clear_cb
+        list_clear_cb, conlist_clear_cb,
+        obj_name_change_cb
     ]
 
 
