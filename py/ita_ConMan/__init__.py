@@ -7,6 +7,18 @@ ConMan2: A tool to create and manage constraints for rigging and animation.
 WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
 ConMan uses maya.cmds
 ConMan2 uses pymel and Qt
+
+NOTE:
+to store:
+    get node from pmc
+    convert to MObject
+    get MOHandler
+    store MOHandler/UUID/DAGpath
+
+restore:
+    test MOHandler
+    convert to pmc object
+    store in UI/storage instance(s)
 """
 
 import os
@@ -129,7 +141,7 @@ def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
 
 
 @QtCore.Slot()
-def add_con_call():
+def add_con():
     con_types = (
         pmc.nodetypes.ParentConstraint,
         pmc.nodetypes.PointConstraint,
@@ -235,6 +247,7 @@ def create_constraint(ctype, actObj, selObjs,
 
 def rename_cb(arg=None):
     _CMan.RenameSig.emit()
+    _CMan.repaint()
 
 
 # =============================================================================
@@ -292,16 +305,14 @@ def register_connections():
     log.debug("Registering signal connections and callbacks...")
 
     _CMan.OptionsSig.connect(create_con_call)
-    _CMan.AddSig.connect(add_con_call)
+    _CMan.AddSig.connect(add_con)
     _CMan.DelSig.connect(remove_con)
     _CMan.SelSig.connect(sel_con_node)
     _CMan.CloseSig.connect(pickle_write)
-    #===========================================================================
-    # _CMan.CloseSig.connect(unregister_callbacks)
-    #===========================================================================
+    _CMan.CloseSig.connect(unregister_cb)
 
 
-def register_callbacks():
+def register_cb():
     pkl_write_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
     pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
     list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
@@ -311,12 +322,12 @@ def register_callbacks():
     global callback_list
     callback_list = [
         pkl_write_cb, pkl_read_cb,
-        list_clear_cb, conlist_clear_cb,
-        obj_name_change_cb
+        list_clear_cb, conlist_clear_cb
+        # obj_name_change_cb
     ]
 
 
-def unregister_callbacks():
+def unregister_cb():
     log.debug("Unregistering callbacks...")
     om.MSceneMessage.removeCallbacks(callback_list)
 
@@ -328,7 +339,7 @@ def show():
         _CMan = ConManWindow(parent=maya_window)
         register_connections()
         pickle_read()
-    register_callbacks()
+    register_cb()
     _CMan.show()
 
 

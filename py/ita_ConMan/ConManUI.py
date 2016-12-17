@@ -30,8 +30,7 @@ class QListItemCon(QtGui.QListWidgetItem):
         self._entry_label = "{} | {} | {}".format(
             str(self._data["object"]),
             self._data["type"],
-            str(self._data["con_node"])
-        )
+            str(self._data["con_node"]))
 
     def data(self, role):
         if role == QtCore.Qt.DisplayRole:
@@ -55,6 +54,7 @@ class QListItemCon(QtGui.QListWidgetItem):
                 str(self._data["object"]),
                 self._data["type"],
                 str(self._data["con_node"]))
+            self.update()
 
     @property
     def con_type(self):
@@ -86,12 +86,12 @@ class QListItemCon(QtGui.QListWidgetItem):
 
 
 class ConManWindow(QtGui.QMainWindow):
-    OptionsSig = Signal(str, tuple, bool, float, list, list, list)
-    AddSig = Signal()
-    SelSig = Signal(list)
     CloseSig = Signal()
-    DelSig = Signal(list)
     RenameSig = Signal()
+    AddSig = Signal()
+    DelSig = Signal(list)
+    SelSig = Signal(list)
+    OptionsSig = Signal(str, tuple, bool, float, list, list, list)
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
