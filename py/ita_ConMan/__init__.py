@@ -247,7 +247,6 @@ def create_constraint(ctype, actObj, selObjs,
 
 def rename_cb(arg=None):
     _CMan.RenameSig.emit()
-    _CMan.repaint()
 
 
 # =============================================================================

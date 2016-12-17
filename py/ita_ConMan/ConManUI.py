@@ -54,7 +54,6 @@ class QListItemCon(QtGui.QListWidgetItem):
                 str(self._data["object"]),
                 self._data["type"],
                 str(self._data["con_node"]))
-            self.update()
 
     @property
     def con_type(self):
