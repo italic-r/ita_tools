@@ -104,7 +104,7 @@ def conlist_clear(arg=None):
 
 
 @QtCore.Slot()
-def create_con_call(conType, Offset, mOffset, weight, skipT, skipR, skipS):
+def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     selection = pmc.ls(sl=True, type="transform")
 
     if len(selection) >= 2:
@@ -303,7 +303,7 @@ def pickle_write(arg=None):
 def register_connections():
     log.debug("Registering signal connections and callbacks...")
 
-    _CMan.OptionsSig.connect(create_con_call)
+    _CMan.OptionsSig.connect(create_con)
     _CMan.AddSig.connect(add_con)
     _CMan.DelSig.connect(remove_con)
     _CMan.SelSig.connect(sel_con_node)
@@ -316,7 +316,7 @@ def register_cb():
     pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
     list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
     conlist_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, conlist_clear)
-    obj_name_change_cb = om.MEventMessage.addEventCallback("NameChanged", rename_cb)
+    om.MEventMessage.addEventCallback("NameChanged", rename_cb)
 
     global callback_list
     callback_list = [
