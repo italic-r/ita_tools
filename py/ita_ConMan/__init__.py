@@ -55,8 +55,30 @@ log.info("Maya 2016+ detected")
 # =============================================================================
 
 _CMan = None
-ConItemList = {}
+_ConItemList = None
 callback_list = []
+
+
+class ConItemList():
+    """Object to replace global variable."""
+
+    def __init__(self):
+        self._con_item_list = {}
+
+    def store(self, key, inst):
+        self._con_item_list[key] = inst
+
+    def remove(self, key):
+        del self._con_item_list[key]
+
+    def clear(self):
+        self._con_item_list.clear()
+
+    def keys(self):
+        return self._con_item_list.keys()
+
+    def items(self):
+        return self._con_item_list.iteritems()
 
 
 class ConListItem():
@@ -91,12 +113,10 @@ class ConListItem():
 
 
 def store_item(conUUID, conType, conObj, actObj, selObjs):
-    global ConItemList
-    ConItemList[conUUID] = ConListItem(conType, conObj, actObj, selObjs)
+    _ConItemList.store(conUUID, ConListItem(conType, conObj, actObj, selObjs))
 
 
 def conlist_clear(arg=None):
-    global ConItemList
     ConItemList.clear()
 
 
@@ -195,10 +215,7 @@ def remove_con(con_node):
     try:
         con_node_uuid = str(cmds.ls(str(con_node), uuid=True)[0])
         pmc.delete(con_node)
-
-        global ConItemList
-        del ConItemList[con_node_uuid]
-
+        _ConItemList.remove(con_node_uuid)
         log.debug("Deleted constraint.")
 
     except KeyError:
@@ -256,15 +273,15 @@ def pickle_read(arg=None):
     """Read pickled data from scene's fileInfo attribute."""
     log.debug("Reading pickle...")
     try:
-        global ConItemList
+        global _ConItemList
         sceneInfo = pmc.fileInfo("CMan_data", q=True)
         decoded = base64.b64decode(sceneInfo)
         unpickled = pickle.loads(decoded)
-        ConItemList = unpickled
+        _ConItemList = unpickled
 
         _CMan.clear_list()
 
-        for k, v in ConItemList.iteritems():
+        for k, v in _ConItemList.items():
             try:
                 cmds.ls(k)
                 con_data = {
@@ -289,7 +306,7 @@ def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
     log.debug("Writing pickle...")
 
-    pickled = pickle.dumps(ConItemList)
+    pickled = pickle.dumps(_ConItemList)
     encoded = base64.b64encode(pickled)
     pmc.fileInfo("CMan_data", encoded)
     cmds.file(modified=True)
