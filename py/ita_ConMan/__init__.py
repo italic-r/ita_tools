@@ -59,8 +59,11 @@ _ConItemList = None
 callback_list = []
 
 
-class ConItemList():
-    """Object to replace global variable."""
+class ConItemList(object):
+    """
+    Store list of global data.
+    Stores constraint node UUID as a key, ConListItem instance as value.
+    """
 
     def __init__(self):
         self._con_item_list = {}
@@ -81,7 +84,7 @@ class ConItemList():
         return self._con_item_list.iteritems()
 
 
-class ConListItem():
+class ConListItem(object):
     """Object to hold constraint data."""
 
     def __init__(self, con_type, conObj, actObj, selobjs):
@@ -94,6 +97,10 @@ class ConListItem():
             self._type,
             str(self._constraint)
         )
+
+    def _dag_path(self, pm):
+        """Return DAG path for PyMel object."""
+        return cmds.ls(str(pm), long=True)
 
     @property
     def con_type(self):
@@ -110,6 +117,18 @@ class ConListItem():
     @property
     def con_node(self):
         return self._constraint
+
+    @property
+    def obj_dag(self):
+        return self._dag_path(self._obj)
+
+    @property
+    def con_dag(self):
+        return self._dag_path(self._constraint)
+
+    @property
+    def target_dag(self):
+        return [self._dag_path(tg) for tg in self._target]
 
 
 def store_item(conUUID, conType, conObj, actObj, selObjs):
@@ -314,6 +333,16 @@ def pickle_write(arg=None):
     log.debug("Writing pickle success")
 
 
+def clean_data(arg=None):
+    """Clean stale data from global storage."""
+    log.debug("Cleaning stale data...")
+
+
+def purge_data(arg=None):
+    """Purge all global data. Will be reset to empty objects."""
+    log.debug("Purging global data...")
+
+
 # =============================================================================
 
 
@@ -326,6 +355,8 @@ def register_connections():
     _CMan.SelSig.connect(sel_con_node)
     _CMan.CloseSig.connect(pickle_write)
     _CMan.CloseSig.connect(unregister_cb)
+    _CMan.CleanSig.connect(clean_data)
+    _CMan.PurgeSig.connect(purge_data)
 
 
 def register_cb():
@@ -350,6 +381,9 @@ def unregister_cb():
 
 def show():
     global _CMan
+    global _ConItemList
+    if _ConItemList is None:
+        _ConItemList = ConItemList()
     if _CMan is None:
         maya_window = get_maya_window()
         _CMan = ConManWindow(parent=maya_window)

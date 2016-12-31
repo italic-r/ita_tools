@@ -85,6 +85,8 @@ class QListItemCon(QtGui.QListWidgetItem):
 
 
 class ConManWindow(QtGui.QMainWindow):
+    CleanSig = Signal()
+    PurgeSig = Signal()
     CloseSig = Signal()
     RenameSig = Signal()
     AddSig = Signal()
@@ -494,8 +496,8 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonScale.clicked.connect(lambda: self.send_options("Scale"))
         self.ButtonRemove.clicked.connect(self.remove_con)
         self.ButtonHelp.clicked.connect(self.show_help_ui)
-        # self.ButtonClean.clicked.connect()
-        # self.ButtonPurge.clicked.connect()
+        self.ButtonClean.clicked.connect(self.clean)
+        self.ButtonPurge.clicked.connect(self.purge)
         self.ObjList.itemEntered.connect(self.item_list_click)
         self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
 
@@ -614,6 +616,11 @@ class ConManWindow(QtGui.QMainWindow):
         log.debug("Selecting: {}".format(item.obj))
         self.SelSig.emit(item.obj)
 
+    def clean(self):
+        self.CleanSig.emit()
+
+    def purge(self):
+        self.PurgeSig.emit()
 
 class ConManHelpWindow(QtGui.QMainWindow):
 
