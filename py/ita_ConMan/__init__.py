@@ -69,9 +69,16 @@ class ConItemList(object):
         self._con_item_list = {}
 
     def store(self, key, inst):
+        """
+        :param key: Constraint node UUID to store as the dict's key
+        :param inst: Instance of ConListItem to store relevant constraint objects and data
+        """
         self._con_item_list[key] = inst
 
     def remove(self, key):
+        """
+        :param key: UUID of ConListItem to delete
+        """
         del self._con_item_list[key]
 
     def clear(self):
@@ -83,13 +90,22 @@ class ConItemList(object):
     def iteritems(self):
         return self._con_item_list.iteritems()
 
+    def get(self, key):
+        """
+        :param key: UUID of ConListItem to retrieve
+        """
+        return self._con_item_list[key]
+
 
 class ConListItem(object):
     """Object to hold constraint data."""
 
     def __init__(self, con_type, conObj, actObj, selobjs):
         """
-        #
+        :param con_type: Type of constraint (Parent, Point, Orient, Scale)
+        :param conObj: Constraint node itself
+        :param actObj: Object that has been constrained
+        :param selobjs: Constraint targets
         """
         self._type = con_type
         self._obj = actObj
