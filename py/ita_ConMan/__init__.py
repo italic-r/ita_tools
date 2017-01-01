@@ -80,7 +80,7 @@ class ConItemList(object):
     def keys(self):
         return self._con_item_list.keys()
 
-    def items(self):
+    def iteritems(self):
         return self._con_item_list.iteritems()
 
 
