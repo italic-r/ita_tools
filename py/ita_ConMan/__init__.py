@@ -88,6 +88,9 @@ class ConListItem(object):
     """Object to hold constraint data."""
 
     def __init__(self, con_type, conObj, actObj, selobjs):
+        """
+        #
+        """
         self._type = con_type
         self._obj = actObj
         self._target = selobjs
@@ -97,10 +100,6 @@ class ConListItem(object):
             self._type,
             str(self._constraint)
         )
-
-    def _dag_path(self, pm):
-        """Return DAG path for PyMel object."""
-        return cmds.ls(str(pm), long=True)
 
     @property
     def con_type(self):
@@ -120,15 +119,15 @@ class ConListItem(object):
 
     @property
     def obj_dag(self):
-        return self._dag_path(self._obj)
+        return self._obj.fullPath()
 
     @property
     def con_dag(self):
-        return self._dag_path(self._constraint)
+        return self._constraint.fullPath()
 
     @property
     def target_dag(self):
-        return [self._dag_path(tg) for tg in self._target]
+        return [tg.fullPath() for tg in self._target]
 
 
 def store_item(conUUID, conType, conObj, actObj, selObjs):
@@ -136,7 +135,7 @@ def store_item(conUUID, conType, conObj, actObj, selObjs):
 
 
 def conlist_clear(arg=None):
-    ConItemList.clear()
+    _ConItemList.clear()
 
 
 # =============================================================================
