@@ -75,26 +75,49 @@ class ConItemList(object):
         """
         self._con_item_list[key] = inst
 
-    def remove(self, key):
+    def remove(self, uuid):
         """
-        :param key: UUID of ConListItem to delete
+        :param uuid: UUID of ConListItem to delete
         """
-        del self._con_item_list[key]
+        del self._con_item_list[uuid]
 
     def clear(self):
+        """
+        Clear stored data
+        """
         self._con_item_list.clear()
 
+    def clean_data(self):
+        """
+        Clear stale instance data
+        """
+        for k in self.keys():
+            if cmds.ls(k) is None:
+                self.remove(k)
+
     def keys(self):
+        """
+        :return: List of UUID keys for constraint nodes in Maya
+        """
         return self._con_item_list.keys()
 
+    def values(self):
+        """
+        :return: List of ConListItem instances with constraint data
+        """
+        return self._con_item_list.values()
+
     def iteritems(self):
+        """
+        :return: Key/Value pairs from dict.iteritems()
+        """
         return self._con_item_list.iteritems()
 
-    def get(self, key):
+    def get(self, uuid):
         """
-        :param key: UUID of ConListItem to retrieve
+        :param uuid: UUID of ConListItem to retrieve
         """
-        return self._con_item_list[key]
+        return self._con_item_list[uuid]
 
 
 class ConListItem(object):
@@ -119,31 +142,59 @@ class ConListItem(object):
 
     @property
     def con_type(self):
+        """
+        :rtype: String
+        :return: Constraint type (Parent, Point, Orient, Scale)
+        """
         return self._type
 
     @property
     def obj(self):
+        """
+        :rtype: PyMel object
+        :return: Constrained object as a PyMel object
+        """
         return self._obj
 
     @property
     def target(self):
+        """
+        :rtype: List
+        :return: List of PyMel-type constraint targets
+        """
         return self._target
 
     @property
     def con_node(self):
+        """
+        :rtype: PyMel object
+        :return: Constraint node PyMel object
+        """
         return self._constraint
 
     @property
     def obj_dag(self):
+        """
+        :rtype: Pipe-delimited string (|)
+        :return: Full DAG path from scene root
+        """
         return self._obj.fullPath()
 
     @property
-    def con_dag(self):
-        return self._constraint.fullPath()
+    def target_dag(self):
+        """
+        :rtype: Pipe-delimited string (|)
+        :return: Full DAG path from scene root
+        """
+        return [tg.fullPath() for tg in self._target]
 
     @property
-    def target_dag(self):
-        return [tg.fullPath() for tg in self._target]
+    def con_dag(self):
+        """
+        :rtype: Pipe-delimited string (|)
+        :return: Full DAG path from scene root
+        """
+        return self._constraint.fullPath()
 
 
 def store_item(conUUID, conType, conObj, actObj, selObjs):
@@ -253,7 +304,6 @@ def remove_con(con_node):
         log.debug("Deleted constraint.")
 
     except KeyError:
-        log.debug("Could not remove constraint.")
         log.debug("Con UUID not a key in ConItemList")
 
 
@@ -351,11 +401,13 @@ def pickle_write(arg=None):
 def clean_data(arg=None):
     """Clean stale data from global storage."""
     log.debug("Cleaning stale data...")
+    _ConItemList.clean_stale()
 
 
 def purge_data(arg=None):
     """Purge all global data. Will be reset to empty objects."""
     log.debug("Purging global data...")
+    _ConItemList.clear()
 
 
 # =============================================================================
