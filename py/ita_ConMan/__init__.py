@@ -7,19 +7,6 @@ ConMan2: A tool to create and manage constraints for rigging and animation.
 WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
 ConMan uses maya.cmds
 ConMan2 uses pymel and Qt
-
-NOTE:
-to store:
-    Store PM data in Qt UI
-    On write:
-        iter through UI entries
-        append DAG path to local list/dict
-        one callback to update all DAG paths from write function
-
-restore:
-    read DAG paths
-    convert to pmc object
-    store in UI instance
 """
 
 import os
@@ -29,7 +16,6 @@ import base64
 import pymel.core as pmc
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
-from sys import exit
 from utils.qtshim import QtCore
 from utils.mayautils import get_maya_window  # , UndoChunk
 from ConManUI import ConManWindow
@@ -44,14 +30,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-# Version check - only supporting 2016+
-supportedVersion = 2016
-currentVersion = int(cmds.about(version=True).split(" ")[0])
-if currentVersion < supportedVersion:
-    log.error("Maya 2016+ required")
-    exit()
-log.info("Maya 2016+ detected")
 
 
 # Global Data =================================================================
@@ -126,8 +104,8 @@ def remove_con(con_node):
         pmc.delete(con_node)
         log.debug("Deleted constraint")
 
-    except KeyError:
-        log.debug("Con UUID not a key in ConItemList")
+    except:
+        log.debug("Constraint node not found")
 
 
 @QtCore.Slot()
@@ -211,7 +189,7 @@ def get_data(con_node):
     con_data = {
         "type": get_con_type(con_node),
         "object": get_object(con_node),
-        "target": con_obj.getTargetList(),
+        "target": con_node.getTargetList(),
         "con_node": con_node
     }
     return con_data
@@ -224,11 +202,15 @@ def pickle_read(arg=None):
 
     log.debug("Reading pickle...")
     try:
+        _CMan.clear_list()
         sceneInfo = pmc.fileInfo("CMan_data", q=True)
+        if isinstance(sceneInfo, list):
+            for entry in sceneInfo:
+                if entry[0] == "CMan_data":
+                    sceneInfo = entry[1]
+                    break
         decoded = base64.b64decode(sceneInfo)
         DagList = pickle.loads(decoded)
-
-        _CMan.clear_list()
 
         for dag in DagList:
             try:
@@ -292,11 +274,7 @@ def register_cb():
     obj_name_change_cb = om.MEventMessage.addEventCallback("NameChanged", rename_cb)
 
     global callback_list
-    callback_list = [
-        pkl_write_cb, pkl_read_cb,
-        list_clear_cb,  # conlist_clear_cb,
-        obj_name_change_cb
-    ]
+    callback_list = [pkl_write_cb, pkl_read_cb, list_clear_cb, obj_name_change_cb]
 
 
 def unregister_cb():
