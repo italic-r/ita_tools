@@ -10,15 +10,16 @@ ConMan2 uses pymel and Qt
 
 NOTE:
 to store:
-    get node from pmc
-    convert to MObject
-    get MOHandler
-    store MOHandler/UUID/DAGpath
+    Store PM data in Qt UI
+    On write:
+        iter through UI entries
+        append DAG path to local list/dict
+        one callback to update all DAG paths from write function
 
 restore:
-    test MOHandler
+    read DAG paths
     convert to pmc object
-    store in UI/storage instance(s)
+    store in UI instance
 """
 
 import os
@@ -48,201 +49,52 @@ log.setLevel(logging.DEBUG)
 supportedVersion = 2016
 currentVersion = int(cmds.about(version=True).split(" ")[0])
 if currentVersion < supportedVersion:
-    log.error("Maya 2016+ required.")
+    log.error("Maya 2016+ required")
     exit()
 log.info("Maya 2016+ detected")
 
-# =============================================================================
+
+# Global Data =================================================================
 
 _CMan = None
-_ConItemList = None
 callback_list = []
 
 
-class ConItemList(object):
-    """
-    Store list of global data.
-    Stores constraint node UUID as a key, ConListItem instance as value.
-    """
-
-    def __init__(self):
-        self._con_item_list = {}
-
-    def store(self, key, inst):
-        """
-        :param key: Constraint node UUID to store as the dict's key
-        :param inst: Instance of ConListItem to store relevant constraint objects and data
-        """
-        self._con_item_list[key] = inst
-
-    def remove(self, uuid):
-        """
-        :param uuid: UUID of ConListItem to delete
-        """
-        del self._con_item_list[uuid]
-
-    def clear(self):
-        """
-        Clear stored data
-        """
-        self._con_item_list.clear()
-
-    def clean_data(self):
-        """
-        Clear stale instance data
-        """
-        for k in self.keys():
-            if cmds.ls(k) is None:
-                self.remove(k)
-
-    def keys(self):
-        """
-        :return: List of UUID keys for constraint nodes in Maya
-        """
-        return self._con_item_list.keys()
-
-    def values(self):
-        """
-        :return: List of ConListItem instances with constraint data
-        """
-        return self._con_item_list.values()
-
-    def iteritems(self):
-        """
-        :return: Key/Value pairs from dict.iteritems()
-        """
-        return self._con_item_list.iteritems()
-
-    def get(self, uuid):
-        """
-        :param uuid: UUID of ConListItem to retrieve
-        """
-        return self._con_item_list[uuid]
-
-
-class ConListItem(object):
-    """Object to hold constraint data."""
-
-    def __init__(self, con_type, conObj, actObj, selobjs):
-        """
-        :param con_type: Type of constraint (Parent, Point, Orient, Scale)
-        :param conObj: Constraint node itself
-        :param actObj: Object that has been constrained
-        :param selobjs: Constraint targets
-        """
-        self._type = con_type
-        self._obj = actObj
-        self._target = selobjs
-        self._constraint = conObj
-        self._entry_label = "{} | {} | {}".format(
-            str(self._obj),
-            self._type,
-            str(self._constraint)
-        )
-
-    @property
-    def con_type(self):
-        """
-        :rtype: String
-        :return: Constraint type (Parent, Point, Orient, Scale)
-        """
-        return self._type
-
-    @property
-    def obj(self):
-        """
-        :rtype: PyMel object
-        :return: Constrained object as a PyMel object
-        """
-        return self._obj
-
-    @property
-    def target(self):
-        """
-        :rtype: List
-        :return: List of PyMel-type constraint targets
-        """
-        return self._target
-
-    @property
-    def con_node(self):
-        """
-        :rtype: PyMel object
-        :return: Constraint node PyMel object
-        """
-        return self._constraint
-
-    @property
-    def obj_dag(self):
-        """
-        :rtype: Pipe-delimited string (|)
-        :return: Full DAG path from scene root
-        """
-        return self._obj.fullPath()
-
-    @property
-    def target_dag(self):
-        """
-        :rtype: Pipe-delimited string (|)
-        :return: Full DAG path from scene root
-        """
-        return [tg.fullPath() for tg in self._target]
-
-    @property
-    def con_dag(self):
-        """
-        :rtype: Pipe-delimited string (|)
-        :return: Full DAG path from scene root
-        """
-        return self._constraint.fullPath()
-
-
-def store_item(conUUID, conType, conObj, actObj, selObjs):
-    _ConItemList.store(conUUID, ConListItem(conType, conObj, actObj, selObjs))
-
-
-def conlist_clear(arg=None):
-    _ConItemList.clear()
-
-
-# =============================================================================
-
+# General Constraint Funtionality =============================================
 
 @QtCore.Slot()
 def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
     selection = pmc.ls(sl=True, type="transform")
 
-    if len(selection) >= 2:
-        # Get scene data
-        actObj = selection[-1]
-        selObjs = selection[:-1]
+    if len(selection) > 1:
+        # Get selected objects
+        obj = selection[-1]
+        sel_objs = selection[:-1]
 
         log.debug("Selection: {}".format(selection))
-        log.debug("Active object: {}".format(actObj))
-        log.debug("Target objects: {}".format(selObjs))
+        log.debug("Active object: {}".format(obj))
+        log.debug("Target objects: {}".format(sel_objs))
 
         # with UndoChunk():
         # Create constraint
         conObj = create_constraint(
-            conType, actObj, selObjs,
+            conType, obj, sel_objs,
             Offset, mOffset, weight,
             skipT, skipR, skipS
         )
-        conUUID = cmds.ls(str(conObj), uuid=True)[0]
         log.debug("Constraint object: {}".format(conObj))
 
         # Save data
         con_data = {
             "type": conType,
-            "object": actObj,
-            "target": selObjs,
+            "object": obj,
+            "target": sel_objs,
             "con_node": conObj
         }
         _CMan.populate_list(con_data)
-        store_item(conUUID, conType, conObj, actObj, selObjs)
 
     else:
-        log.error("Select two or more objects to create a constraint...")
+        log.error("Select two or more objects to create a constraint")
 
 
 @QtCore.Slot()
@@ -256,35 +108,8 @@ def add_con():
     for obj in pmc.ls(sl=True):
         log.debug("Selected node: {}".format(str(obj)))
         if type(obj) in con_types:
-            if isinstance(obj, pmc.nodetypes.ParentConstraint):
-                conType = "Parent"
-            elif isinstance(obj, pmc.nodetypes.PointConstraint):
-                conType = "Point"
-            elif isinstance(obj, pmc.nodetypes.OrientConstraint):
-                conType = "Orient"
-            elif isinstance(obj, pmc.nodetypes.ScaleConstraint):
-                conType = "Scale"
-
-            # Constraint outputs should only be itself (weight attribute)
-            # and the constrained object (channel output)
-            actObj = list(set(obj.destinations()))
-            actObj.remove(obj)
-            actObj = actObj[0]
-            selObjs = obj.getTargetList()
-            conUUID = cmds.ls(str(obj), uuid=True)[0]
-
-            log.debug("Active obj: {}".format(str(actObj)))
-            log.debug("Targets: {}".format(selObjs))
-            log.debug("conUUID: {}".format(conUUID))
-
-            con_data = {
-                "type": conType,
-                "object": actObj,
-                "target": selObjs,
-                "con_node": obj
-            }
+            con_data = get_data(obj)
             _CMan.populate_list(con_data)
-            store_item(conUUID, conType, obj, actObj, selObjs)
 
         else:
             log.info(
@@ -298,10 +123,8 @@ def add_con():
 def remove_con(con_node):
     log.debug("Deleting constraint node...")
     try:
-        con_node_uuid = str(cmds.ls(str(con_node), uuid=True)[0])
         pmc.delete(con_node)
-        _ConItemList.remove(con_node_uuid)
-        log.debug("Deleted constraint.")
+        log.debug("Deleted constraint")
 
     except KeyError:
         log.debug("Con UUID not a key in ConItemList")
@@ -348,70 +171,107 @@ def create_constraint(ctype, actObj, selObjs,
 
 def rename_cb(arg=None):
     _CMan.RenameSig.emit()
+    # Hackish way to get the UI to update itself and update labels
+    _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
 
-# =============================================================================
+# Constraint Data =============================================================
 
+def get_object(con_node):
+    """Get constrained object."""
+
+    obj_list = []
+    for attr in con_node.getWeightAliasList():
+        for conn in attr.connections():
+            conn_output = list(set(conn.outputs()))
+            conn_output.remove(con_node)
+            obj_list.append(conn_output[0])
+
+    return list(set(obj_list))[0]
+
+
+def get_con_type(con_node):
+    """Get type of constraint."""
+
+    if isinstance(con_node, pmc.nodetypes.ParentConstraint):
+        con_type = "Parent"
+    elif isinstance(con_node, pmc.nodetypes.PointConstraint):
+        con_type = "Point"
+    elif isinstance(con_node, pmc.nodetypes.OrientConstraint):
+        con_type = "Orient"
+    elif isinstance(con_node, pmc.nodetypes.ScaleConstraint):
+        con_type = "Scale"
+
+    return con_type
+
+
+def get_data(con_node):
+    """Return dict of relevant constraint data based on PyNode."""
+
+    con_data = {
+        "type": get_con_type(con_node),
+        "object": get_object(con_node),
+        "target": con_obj.getTargetList(),
+        "con_node": con_node
+    }
+    return con_data
+
+
+# Pickle ======================================================================
 
 def pickle_read(arg=None):
     """Read pickled data from scene's fileInfo attribute."""
+
     log.debug("Reading pickle...")
     try:
-        global _ConItemList
         sceneInfo = pmc.fileInfo("CMan_data", q=True)
         decoded = base64.b64decode(sceneInfo)
-        unpickled = pickle.loads(decoded)
-        _ConItemList = unpickled
+        DagList = pickle.loads(decoded)
 
         _CMan.clear_list()
 
-        for k, v in _ConItemList.items():
+        for dag in DagList:
             try:
-                cmds.ls(k)
-                con_data = {
-                    "type": v.con_type,
-                    "object": v.obj,
-                    "target": v.target,
-                    "con_node": v.con_node
-                }
+                con_obj = pmc.ls(dag)[0]
+                con_data = get_data(con_obj)
                 _CMan.populate_list(con_data)
-            except MayaNodeError:
+            except:
                 pass
+        log.debug("Read pickle complete")
 
-        log.debug(ConItemList.keys())
-
-        log.debug("Reading pickle success")
     except KeyError:
-        log.debug("No data found.")
+        log.debug("No data found")
 
 
 @QtCore.Slot()
 def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
+
     log.debug("Writing pickle...")
 
-    pickled = pickle.dumps(_ConItemList)
+    _DagList = []
+    for list_item in _CMan.iter_list():
+        _DagList.append(list_item.con_dag)
+
+    pickled = pickle.dumps(_DagList)
     encoded = base64.b64encode(pickled)
     pmc.fileInfo("CMan_data", encoded)
     cmds.file(modified=True)
 
-    log.debug("Writing pickle success")
-
-
-def clean_data(arg=None):
-    """Clean stale data from global storage."""
-    log.debug("Cleaning stale data...")
-    _ConItemList.clean_stale()
+    log.debug("Pickle written")
 
 
 def purge_data(arg=None):
     """Purge all global data. Will be reset to empty objects."""
+
     log.debug("Purging global data...")
-    _ConItemList.clear()
+    pmc.fileInfo("CMan_data", "")
+    _CMan.clear_list()
+    cmds.file(modified=True)
+    log.debug("Purge complete")
 
 
-# =============================================================================
-
+# Connection and Callback Registration ========================================
 
 def register_connections():
     log.debug("Registering signal connections and callbacks...")
@@ -421,8 +281,7 @@ def register_connections():
     _CMan.DelSig.connect(remove_con)
     _CMan.SelSig.connect(sel_con_node)
     _CMan.CloseSig.connect(pickle_write)
-    _CMan.CloseSig.connect(unregister_cb)
-    _CMan.CleanSig.connect(clean_data)
+    # _CMan.CloseSig.connect(unregister_cb)
     _CMan.PurgeSig.connect(purge_data)
 
 
@@ -430,14 +289,13 @@ def register_cb():
     pkl_write_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
     pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
     list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
-    conlist_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, conlist_clear)
-    om.MEventMessage.addEventCallback("NameChanged", rename_cb)
+    obj_name_change_cb = om.MEventMessage.addEventCallback("NameChanged", rename_cb)
 
     global callback_list
     callback_list = [
         pkl_write_cb, pkl_read_cb,
-        list_clear_cb, conlist_clear_cb
-        # obj_name_change_cb
+        list_clear_cb,  # conlist_clear_cb,
+        obj_name_change_cb
     ]
 
 
@@ -448,18 +306,15 @@ def unregister_cb():
 
 def show():
     global _CMan
-    global _ConItemList
-    if _ConItemList is None:
-        _ConItemList = ConItemList()
     if _CMan is None:
-        maya_window = get_maya_window()
-        _CMan = ConManWindow(parent=maya_window)
+        _CMan = ConManWindow(parent=get_maya_window())
         register_connections()
-        pickle_read()
-    register_cb()
+        register_cb()
+    pickle_read()
     _CMan.show()
 
 
 if __name__ == "__main__":
     """Run"""
+
     show()
