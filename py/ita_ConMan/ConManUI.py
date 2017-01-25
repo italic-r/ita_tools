@@ -484,7 +484,7 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonScale.clicked.connect(lambda: self.send_options("Scale"))
         self.ButtonRemove.clicked.connect(self.remove_con)
         self.ButtonHelp.clicked.connect(self.show_help_ui)
-        self.ButtonPurge.clicked.connect(self.purge)
+        self.ButtonPurge.clicked.connect(self.show_purge_ui)
 
     def closeEvent(self, *args, **kwargs):
         log.debug("Closing main window...")
@@ -496,6 +496,10 @@ class ConManWindow(QtGui.QMainWindow):
         if self._CManHelp is None:
             self._CManHelp = ConManHelpWindow()
         self._CManHelp.show()
+
+    def show_purge_ui(self):
+        self._Purge = PurgeConfirm()
+        self._Purge.ConfirmSig.connect(self.purge)
 
     def clear_list(self, arg=None):
         log.debug("Clearing list")
@@ -601,7 +605,47 @@ class ConManWindow(QtGui.QMainWindow):
         self.SelSig.emit(item.obj)
 
     def purge(self):
+        log.debug("Purging")
         self.PurgeSig.emit()
+        self._Purge = None
+
+
+class PurgeConfirm(QtGui.QMainWindow):
+    ConfirmSig = Signal()
+
+    def __init__(self, parent=None):
+        super(PurgeConfirm, self).__init__(parent=parent)
+        self.show_ui()
+
+    def show_ui(self):
+        self.setObjectName("PurgeConfirm")
+        self.setWindowTitle("Purge")
+
+        self.container = QtGui.QWidget(self)
+        self.warning = QtGui.QLabel("Purge all data?\nWARNING: THIS CANNOT BE UNDONE")
+
+        self.confirm_button = QtGui.QPushButton("OK")
+        self.confirm_button.clicked.connect(self.button_click)
+
+        self.VLayout = QtGui.QVBoxLayout(self.container)
+        self.HLayout = QtGui.QHBoxLayout(self.container)
+
+        self.icon_label = QtGui.QLabel(self.container)
+        self.icon_label.setPixmap(QtGui.QPixmap(":/SP_MessageBoxCritical.png"))
+
+        self.container.setLayout(self.VLayout)
+        self.HLayout.addWidget(self.icon_label)
+        self.HLayout.addWidget(self.warning)
+        self.VLayout.addLayout(self.HLayout)
+        self.VLayout.addWidget(self.confirm_button)
+        self.setCentralWidget(self.container)
+
+        self.show()
+
+    def button_click(self):
+        log.debug("Pressed")
+        self.ConfirmSig.emit()
+        self.close()
 
 
 class ConManHelpWindow(QtGui.QMainWindow):
