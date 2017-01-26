@@ -33,6 +33,8 @@ class QListItemCon(QtGui.QListWidgetItem):
     def data(self, role):
         if role == QtCore.Qt.DisplayRole:
             return self.label
+        elif role == QtCore.Qt.UserRole:
+            return self.con_node
 
     @property
     def label(self):
@@ -86,6 +88,9 @@ class ConManWindow(QtGui.QMainWindow):
     DelSig = Signal(list)
     SelSig = Signal(list)
     OptionsSig = Signal(str, tuple, bool, float, list, list, list)
+    SwitchOffSig = Signal(tuple)
+    SwitchSingleSig = Signal(tuple)
+    SwitchAllSig = Signal(tuple)
 
     def __init__(self, parent=None):
         super(ConManWindow, self).__init__(parent=parent)
@@ -476,6 +481,7 @@ class ConManWindow(QtGui.QMainWindow):
 
     def set_connections(self):
         self.ObjList.itemEntered.connect(self.item_list_click)
+        self.ObjList.itemClicked.connect(self.item_list_click)
         self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
         self.ButtonAdd.clicked.connect(self.add_con)
         self.ButtonParent.clicked.connect(lambda: self.send_options("Parent"))
@@ -485,6 +491,9 @@ class ConManWindow(QtGui.QMainWindow):
         self.ButtonRemove.clicked.connect(self.remove_con)
         self.ButtonHelp.clicked.connect(self.show_help_ui)
         self.ButtonPurge.clicked.connect(self.show_purge_ui)
+        self.ButtonOff.clicked.connect(self.switch_off)
+        self.ButtonSwitch.clicked.connect(self.switch_single)
+        self.ButtonAll.clicked.connect(self.switch_all)
 
     def closeEvent(self, *args, **kwargs):
         log.debug("Closing main window...")
@@ -501,9 +510,18 @@ class ConManWindow(QtGui.QMainWindow):
         self._Purge = PurgeConfirm()
         self._Purge.ConfirmSig.connect(self.purge)
 
-    def clear_list(self, arg=None):
-        log.debug("Clearing list")
-        self.ObjList.clear()
+    def iter_list(self):
+        return [self.ObjList.item(i) for i in range(self.ObjList.count())]
+
+    def item_list_click(self, item):
+        log.debug("Clicked: {}".format(item.text()))
+        log.debug("Targets: {}".format(item.target))
+        self.populate_menu(item.target)
+
+    def item_list_double_click(self, item):
+        log.debug("Double clicked: {}".format(item.text()))
+        log.debug("Selecting: {}".format(item.obj))
+        self.SelSig.emit(item.obj)
 
     def populate_list(self, data):
         listItem = QListItemCon(data)
@@ -511,12 +529,40 @@ class ConManWindow(QtGui.QMainWindow):
         self.ObjList.addItem(listItem)
         self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
+    def clear_list(self, arg=None):
+        log.debug("Clearing list")
+        self.ObjList.clear()
+
     def populate_menu(self, selObjs):
         """Populate combo box for target selection."""
         self.MenuSwitchTarget.clear()
         for ind, item in enumerate(selObjs):
             self.MenuSwitchTarget.addItem(str(item))
             self.MenuSwitchTarget.setItemData(ind, str(item), userData=item)
+
+    def switch_off(self):
+        """Signal: Remove all weight from constraint targets."""
+        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+        log.debug(con_node)
+        self.SwitchOffSig.emit((con_node,))
+
+    def switch_single(self):
+        """Signal: Switch constraint weight to object displayed in selection menu."""
+        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+
+        current_index = self.MenuSwitchTarget.currentIndex()
+        tgt_node = self.MenuSwitchTarget.itemData(current_index)
+
+        log.debug("Node: {}".format(con_node))
+        log.debug("Target: {}".format(tgt_node))
+
+        self.SwitchSingleSig.emit((con_node, tgt_node))
+
+    def switch_all(self):
+        """Signal: Enable all targets with 1.0 weight."""
+        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+        log.debug(con_node)
+        self.SwitchAllSig.emit((con_node,))
 
     def send_options(self, conType):
         skipT = []
@@ -590,19 +636,6 @@ class ConManWindow(QtGui.QMainWindow):
         del removed_item
 
         log.debug("Removed {}...".format(current_item.label))
-
-    def iter_list(self):
-        return [self.ObjList.item(i) for i in range(self.ObjList.count())]
-
-    def item_list_click(self, item):
-        log.debug("Clicked: {}".format(item.text()))
-        log.debug("Targets: {}".format(item.target))
-        self.populate_menu(item.target)
-
-    def item_list_double_click(self, item):
-        log.debug("Double clicked: {}".format(item.text()))
-        log.debug("Selecting: {}".format(item.obj))
-        self.SelSig.emit(item.obj)
 
     def purge(self):
         log.debug("Purging")

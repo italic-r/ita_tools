@@ -153,6 +153,42 @@ def rename_cb(arg=None):
     _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
 
+# Switch Weight ===============================================================
+
+"""
+const.getWeight(int/float, pmobj)
+const.setWeight(int/float, pmobj)
+const.getTargetList() -> [pmobj]
+const.getWeightAliasList() -> [pmAttr]
+"""
+
+
+@QtCore.Slot()
+def switch_off(con_node):
+    con_node = con_node[0]
+    for tgt in con_node.getTargetList():
+        con_node.setWeight(0, tgt)
+
+
+@QtCore.Slot()
+def switch_single(con_tup):
+    con_node = con_tup[0]
+    sel_tgt = con_tup[1]
+
+    for tgt in con_node.getTargetList():
+        if tgt == sel_tgt:
+            con_node.setWeight(1, tgt)
+        else:
+            con_node.setWeight(0, tgt)
+
+
+@QtCore.Slot()
+def switch_all(con_node):
+    con_node = con_node[0]
+    for tgt in con_node.getTargetList():
+        con_node.setWeight(1, tgt)
+
+
 # Constraint Data =============================================================
 
 def get_object(con_node):
@@ -265,6 +301,9 @@ def register_connections():
     _CMan.CloseSig.connect(pickle_write)
     # _CMan.CloseSig.connect(unregister_cb)
     _CMan.PurgeSig.connect(purge_data)
+    _CMan.SwitchOffSig.connect(switch_off)
+    _CMan.SwitchSingleSig.connect(switch_single)
+    _CMan.SwitchAllSig.connect(switch_all)
 
 
 def register_cb():
