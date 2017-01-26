@@ -103,7 +103,6 @@ def remove_con(con_node):
     try:
         pmc.delete(con_node)
         log.debug("Deleted constraint")
-
     except:
         log.debug("Constraint node not found")
 
@@ -154,14 +153,6 @@ def rename_cb(arg=None):
 
 
 # Switch Weight ===============================================================
-
-"""
-const.getWeight(int/float, pmobj)
-const.setWeight(int/float, pmobj)
-const.getTargetList() -> [pmobj]
-const.getWeightAliasList() -> [pmAttr]
-"""
-
 
 @QtCore.Slot()
 def switch_off(con_node):

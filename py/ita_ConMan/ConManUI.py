@@ -480,8 +480,7 @@ class ConManWindow(QtGui.QMainWindow):
         self.setTabOrder(self.ButtonHelp, self.ButtonPurge)
 
     def set_connections(self):
-        self.ObjList.itemEntered.connect(self.item_list_click)
-        self.ObjList.itemClicked.connect(self.item_list_click)
+        self.ObjList.currentItemChanged.connect(self.item_list_changed)
         self.ObjList.itemDoubleClicked.connect(self.item_list_double_click)
         self.ButtonAdd.clicked.connect(self.add_con)
         self.ButtonParent.clicked.connect(lambda: self.send_options("Parent"))
@@ -513,10 +512,15 @@ class ConManWindow(QtGui.QMainWindow):
     def iter_list(self):
         return [self.ObjList.item(i) for i in range(self.ObjList.count())]
 
-    def item_list_click(self, item):
-        log.debug("Clicked: {}".format(item.text()))
-        log.debug("Targets: {}".format(item.target))
-        self.populate_menu(item.target)
+    def item_list_changed(self, current, previous):
+        log.debug("Previous: {}".format(previous))
+        log.debug("Current: {}".format((current)))
+        if current is None:
+            self.MenuSwitchTarget.clear()
+        else:
+            log.debug("Clicked: {}".format(current.text()))
+            log.debug("Targets: {}".format(current.target))
+            self.populate_menu(current.target)
 
     def item_list_double_click(self, item):
         log.debug("Double clicked: {}".format(item.text()))
@@ -528,6 +532,7 @@ class ConManWindow(QtGui.QMainWindow):
         self.RenameSig.connect(listItem.update_label_callback)
         self.ObjList.addItem(listItem)
         self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+        self.ObjList.setCurrentItem(listItem)
 
     def clear_list(self, arg=None):
         log.debug("Clearing list")
@@ -539,6 +544,7 @@ class ConManWindow(QtGui.QMainWindow):
         for ind, item in enumerate(selObjs):
             self.MenuSwitchTarget.addItem(str(item))
             self.MenuSwitchTarget.setItemData(ind, str(item), userData=item)
+            log.debug("Target {}: {}".format(ind, str(item)))
 
     def switch_off(self):
         """Signal: Remove all weight from constraint targets."""
