@@ -10,25 +10,31 @@ ConMan2 uses pymel and Qt
 """
 
 import os
-import logging
 import pickle
 import base64
 import pymel.core as pmc
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 from utils.qtshim import QtCore
-from utils.mayautils import get_maya_window  # , UndoChunk
+from utils.mayautils import get_maya_window, UndoChunk
 from ConManUI import ConManWindow
 
-# Set up logging
-ConManDir = os.path.dirname(__name__)
-LogFormat = "%(levelname)s: %(message)s"
-LogFile = os.path.join(ConManDir, "conman_log.log")
-logging.basicConfig(
-    level=logging.DEBUG, format=LogFormat,
-    filename=LogFile, filemode='w'
+if __name__ == "__main__":
+    import logging
+else:
+    import pymel.internal.plogging as logging
+LogPath = os.path.dirname(__file__)
+LogFile = os.path.join(LogPath, "conman_log.log")
+LogHandler = logging.FileHandler(LogFile)
+LogFormat = logging.Formatter(
+    "## %(levelname)s ## %(name)s.%(funcName)s ##\n"
+    "%(message)s\n"
 )
+logging.basicConfig(level=logging.DEBUG, filename=LogFile, filemode='w')
+
 log = logging.getLogger(__name__)
+LogHandler.setFormatter(LogFormat)
+log.addHandler(LogHandler)
 log.setLevel(logging.DEBUG)
 
 
@@ -163,8 +169,9 @@ def rename_cb(arg=None):
 def switch_off(con_node):
     """Turn off all constraint weight."""
     con_node = con_node[0]
-    for tgt in con_node.getTargetList():
-        con_node.setWeight(0, tgt)
+    with UndoChunk():
+        for tgt in con_node.getTargetList():
+            con_node.setWeight(0, tgt)
 
 
 @QtCore.Slot()
@@ -173,19 +180,21 @@ def switch_single(con_tup):
     con_node = con_tup[0]
     sel_tgt = con_tup[1]
 
-    for tgt in con_node.getTargetList():
-        if tgt == sel_tgt:
-            con_node.setWeight(1, tgt)
-        else:
-            con_node.setWeight(0, tgt)
+    with UndoChunk():
+        for tgt in con_node.getTargetList():
+            if tgt == sel_tgt:
+                con_node.setWeight(1, tgt)
+            else:
+                con_node.setWeight(0, tgt)
 
 
 @QtCore.Slot()
 def switch_all(con_node):
     """Turn on all constraint weight."""
     con_node = con_node[0]
-    for tgt in con_node.getTargetList():
-        con_node.setWeight(1, tgt)
+    with UndoChunk():
+        for tgt in con_node.getTargetList():
+            con_node.setWeight(1, tgt)
 
 
 # Constraint Data =============================================================
@@ -249,6 +258,7 @@ def pickle_read(arg=None):
                 bogus = "a"
                 pickled = pickle.dumps(bogus)
                 sceneInfo = base64.b64encode(pickled)
+        # End compatability check
 
         decoded = base64.b64decode(sceneInfo)
         DagList = pickle.loads(decoded)
@@ -347,6 +357,4 @@ def show():
 
 
 if __name__ == "__main__":
-    """Run"""
-
     show()

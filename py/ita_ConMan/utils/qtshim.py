@@ -4,20 +4,19 @@ Provides a common interface between PyQt4 and PySide.
 By Rob Galanakis: Practical Maya Programming with Python
 """
 
-import logging
-
-log = logging.getLogger(__name__)
-
-
 try:
     from PySide import QtCore, QtGui
     try:
         # Import from Maya
         import shiboken
+        import pymel.internal.plogging as logging
+        log = logging.getLogger(__name__)
         log.info("Imported PySide and shiboken from Maya")
     except ImportError:
         # Import from system Python
         from Shiboken import shiboken
+        import logging
+        log = logging.getLogger(__name__)
         log.info("Imported PySide and shiboken from system lib")
     Signal = QtCore.Signal
 
@@ -28,8 +27,7 @@ try:
         return result
 
     def wrapinstance(ptr):
-        """Converts a pointer (int or long) into the concrete
-        PyQt/PySide object it represents."""
+        """Convert a pointer (int or long) into the concrete PyQt/PySide object it represents."""
         # pointers for Qt should always be long integers
         ptr = long(ptr)
         # Get the pointer as a QObject, and use metaObject
@@ -54,9 +52,15 @@ except ImportError:
     Signal = QtCore.pyqtSignal
     import sip
 
+    try:
+        import pymel.internal.plogging as logging
+        log = logging.getLogger(__name__)
+    except ImportError:
+        import logging
+        log = logging.getLogger(__name__)
+
     log.info("Imported PyQt4 and sip")
 
     def wrapinstance(ptr):
-        """Converts a pointer (int or long) into the concrete
-        PyQt/PySide object it represents."""
+        """Convert a pointer (int or long) into the concrete PyQt/PySide object it represents."""
         return sip.wrapinstance(long(ptr), QtCore.QObject)
