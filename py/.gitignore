@@ -1,11 +1,8 @@
 *__pycache__
 *.ropeproject*
 ita_ConMan/img/*
-ita_ConMan/*.pyc
-ita_ConMan/*/*.pyc
-ita_ConMan/UI_mock/*.py
-ita_ConMan/UI_mock/*.qrc
+ita_ConMan/UI_mock/*
 ita_ConMan/conman_log.log
+*.pyc
 *.swp
 *~
-
