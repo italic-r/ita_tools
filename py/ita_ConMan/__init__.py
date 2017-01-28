@@ -236,11 +236,20 @@ def pickle_read(arg=None):
     try:
         _CMan.clear_list()
         sceneInfo = pmc.fileInfo("CMan_data", q=True)
+
+        # Compatability check for Maya versions <2016
         if isinstance(sceneInfo, list):
-            for entry in sceneInfo:
-                if entry[0] == "CMan_data":
-                    sceneInfo = entry[1]
-                    break
+            if sceneInfo != []:
+                for entry in sceneInfo:
+                    if entry[0] == "CMan_data":
+                        sceneInfo = entry[1]
+                        break
+            else:
+                # Fill in bogus data to satisfy b64decode and pickle
+                bogus = "a"
+                pickled = pickle.dumps(bogus)
+                sceneInfo = base64.b64encode(pickled)
+
         decoded = base64.b64decode(sceneInfo)
         DagList = pickle.loads(decoded)
 
@@ -250,7 +259,7 @@ def pickle_read(arg=None):
                 con_data = get_data(con_obj)
                 _CMan.populate_list(con_data)
             except:
-                pass
+                log.debug("DAG path invalid: {}".format(dag))
         log.debug("Read pickle complete")
 
     except KeyError:
@@ -262,9 +271,7 @@ def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
     log.debug("Writing pickle...")
 
-    _DagList = []
-    for list_item in _CMan.iter_list():
-        _DagList.append(list_item.con_dag)
+    _DagList = [item.con_dag for item in _CMan.iter_list()]
 
     pickled = pickle.dumps(_DagList)
     encoded = base64.b64encode(pickled)
