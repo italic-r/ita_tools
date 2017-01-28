@@ -580,7 +580,10 @@ class ConManWindow(QtGui.QMainWindow):
     def __switch_off(self):
         con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
         log.debug(con_node)
-        self.SwitchOffSig.emit((con_node,))
+        self.SwitchOffSig.emit(
+            (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
+             con_node)
+        )
 
     def __switch_single(self):
         con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
@@ -591,12 +594,18 @@ class ConManWindow(QtGui.QMainWindow):
         log.debug("Node: {}".format(con_node))
         log.debug("Target: {}".format(tgt_node))
 
-        self.SwitchSingleSig.emit((con_node, tgt_node))
+        self.SwitchSingleSig.emit(
+            (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
+             con_node, tgt_node)
+        )
 
     def __switch_all(self):
         con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
         log.debug(con_node)
-        self.SwitchAllSig.emit((con_node,))
+        self.SwitchAllSig.emit(
+            (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
+             con_node)
+        )
 
     def __send_options(self, conType):
         skipT = []
