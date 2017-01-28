@@ -42,6 +42,7 @@ callback_list = []
 
 @QtCore.Slot()
 def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
+    """Pass options from UI to constraint creator and data storage."""
     selection = pmc.ls(sl=True, type="transform")
 
     if len(selection) > 1:
@@ -77,6 +78,7 @@ def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
 
 @QtCore.Slot()
 def add_con():
+    """Save existing constraint and its data."""
     con_types = (
         pmc.nodetypes.ParentConstraint,
         pmc.nodetypes.PointConstraint,
@@ -90,7 +92,7 @@ def add_con():
             _CMan.populate_list(con_data)
 
         else:
-            log.info(
+            log.warning(
                 "Selected node not a supported constraint. "
                 "Select a parent, point, orient or scale "
                 "constraint to add it the tracker."
@@ -99,6 +101,7 @@ def add_con():
 
 @QtCore.Slot()
 def remove_con(con_node):
+    """Delete constraint node from the scene."""
     log.debug("Deleting constraint node...")
     try:
         pmc.delete(con_node)
@@ -109,6 +112,7 @@ def remove_con(con_node):
 
 @QtCore.Slot()
 def sel_con_node(node):
+    """Select constrained node in the scene."""
     log.debug("Selecting: {}".format(node))
     pmc.select(node)
 
@@ -117,6 +121,7 @@ def create_constraint(ctype, actObj, selObjs,
                       offset, mOffset, weight,
                       skipT=['none'], skipR=['none'], skipS=['none']
                       ):
+    """Create constraint with given options."""
     if ctype == "Parent":
         cObj = pmc.parentConstraint(
             selObjs, actObj,
@@ -147,8 +152,8 @@ def create_constraint(ctype, actObj, selObjs,
 
 
 def rename_cb(arg=None):
+    """Callback to force resorting of the UI list on object rename."""
     _CMan.RenameSig.emit()
-    # Hackish way to get the UI to update itself and update labels
     _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
 
@@ -156,6 +161,7 @@ def rename_cb(arg=None):
 
 @QtCore.Slot()
 def switch_off(con_node):
+    """Turn off all constraint weight."""
     con_node = con_node[0]
     for tgt in con_node.getTargetList():
         con_node.setWeight(0, tgt)
@@ -163,6 +169,7 @@ def switch_off(con_node):
 
 @QtCore.Slot()
 def switch_single(con_tup):
+    """Switch constraint weight to a single defined target."""
     con_node = con_tup[0]
     sel_tgt = con_tup[1]
 
@@ -175,6 +182,7 @@ def switch_single(con_tup):
 
 @QtCore.Slot()
 def switch_all(con_node):
+    """Turn on all constraint weight."""
     con_node = con_node[0]
     for tgt in con_node.getTargetList():
         con_node.setWeight(1, tgt)
@@ -184,7 +192,6 @@ def switch_all(con_node):
 
 def get_object(con_node):
     """Get constrained object."""
-
     obj_list = []
     for attr in con_node.getWeightAliasList():
         for conn in attr.connections():
@@ -197,7 +204,6 @@ def get_object(con_node):
 
 def get_con_type(con_node):
     """Get type of constraint."""
-
     if isinstance(con_node, pmc.nodetypes.ParentConstraint):
         con_type = "Parent"
     elif isinstance(con_node, pmc.nodetypes.PointConstraint):
@@ -212,7 +218,6 @@ def get_con_type(con_node):
 
 def get_data(con_node):
     """Return dict of relevant constraint data based on PyNode."""
-
     con_data = {
         "type": get_con_type(con_node),
         "object": get_object(con_node),
@@ -226,8 +231,8 @@ def get_data(con_node):
 
 def pickle_read(arg=None):
     """Read pickled data from scene's fileInfo attribute."""
-
     log.debug("Reading pickle...")
+
     try:
         _CMan.clear_list()
         sceneInfo = pmc.fileInfo("CMan_data", q=True)
@@ -255,7 +260,6 @@ def pickle_read(arg=None):
 @QtCore.Slot()
 def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
-
     log.debug("Writing pickle...")
 
     _DagList = []
@@ -272,7 +276,6 @@ def pickle_write(arg=None):
 
 def purge_data(arg=None):
     """Purge all global data. Will be reset to empty objects."""
-
     log.debug("Purging global data...")
     pmc.fileInfo("CMan_data", "")
     _CMan.clear_list()
@@ -283,7 +286,8 @@ def purge_data(arg=None):
 # Connection and Callback Registration ========================================
 
 def register_connections():
-    log.debug("Registering signal connections and callbacks...")
+    """Register connections between local functions and UI signals."""
+    log.debug("Registering signal connections...")
 
     _CMan.OptionsSig.connect(create_con)
     _CMan.AddSig.connect(add_con)
@@ -298,23 +302,36 @@ def register_connections():
 
 
 def register_cb():
-    pkl_write_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeSave, pickle_write)
-    pkl_read_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, pickle_read)
-    list_clear_cb = om.MSceneMessage.addCallback(om.MSceneMessage.kBeforeNew, _CMan.clear_list)
-    obj_name_change_cb = om.MEventMessage.addEventCallback("NameChanged", rename_cb)
+    """Register callbacks within Maya for data management and UI updates."""
+    log.debug("Registering callbacks...")
+
+    pkl_write_cb = om.MSceneMessage.addCallback(
+        om.MSceneMessage.kBeforeSave, pickle_write)
+    pkl_read_cb = om.MSceneMessage.addCallback(
+        om.MSceneMessage.kAfterOpen, pickle_read)
+    list_clear_cb = om.MSceneMessage.addCallback(
+        om.MSceneMessage.kBeforeNew, _CMan.clear_list)
+    obj_name_change_cb = om.MEventMessage.addEventCallback(
+        "NameChanged", rename_cb)
 
     global callback_list
-    callback_list = [pkl_write_cb, pkl_read_cb, list_clear_cb, obj_name_change_cb]
+    callback_list = [
+        pkl_write_cb, pkl_read_cb,
+        list_clear_cb, obj_name_change_cb
+    ]
 
 
 def unregister_cb():
+    """Unregister callbacks for reloading ConMan."""
     log.debug("Unregistering callbacks...")
     om.MSceneMessage.removeCallbacks(callback_list)
 
 
 def show():
+    """Init."""
     global _CMan
     if _CMan is None:
+        log.debug("Initializing...")
         _CMan = ConManWindow(parent=get_maya_window())
         register_connections()
         register_cb()
