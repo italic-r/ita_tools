@@ -1,6 +1,6 @@
 """By Rob Galanakis"""
 
-from qtshim import wrapinstance, QtGui
+from qtshim import wrapinstance, QtWidgets
 import pymel.core as pmc
 import maya.OpenMayaUI as mui
 
@@ -10,7 +10,7 @@ def get_maya_window():
     if winptr is None:
         raise RuntimeError("No maya window found.")
     window = wrapinstance(winptr)
-    assert isinstance(window, QtGui.QMainWindow)
+    assert isinstance(window, QtWidgets.QMainWindow)
     return window
 
 
