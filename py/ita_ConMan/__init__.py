@@ -166,42 +166,42 @@ def rename_cb(arg=None):
 # Switch Weight ===============================================================
 
 @QtCore.Slot()
-def switch_off(con_node):
+def switch_off(con_tup):
     """Turn off all constraint weight."""
-    MVis, Key, con = con_node[0:3]
+    MVis, Key, con_node = con_tup[0:3]
 
-    log.debug(con_node)
+    log.debug(con_tup)
 
     with UndoChunk():
-        for tgt in con.getTargetList():
-            con.setWeight(0, tgt)
+        for tgt in con_node.getTargetList():
+            con_node.setWeight(0, tgt)
 
 
 @QtCore.Slot()
 def switch_single(con_tup):
     """Switch constraint weight to a single defined target."""
-    MVis, Key, con, sel_tgt = con_tup[0:4]
+    MVis, Key, con_node, sel_tgt = con_tup[0:4]
 
     log.debug(con_tup)
 
     with UndoChunk():
-        for tgt in con.getTargetList():
+        for tgt in con_node.getTargetList():
             if tgt == sel_tgt:
-                con.setWeight(1, tgt)
+                con_node.setWeight(1, tgt)
             else:
-                con.setWeight(0, tgt)
+                con_node.setWeight(0, tgt)
 
 
 @QtCore.Slot()
-def switch_all(con_node):
+def switch_all(con_tup):
     """Turn on all constraint weight."""
-    MVis, Key, con = con_node[0:3]
+    MVis, Key, con_node = con_tup[0:3]
 
-    log.debug(con_node)
+    log.debug(con_tup)
 
     with UndoChunk():
-        for tgt in con.getTargetList():
-            con.setWeight(1, tgt)
+        for tgt in con_node.getTargetList():
+            con_node.setWeight(1, tgt)
 
 
 # Constraint Data =============================================================
