@@ -19,10 +19,11 @@ from utils.qtshim import QtCore
 from utils.mayautils import get_maya_window, UndoChunk
 from ConManUI import ConManWindow
 
-if __name__ == "__main__":
-    import logging
-else:
+try:
     import pymel.internal.plogging as logging
+except ImportError:
+    import logging
+
 LogPath = os.path.dirname(__file__)
 LogFile = os.path.join(LogPath, "conman_log.log")
 LogHandler = logging.FileHandler(LogFile)
