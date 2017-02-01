@@ -851,14 +851,10 @@ class ConstraintManager(object):
             if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
                 if cmds.checkBox(self.SwitchKey, q=True, v=True):
                     # Set previous offset key
-                    cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "X"), t=currentTime - 1, v=PaTX)
-                    cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaTY)
-                    cmds.setKeyframe(PT.format(o.constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaTZ)
-
-                    cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "X"), t=currentTime - 1, v=PaRX)
-                    cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "Y"), t=currentTime - 1, v=PaRY)
-                    cmds.setKeyframe(PR.format(o.constObj, selObjsInd, "Z"), t=currentTime - 1, v=PaRZ)
-
+                    for pair in zip(["X", "Y", "Z"], [PaTX, PaTY, PaTZ]):
+                        cmds.setKeyframe(PT.format(o.constObj, selObjsInd, pair[0]), t=currentTime - 1, v=pair[1])
+                    for pair in zip(["X", "Y", "Z"], [PaRX, PaRY, PaRZ]):
+                        cmds.setKeyframe(PR.format(o.constObj, selObjsInd, pair[0]), t=currentTime - 1, v=pair[1])
                     # Set previous weight key
                     cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
                     # Set current weight key
