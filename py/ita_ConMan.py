@@ -848,7 +848,9 @@ class ConstraintManager(object):
             PrevValPaR = cmds.getAttr(PaR, time=PrevKeyPaR)
             PaRX, PaRY, PaRZ = PrevValPaR[0][0:3]
 
+            # If MVIS
             if cmds.checkBox(self.SwitchVisTrans, q=True, v=True):
+                # If KEY
                 if cmds.checkBox(self.SwitchKey, q=True, v=True):
                     # Set previous offset key
                     for pair in zip(["X", "Y", "Z"], [PaTX, PaTY, PaTZ]):
@@ -879,6 +881,7 @@ class ConstraintManager(object):
                     cmds.setKeyframe(PaT, t=currentTime)
                     cmds.setKeyframe(PaR, t=currentTime)
 
+                # MVIS and no KEY
                 else:
                     if arg == "OFF":
                         cmds.setAttr(weightAttr, wOff)
@@ -894,7 +897,9 @@ class ConstraintManager(object):
                     # after update offset
                     cmds.parentConstraint(selObjsNames, o.activeObj, e=True, mo=True)
 
+            # No MVIS
             else:
+                # If KEY
                 if cmds.checkBox(self.SwitchKey, q=True, v=True):
                     # before key weights
                     cmds.setKeyframe(weightAttr, t=currentTime - 1, v=PrevWeightVal)
@@ -913,6 +918,7 @@ class ConstraintManager(object):
                             cmds.setKeyframe(weightAttr, t=currentTime, v=wOff)
                             cmds.setAttr(weightAttr, wOff)
 
+                # No MVIS no KEY
                 else:
                     if arg == "OFF":
                         cmds.setAttr(weightAttr, wOff)
