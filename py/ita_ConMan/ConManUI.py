@@ -41,7 +41,7 @@ class QListItemCon(QtWidgets.QListWidgetItem):
         if role == QtCore.Qt.DisplayRole:
             return self.label
         elif role == QtCore.Qt.UserRole:
-            return self.con_node
+            return (self.con_node, self.obj, self.target)
 
     @property
     def label(self):
@@ -571,33 +571,40 @@ class ConManWindow(QtWidgets.QMainWindow):
             log.debug("Target {}: {}".format(ind, str(item)))
 
     def __switch_off(self):
-        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
-        log.debug(con_node)
+        con_node, obj, targets = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+
+        log.debug("Con: {}".format(con_node))
+        log.debug("Obj: {}".format(obj))
+
         self.SwitchOffSig.emit(
             (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
-             con_node)
+             con_node, obj, targets)
         )
 
     def __switch_single(self):
-        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+        con_node, obj, targets = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
 
         current_index = self.MenuSwitchTarget.currentIndex()
         tgt_node = self.MenuSwitchTarget.itemData(current_index)
 
-        log.debug("Node: {}".format(con_node))
+        log.debug("Obj: {}".format(obj))
+        log.debug("Con: {}".format(con_node))
         log.debug("Target: {}".format(tgt_node))
 
         self.SwitchSingleSig.emit(
             (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
-             con_node, tgt_node)
+             con_node, obj, targets, tgt_node)
         )
 
     def __switch_all(self):
-        con_node = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
-        log.debug(con_node)
+        con_node, obj, targets = self.ObjList.currentItem().data(QtCore.Qt.UserRole)
+
+        log.debug("Con: {}".format(con_node))
+        log.debug("Obj: {}".format(obj))
+
         self.SwitchAllSig.emit(
             (self.CheckVisTrans.isChecked(), self.CheckKey.isChecked(),
-             con_node)
+             con_node, obj, targets)
         )
 
     def __send_options(self, conType):

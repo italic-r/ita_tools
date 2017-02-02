@@ -169,7 +169,7 @@ def rename_cb(arg=None):
 @QtCore.Slot()
 def switch_off(con_tup):
     """Turn off all constraint weight."""
-    MVis, Key, con_node = con_tup[0:3]
+    MVis, Key, con_node, obj, targets = con_tup[0:5]
 
     log.debug(con_tup)
 
@@ -181,7 +181,7 @@ def switch_off(con_tup):
 @QtCore.Slot()
 def switch_single(con_tup):
     """Switch constraint weight to a single defined target."""
-    MVis, Key, con_node, sel_tgt = con_tup[0:4]
+    MVis, Key, con_node, obj, targets, sel_tgt = con_tup[0:6]
 
     log.debug(con_tup)
 
@@ -196,7 +196,7 @@ def switch_single(con_tup):
 @QtCore.Slot()
 def switch_all(con_tup):
     """Turn on all constraint weight."""
-    MVis, Key, con_node = con_tup[0:3]
+    MVis, Key, con_node, obj, targets = con_tup[0:5]
 
     log.debug(con_tup)
 
@@ -210,11 +210,13 @@ def switch_all(con_tup):
 def get_object(con_node):
     """Get constrained object."""
     obj_list = []
-    for attr in con_node.getWeightAliasList():
-        for conn in attr.connections():
-            conn_output = list(set(conn.outputs()))
-            conn_output.remove(con_node)
-            obj_list.append(conn_output[0])
+
+    node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
+    for node in node_connections:
+        if isinstance(node, pmc.nodetypes.PairBlend):
+            obj_list.extend(set(pmc.listConnections(node, source=False, destination=True)))
+        else:
+            obj_list.extend(set(pmc.listConnections(con_node, source=False, destination=True)))
 
     return list(set(obj_list))[0]
 
