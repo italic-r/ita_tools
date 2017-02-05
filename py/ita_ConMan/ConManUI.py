@@ -95,6 +95,11 @@ class QListItemCon(QtWidgets.QListWidgetItem):
         """DAG path of the constraint node."""
         return self.con_node.fullPath()
 
+    @property
+    def exists(self):
+        """Test if constraint node exists."""
+        return (self.con_node.exists() and self.obj.exists())
+
 
 class ConManWindow(QtWidgets.QMainWindow):
 
@@ -103,6 +108,7 @@ class ConManWindow(QtWidgets.QMainWindow):
     PurgeSig = Signal()
     CloseSig = Signal()
     RenameSig = Signal()
+    ExistSig = Signal()
     AddSig = Signal()
     DelSig = Signal(list)
     SelSig = Signal(list)
@@ -115,6 +121,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         """:param parent: Window to place ConMan under."""
         super(ConManWindow, self).__init__(parent=parent)
         self.settings = QtCore.QSettings("italic", "ConMan2")
+        self.StaleData = []
         self.__setup_ui()
         self.move(self.settings.value("mainwindowposition", QtCore.QPoint(0, 0)))
         self._CManHelp = None
@@ -511,6 +518,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonOff.clicked.connect(self.__switch_off)
         self.ButtonSwitch.clicked.connect(self.__switch_single)
         self.ButtonAll.clicked.connect(self.__switch_all)
+        self.ExistSig.connect(self.__stale_iter)
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to file."""
@@ -674,9 +682,8 @@ class ConManWindow(QtWidgets.QMainWindow):
         log.debug("Removing {} from list...".format(current_item.label))
 
         self.DelSig.emit(current_item.con_node)
-
-        removed_item = self.ObjList.takeItem(current_row)
-        del removed_item
+        self.RenameSig.disconnect(current_item.update_label_callback)
+        self.StaleData.append(self.ObjList.takeItem(current_row))
 
         log.debug("Removed {}...".format(current_item.label))
 
@@ -684,6 +691,30 @@ class ConManWindow(QtWidgets.QMainWindow):
         log.debug("Purging")
         self.PurgeSig.emit()
         self._Purge = None
+
+    def __stale_iter(self):
+        log.debug("Stale iter")
+
+        for list_item in self.iter_list():
+            log.debug(list_item.label)
+            log.debug(list_item.exists)
+            if not list_item.exists:
+                try:
+                    current_row = self.ObjList.row(list_item)
+                    self.RenameSig.disconnect(list_item.update_label_callback)
+                    self.StaleData.append(self.ObjList.takeItem(current_row))
+                    self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+                    log.debug("Stale data removal success")
+                except:
+                    log.debug("Stale data removal failure")
+
+        for stale_item in self.StaleData:
+            if stale_item.exists:
+                self.RenameSig.connect(stale_item.update_label_callback)
+                self.ObjList.addItem(stale_item)
+                self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+                self.ObjList.setCurrentItem(stale_item)
+                log.debug("Stale data returning to list")
 
 
 class PurgeConfirm(QtWidgets.QMainWindow):

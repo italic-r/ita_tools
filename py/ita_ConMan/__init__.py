@@ -45,7 +45,7 @@ _CMan = None
 callback_list = []
 
 
-# General Constraint Funtionality =============================================
+# Add, Remove, Select Constraints =============================================
 
 @QtCore.Slot()
 def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
@@ -117,13 +117,6 @@ def remove_con(con_node):
         log.debug("Constraint node not found")
 
 
-@QtCore.Slot()
-def sel_con_node(node):
-    """Select constrained node in the scene."""
-    log.debug("Selecting: {}".format(node))
-    pmc.select(node)
-
-
 def create_constraint(ctype, actObj, selObjs,
                       offset, mOffset, weight,
                       skipT=['none'], skipR=['none'], skipS=['none']
@@ -158,24 +151,14 @@ def create_constraint(ctype, actObj, selObjs,
     return cObj
 
 
-def rename_cb(arg=None):
-    """Callback to force resorting of the UI list on object rename."""
-    _CMan.RenameSig.emit()
-    _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+@QtCore.Slot()
+def sel_con_node(node):
+    """Select constrained node in the scene."""
+    log.debug("Selecting: {}".format(node))
+    pmc.select(node)
 
 
 # Switch Weight ===============================================================
-
-@QtCore.Slot()
-def switch_off(con_tup):
-    """Turn off all constraint weight."""
-    MVis, Key, con_node, obj, targets = con_tup[0:5]
-
-    log.debug(con_tup)
-
-    with UndoChunk():
-        for tgt in con_node.getTargetList():
-            con_node.setWeight(0, tgt)
 
 
 @QtCore.Slot()
@@ -312,6 +295,18 @@ def purge_data(arg=None):
 
 # Connection and Callback Registration ========================================
 
+
+def rename_cb(arg=None):
+    """Callback to force resorting of the UI list on object rename."""
+    _CMan.RenameSig.emit()
+    _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+
+
+def obj_add_remove_cb(*args):
+    """Callback to check stale data."""
+    _CMan.ExistSig.emit()
+
+
 def register_connections():
     """Register connections between local functions and UI signals."""
     log.debug("Registering signal connections...")
@@ -340,12 +335,14 @@ def register_cb():
         om.MSceneMessage.kBeforeNew, _CMan.clear_list)
     obj_name_change_cb = om.MEventMessage.addEventCallback(
         "NameChanged", rename_cb)
+    # obj_del_cb = om.MDagMessage.addAllDagChangesCallback(del_cb)
+    obj_rem_cb = om.MDGMessage.addNodeRemovedCallback(obj_add_remove_cb, "dependNode")
+    obj_add_cb = om.MDGMessage.addNodeAddedCallback(obj_add_remove_cb, "dependNode")
 
     global callback_list
-    callback_list = [
-        pkl_write_cb, pkl_read_cb,
-        list_clear_cb, obj_name_change_cb
-    ]
+    callback_list = [pkl_write_cb, pkl_read_cb,
+                     list_clear_cb, obj_name_change_cb,
+                     obj_rem_cb, obj_add_cb]
 
 
 def unregister_cb():
