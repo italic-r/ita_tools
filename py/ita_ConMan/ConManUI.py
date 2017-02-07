@@ -108,7 +108,7 @@ class ConManWindow(QtWidgets.QMainWindow):
     PurgeSig = Signal()
     CloseSig = Signal()
     RenameSig = Signal()
-    ExistSig = Signal()
+    ExistSig = Signal(tuple)
     AddSig = Signal()
     DelSig = Signal(list)
     SelSig = Signal(list)
@@ -678,43 +678,42 @@ class ConManWindow(QtWidgets.QMainWindow):
     def __remove_con(self, arg=None):
         current_row = self.ObjList.currentRow()
         current_item = self.ObjList.item(current_row)
-
         log.debug("Removing {} from list...".format(current_item.label))
-
         self.DelSig.emit(current_item.con_node)
-        self.RenameSig.disconnect(current_item.update_label_callback)
-        self.StaleData.append(self.ObjList.takeItem(current_row))
-
+        # Callback will iter through UI after node deletion
         log.debug("Removed {}...".format(current_item.label))
 
     def __purge(self):
         log.debug("Purging")
         self.PurgeSig.emit()
         self._Purge = None
+        self.StaleData.clear()
 
-    def __stale_iter(self):
+    def __stale_iter(self, cb_bundle):
         log.debug("Stale iter")
+        mFnHandle, clientData = cb_bundle
+        dag_path = mFnHandle.fullPathName()
 
-        for list_item in self.iter_list():
-            log.debug(list_item.label)
-            log.debug(list_item.exists)
-            if not list_item.exists:
-                try:
+        if clientData:
+            for stale_item in self.StaleData:
+                log.debug(stale_item.label)
+                log.debug(stale_item.exists)
+                if stale_item.exists:
+                    self.RenameSig.connect(stale_item.update_label_callback)
+                    self.ObjList.addItem(stale_item)
+                    self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
+                    self.ObjList.setCurrentItem(stale_item)
+                    log.debug("Stale data returning to list")
+
+        elif clientData is False:
+            for list_item in self.iter_list():
+                log.debug(list_item.label)
+                if dag_path in [list_item.con_dag, list_item.object_dag]:
                     current_row = self.ObjList.row(list_item)
                     self.RenameSig.disconnect(list_item.update_label_callback)
                     self.StaleData.append(self.ObjList.takeItem(current_row))
                     self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
                     log.debug("Stale data removal success")
-                except:
-                    log.debug("Stale data removal failure")
-
-        for stale_item in self.StaleData:
-            if stale_item.exists:
-                self.RenameSig.connect(stale_item.update_label_callback)
-                self.ObjList.addItem(stale_item)
-                self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
-                self.ObjList.setCurrentItem(stale_item)
-                log.debug("Stale data returning to list")
 
 
 class PurgeConfirm(QtWidgets.QMainWindow):

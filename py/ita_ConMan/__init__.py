@@ -61,23 +61,23 @@ def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
         log.debug("Active object: {}".format(obj))
         log.debug("Target objects: {}".format(sel_objs))
 
-        # with UndoChunk():
-        # Create constraint
-        conObj = create_constraint(
-            conType, obj, sel_objs,
-            Offset, mOffset, weight,
-            skipT, skipR, skipS
-        )
-        log.debug("Constraint object: {}".format(conObj))
+        with UndoChunk():
+            # Create constraint
+            conObj = create_constraint(
+                conType, obj, sel_objs,
+                Offset, mOffset, weight,
+                skipT, skipR, skipS
+            )
+            log.debug("Constraint object: {}".format(conObj))
 
-        # Save data
-        con_data = {
-            "type": conType,
-            "object": obj,
-            "target": sel_objs,
-            "con_node": conObj
-        }
-        _CMan.populate_list(con_data)
+            # Save data
+            con_data = {
+                "type": conType,
+                "object": obj,
+                "target": sel_objs,
+                "con_node": conObj
+            }
+            _CMan.populate_list(con_data)
 
     else:
         log.error("Select two or more objects to create a constraint")
@@ -110,11 +110,9 @@ def add_con():
 def remove_con(con_node):
     """Delete constraint node from the scene."""
     log.debug("Deleting constraint node...")
-    try:
+    with UndoChunk():
         pmc.delete(con_node)
         log.debug("Deleted constraint")
-    except:
-        log.debug("Constraint node not found")
 
 
 def create_constraint(ctype, actObj, selObjs,
@@ -296,15 +294,16 @@ def purge_data(arg=None):
 # Connection and Callback Registration ========================================
 
 
-def rename_cb(arg=None):
+def rename_cb(clientData=None):
     """Callback to force resorting of the UI list on object rename."""
     _CMan.RenameSig.emit()
     _CMan.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
 
 
-def obj_add_remove_cb(*args):
+def obj_add_remove_cb(mobj, clientData=None):
     """Callback to check stale data."""
-    _CMan.ExistSig.emit()
+    mFnHandle = om.MFnDagNode(mobj)
+    _CMan.ExistSig.emit((mFnHandle, clientData))
 
 
 def register_connections():
@@ -335,9 +334,10 @@ def register_cb():
         om.MSceneMessage.kBeforeNew, _CMan.clear_list)
     obj_name_change_cb = om.MEventMessage.addEventCallback(
         "NameChanged", rename_cb)
-    # obj_del_cb = om.MDagMessage.addAllDagChangesCallback(del_cb)
-    obj_rem_cb = om.MDGMessage.addNodeRemovedCallback(obj_add_remove_cb, "dependNode")
-    obj_add_cb = om.MDGMessage.addNodeAddedCallback(obj_add_remove_cb, "dependNode")
+    obj_rem_cb = om.MDGMessage.addNodeRemovedCallback(
+        obj_add_remove_cb, "transform", clientData=False)
+    obj_add_cb = om.MDGMessage.addNodeAddedCallback(
+        obj_add_remove_cb, "transform", clientData=True)
 
     global callback_list
     callback_list = [pkl_write_cb, pkl_read_cb,
