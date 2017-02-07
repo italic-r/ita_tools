@@ -28,8 +28,7 @@ LogPath = os.path.dirname(__file__)
 LogFile = os.path.join(LogPath, "conman_log.log")
 LogHandler = logging.FileHandler(LogFile)
 LogFormat = logging.Formatter(
-    "## %(levelname)s ## %(name)s.%(funcName)s ##\n"
-    "%(message)s\n"
+    "%(levelname)s: %(name)s.%(funcName)s -- %(message)s"
 )
 logging.basicConfig(level=logging.DEBUG, filename=LogFile, filemode='w')
 
@@ -375,11 +374,7 @@ def get_connected_attr(con_node, obj):
 
 def get_weight_attr(con_node):
     """Get list of weight attributes."""
-    attr_list = con_node.getWeightAliasList()
-    # for node in set(pmc.listConnections(con_node, source=False, destination=True)):
-    #     if isinstance(node, pmc.nodetypes.PairBlend):
-    #         attr_list.extend(node.weight.inputs(source=True, destination=False, plugs=True))
-    return attr_list
+    return con_node.getWeightAliasList()
 
 
 def get_offset_attr(con_node):
