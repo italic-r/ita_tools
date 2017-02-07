@@ -121,7 +121,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         """:param parent: Window to place ConMan under."""
         super(ConManWindow, self).__init__(parent=parent)
         self.settings = QtCore.QSettings("italic", "ConMan2")
-        self.StaleData = []
+        self.__StaleData = []
         self.__setup_ui()
         self.move(self.settings.value("mainwindowposition", QtCore.QPoint(0, 0)))
         self._CManHelp = None
@@ -687,7 +687,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         log.debug("Purging")
         self.PurgeSig.emit()
         self._Purge = None
-        self.StaleData.clear()
+        self.__StaleData.clear()
 
     def __stale_iter(self, cb_bundle):
         log.debug("Stale iter")
@@ -695,7 +695,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         dag_path = mFnHandle.fullPathName()
 
         if clientData:
-            for stale_item in self.StaleData:
+            for stale_item in self.__StaleData:
                 log.debug(stale_item.label)
                 log.debug(stale_item.exists)
                 if stale_item.exists:
@@ -711,7 +711,7 @@ class ConManWindow(QtWidgets.QMainWindow):
                 if dag_path in [list_item.con_dag, list_item.object_dag]:
                     current_row = self.ObjList.row(list_item)
                     self.RenameSig.disconnect(list_item.update_label_callback)
-                    self.StaleData.append(self.ObjList.takeItem(current_row))
+                    self.__StaleData.append(self.ObjList.takeItem(current_row))
                     self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
                     log.debug("Stale data removal success")
 
