@@ -162,28 +162,283 @@ def sel_con_node(node):
 @QtCore.Slot()
 def switch_single(con_tup):
     """Switch constraint weight to a single defined target."""
+    log.debug("Switching single...")
     MVis, Key, con_node, obj, targets, sel_tgt = con_tup[0:6]
 
     log.debug(con_tup)
 
+    attr_list = get_connected_attr(con_node, obj)
+    weight_list = get_weight_attr(con_node)
+    offset_list = get_offset_attr(con_node)
+    obj_mat = obj.getMatrix(worldSpace=True)
+
+    log.debug("Attr list: {}".format(attr_list))
+    log.debug("Weight list: {}".format(weight_list))
+    log.debug("Offset list: {}".format(offset_list))
+    log.debug("Object matrix: {}".format(obj_mat))
+
     with UndoChunk():
-        for tgt in con_node.getTargetList():
-            if tgt == sel_tgt:
-                con_node.setWeight(1, tgt)
-            else:
-                con_node.setWeight(0, tgt)
+        if not MVis and not Key:
+            try:
+                # Blend attr
+                get_blend_attr(con_node).set(1)
+            except:
+                pass
+
+            # Weight attr
+            for tgt in con_node.getTargetList():
+                log.debug("Target: {}".format(tgt))
+                con_node.setWeight(1, tgt) if tgt == sel_tgt else con_node.setWeight(0, tgt)
+
+        elif MVis and not Key:
+            try:
+                # Blend attr
+                get_blend_attr(con_node).set(1)
+            except:
+                pass
+
+            # Weight attr
+            for tgt in con_node.getTargetList():
+                log.debug("Target: {}".format(tgt))
+                con_node.setWeight(1, tgt) if tgt == sel_tgt else con_node.setWeight(0, tgt)
+
+            # Update offset
+            obj.setMatrix(obj_mat, worldSpace=True)
+            update_offset(con_node, targets)
+
+        elif MVis and Key:
+            # Weight attr
+            for pair in zip(weight_list, con_node.getTargetList()):
+                log.debug(pair)
+                if pair[1] == sel_tgt:
+                    con_node.setWeight(1, pair[1])
+                    key_attr(pair[0], new_value=1, copy_previous=True)
+                else:
+                    con_node.setWeight(0, pair[1])
+                    key_attr(pair[0], new_value=0, copy_previous=True)
+
+            obj.setMatrix(obj_mat, worldSpace=True)
+            # Key constrained attributes
+            for attr in attr_list:
+                log.debug("Attr: {}".format(attr))
+                key_attr(attr)
+            # Update offset
+            update_offset(con_node, targets)
+
+            # Key offsets
+            for attr in offset_list:
+                log.debug("Offset: {}".format(attr))
+                key_attr(attr, copy_previous=True)
+
+            # Blend attr
+            blend_attr = get_blend_attr(con_node)
+            blend_attr.set(1)
+            key_attr(blend_attr, new_value=1, copy_previous=True)
+
+        elif not MVis and Key:
+            # Weight attr
+            for pair in zip(weight_list, con_node.getTargetList()):
+                log.debug(pair)
+                if pair[1] == sel_tgt:
+                    con_node.setWeight(1, pair[1])
+                    key_attr(pair[0], new_value=1, copy_previous=True)
+                else:
+                    con_node.setWeight(0, pair[1])
+                    key_attr(pair[0], new_value=0, copy_previous=True)
+
+            # Key constrained attributes
+            for attr in attr_list:
+                log.debug("Attr: {}".format(attr))
+                key_attr(attr)
+
+            # Blend attr
+            blend_attr = get_blend_attr(con_node)
+            blend_attr.set(1)
+            key_attr(blend_attr, new_value=1, copy_previous=True)
+
+
+@QtCore.Slot()
+def switch_off(con_tup):
+    """Turn off all constraint weight."""
+    log.debug("Switching off...")
+    _do_switch_on_off(con_tup, 0)
 
 
 @QtCore.Slot()
 def switch_all(con_tup):
     """Turn on all constraint weight."""
+    log.debug("Switching all...")
+    _do_switch_on_off(con_tup, 1)
+
+
+def _do_switch_on_off(con_tup, val):
+    """Switch weight fully on or off."""
     MVis, Key, con_node, obj, targets = con_tup[0:5]
 
     log.debug(con_tup)
 
+    attr_list = get_connected_attr(con_node, obj)
+    weight_list = get_weight_attr(con_node)
+    offset_list = get_offset_attr(con_node)
+    obj_mat = obj.getMatrix(worldSpace=True)
+
+    log.debug("Attr list: {}".format(attr_list))
+    log.debug("Weight list: {}".format(weight_list))
+    log.debug("Offset list: {}".format(offset_list))
+    log.debug("Object matrix: {}".format(obj_mat))
+
     with UndoChunk():
-        for tgt in con_node.getTargetList():
-            con_node.setWeight(1, tgt)
+        if not MVis and not Key:
+            try:
+                # Blend attr
+                get_blend_attr(con_node).set(val)
+            except:
+                pass
+
+            # Weight attr
+            for tgt in con_node.getTargetList():
+                con_node.setWeight(val, tgt)
+
+        elif MVis and not Key:
+            try:
+                # Blend attr
+                get_blend_attr(con_node).set(val)
+            except:
+                pass
+
+            # Weight attr
+            for tgt in con_node.getTargetList():
+                con_node.setWeight(val, tgt)
+
+            # Update offset
+            obj.setMatrix(obj_mat, worldSpace=True)
+            update_offset(con_node, targets)
+
+        elif MVis and Key:
+            # Weight attr
+            for pair in zip(weight_list, con_node.getTargetList()):
+                log.debug(pair)
+                con_node.setWeight(val, pair[1])
+                key_attr(pair[0], new_value=val, copy_previous=True)
+
+            obj.setMatrix(obj_mat, worldSpace=True)
+            # Key constrained attributes
+            for attr in attr_list:
+                key_attr(attr)
+            # Update offset
+            update_offset(con_node, targets)
+
+            # Key offsets
+            for attr in offset_list:
+                key_attr(attr)
+
+            # Blend attr
+            blend_attr = get_blend_attr(con_node)
+            blend_attr.set(val)
+            key_attr(blend_attr, new_value=val, copy_previous=True)
+
+        elif not MVis and Key:
+            # Weight attr
+            for pair in zip(weight_list, con_node.getTargetList()):
+                log.debug(pair)
+                con_node.setWeight(val, pair[1])
+                key_attr(pair[0], new_value=val, copy_previous=True)
+
+            # Key constrained attributes
+            for attr in attr_list:
+                key_attr(attr, copy_previous=True)
+
+            # Blend attr
+            blend_attr = get_blend_attr(con_node)
+            blend_attr.set(val)
+            key_attr(blend_attr, new_value=val, copy_previous=True)
+
+
+def get_blend_attr(con_node):
+    """Get blend attribute on the object."""
+    node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
+    for node in node_connections:
+        if isinstance(node, pmc.nodetypes.PairBlend):
+            return node.weight.inputs(source=True, destination=False, plugs=True)[0]
+
+
+def get_connected_attr(con_node, obj):
+    """Get a list of node connections to key."""
+    node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
+    for node in node_connections:
+        if node == obj:
+            attr_list = pmc.listConnections(con_node, source=False, destination=True, plugs=True)
+        elif isinstance(node, pmc.nodetypes.PairBlend):
+            attr_list = pmc.listConnections(node, source=False, destination=True, plugs=True)
+    return attr_list
+
+
+def get_weight_attr(con_node):
+    """Get list of weight attributes."""
+    attr_list = con_node.getWeightAliasList()
+    # for node in set(pmc.listConnections(con_node, source=False, destination=True)):
+    #     if isinstance(node, pmc.nodetypes.PairBlend):
+    #         attr_list.extend(node.weight.inputs(source=True, destination=False, plugs=True))
+    return attr_list
+
+
+def get_offset_attr(con_node):
+    """Get list of offset attributes for maintaining offset."""
+    attr_list = []
+    if isinstance(con_node, pmc.nodetypes.ParentConstraint):
+        for ind, tgt in enumerate(con_node.getTargetList()):
+            attr_list.append(pmc.PyNode(con_node.tg[ind].targetOffsetTranslate))
+            attr_list.append(pmc.PyNode(con_node.tg[ind].targetOffsetRotate))
+    else:
+        attr_list.append(pmc.PyNode(con_node.offset))
+    return attr_list
+
+
+def key_attr(attr, new_value=None, copy_previous=None):
+    """Key given attr on previous and current frame."""
+    log.debug("Keying attr...")
+
+    cur_time = pmc.currentTime(q=True)
+
+    log.debug("Attr: {}".format(attr))
+    log.debug("New value: {}".format(new_value))
+    log.debug("Copy previous: {}".format(copy_previous))
+    log.debug("Time: {}".format(cur_time))
+
+    if copy_previous:
+        prev_key_time = pmc.findKeyframe(attr, which="previous")
+        prev_key_value = attr.get(t=prev_key_time)
+        prev_key = pmc.copyKey(attr, t=prev_key_time)
+
+        log.debug("Previous key time: {}".format(prev_key_time))
+        log.debug("Previous key value: {}".format(prev_key_value))
+
+        # If a key did not exist
+        if prev_key == 0:
+            pmc.setKeyframe(attr, t=(cur_time - 1))
+        # If a key exists
+        elif prev_key == 1:
+            pmc.pasteKey(attr, t=(cur_time - 1))
+    else:
+        pmc.setKeyframe(attr, t=(cur_time - 1))
+
+    if new_value:
+        pmc.setKeyframe(attr, t=cur_time, v=new_value)
+        attr.set(new_value)
+    else:
+        pmc.setKeyframe(attr, t=cur_time)
+
+
+def update_offset(con_node, targets):
+    """Update offset of given constraint."""
+    if isinstance(con_node, pmc.nodetypes.ParentConstraint):
+        pmc.parentConstraint(targets, con_node, e=True, maintainOffset=True)
+    elif isinstance(con_node, pmc.nodetypes.PointConstraint):
+        pmc.pointConstraint(targets, con_node, e=True, maintainOffset=True)
+    elif isinstance(con_node, pmc.nodetypes.OrientConstraint):
+        pmc.orientConstraint(targets, con_node, e=True, maintainOffset=True)
+    elif isinstance(con_node, pmc.nodetypes.ScaleConstraint):
+        pmc.scaleConstraint(targets, con_node, e=True, maintainOffset=True)
 
 
 # Constraint Data =============================================================
