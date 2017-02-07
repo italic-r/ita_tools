@@ -553,7 +553,8 @@ def rename_cb(clientData=None):
 def obj_add_remove_cb(mobj, clientData=None):
     """Callback to check stale data."""
     mFnHandle = om.MFnDagNode(mobj)
-    _CMan.ExistSig.emit((mFnHandle, clientData))
+    object_dag = mFnHandle.fullPathName()
+    _CMan.ExistSig.emit((object_dag, clientData))
 
 
 def register_connections():

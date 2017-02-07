@@ -691,8 +691,7 @@ class ConManWindow(QtWidgets.QMainWindow):
 
     def __stale_iter(self, cb_bundle):
         log.debug("Stale iter")
-        mFnHandle, clientData = cb_bundle
-        dag_path = mFnHandle.fullPathName()
+        dag_path, clientData = cb_bundle
 
         if clientData:
             for stale_item in self.__StaleData:
