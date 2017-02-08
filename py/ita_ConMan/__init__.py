@@ -41,14 +41,10 @@ import pymel.core as pmc
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 from itertools import izip
-from utils.qtshim import QtCore
+from utils.qtshim import QtCore, logging
 from utils.mayautils import get_maya_window, UndoChunk
 from ConManUI import ConManWindow
 
-try:
-    import pymel.internal.plogging as logging
-except ImportError:
-    import logging
 
 LogPath = os.path.dirname(__file__)
 LogFile = os.path.join(LogPath, "conman_log.log")
