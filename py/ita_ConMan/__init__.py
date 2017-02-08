@@ -2,12 +2,37 @@
 # encoding: utf-8
 
 """
-ConMan2: A tool to create and manage constraints for rigging and animation.
+ConMan: Create and manage constraints for rigging and animation.
 
-WARNING: NOT COMPATIBLE WITH ORIGINAL CONMAN
-ConMan uses maya.cmds
-ConMan2 uses pymel and Qt
+To load:
+========
+import ita_ConMan
+ita_ConMan.show()
+
+To unload:
+==========
+import ita_ConMan
+ita_ConMan._CMan.close()
+ita_ConMan.unregister_cb()
+
+For help, see README.md or open the help through the tool interface.
+
+
+(c) Jeffrey "italic" Hoover
+italic DOT rendezvous AT gmail DOT com
+
+Licensed under the Apache 2.0 license.
+This script can be used for non-commercial
+and commercial projects free of charge.
+For more information, visit:
+https://www.apache.org/licenses/LICENSE-2.0
 """
+
+__version__ = 2.0
+__date__ = (07, "February", 2017)
+__author__ = "Jeffrey 'italic' Hoover"
+__license__ = "Apache 2.0"
+
 
 import os
 import pickle
@@ -620,7 +645,7 @@ def pickle_write(arg=None):
 
 
 def purge_data(arg=None):
-    """Purge all global data. Will be reset to empty objects."""
+    """Purge all data. Tag scene as modified."""
     log.debug("Purging global data...")
     pmc.fileInfo("CMan_data", "")
     _CMan.clear_list()
@@ -653,12 +678,12 @@ def register_connections():
     """Register connections between local functions and UI signals."""
     log.debug("Registering signal connections...")
 
+    # _CMan.CloseSig.connect(unregister_cb)
     _CMan.OptionsSig.connect(create_con)
     _CMan.AddSig.connect(add_con)
     _CMan.DelSig.connect(remove_con)
     _CMan.SelSig.connect(sel_con_node)
     _CMan.CloseSig.connect(pickle_write)
-    # _CMan.CloseSig.connect(unregister_cb)
     _CMan.PurgeSig.connect(purge_data)
     _CMan.SwitchOffSig.connect(switch_off)
     _CMan.SwitchSingleSig.connect(switch_single)
@@ -683,19 +708,21 @@ def register_cb():
         obj_add_remove_cb, "transform", clientData=True)
 
     global callback_list
-    callback_list = [pkl_write_cb, pkl_read_cb,
-                     list_clear_cb, obj_name_change_cb,
-                     obj_rem_cb, obj_add_cb]
+    callback_list = [
+        pkl_write_cb, pkl_read_cb, list_clear_cb,
+        obj_name_change_cb, obj_rem_cb, obj_add_cb
+    ]
 
 
 def unregister_cb():
     """Unregister callbacks for reloading ConMan."""
     log.debug("Unregistering callbacks...")
     om.MSceneMessage.removeCallbacks(callback_list)
+    del callback_list[:]
 
 
 def show():
-    """Init."""
+    """Initialize ConMan, and show window if already running."""
     global _CMan
     if _CMan is None:
         log.info("Initializing ConMan")
