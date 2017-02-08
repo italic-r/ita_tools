@@ -40,6 +40,7 @@ import base64
 import pymel.core as pmc
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
+from itertools import izip
 from utils.qtshim import QtCore
 from utils.mayautils import get_maya_window, UndoChunk
 from ConManUI import ConManWindow
@@ -220,7 +221,7 @@ def switch_single(con_tup):
     :param con_tup: Tuple of UI options and constraint node, targets and object.
     """
     log.debug("Switching single...")
-    MVis, Key, con_node, obj, targets, sel_tgt = con_tup[0:6]
+    MVis, Key, con_node, obj, targets, sel_tgt = con_tup
 
     log.debug(con_tup)
 
@@ -264,14 +265,13 @@ def switch_single(con_tup):
 
         elif MVis and Key:
             # Weight attr
-            for pair in zip(weight_list, con_node.getTargetList()):
-                log.debug(pair)
-                if pair[1] == sel_tgt:
-                    con_node.setWeight(1, pair[1])
-                    key_attr(pair[0], new_value=1, copy_previous=True)
+            for attr, pynode in izip(weight_list, con_node.getTargetList()):
+                if pynode == sel_tgt:
+                    con_node.setWeight(1, pynode)
+                    key_attr(attr, new_value=1, copy_previous=True)
                 else:
-                    con_node.setWeight(0, pair[1])
-                    key_attr(pair[0], new_value=0, copy_previous=True)
+                    con_node.setWeight(0, pynode)
+                    key_attr(attr, new_value=0, copy_previous=True)
 
             obj.setMatrix(obj_mat, worldSpace=True)
             # Key constrained attributes
@@ -286,31 +286,36 @@ def switch_single(con_tup):
                 log.debug("Offset: {}".format(attr))
                 key_attr(attr, copy_previous=True)
 
-            # Blend attr
-            blend_attr = get_blend_attr(con_node)
-            blend_attr.set(1)
-            key_attr(blend_attr, new_value=1, copy_previous=True)
+            try:
+                # Blend attr
+                blend_attr = get_blend_attr(con_node)
+                blend_attr.set(1)
+                key_attr(blend_attr, new_value=1, copy_previous=True)
+            except:
+                pass
 
         elif not MVis and Key:
             # Weight attr
-            for pair in zip(weight_list, con_node.getTargetList()):
-                log.debug(pair)
-                if pair[1] == sel_tgt:
-                    con_node.setWeight(1, pair[1])
-                    key_attr(pair[0], new_value=1, copy_previous=True)
+            for attr, pynode in izip(weight_list, con_node.getTargetList()):
+                if pynode == sel_tgt:
+                    con_node.setWeight(1, pynode)
+                    key_attr(attr, new_value=1, copy_previous=True)
                 else:
-                    con_node.setWeight(0, pair[1])
-                    key_attr(pair[0], new_value=0, copy_previous=True)
+                    con_node.setWeight(0, pynode)
+                    key_attr(attr, new_value=0, copy_previous=True)
 
             # Key constrained attributes
             for attr in attr_list:
                 log.debug("Attr: {}".format(attr))
                 key_attr(attr)
 
-            # Blend attr
-            blend_attr = get_blend_attr(con_node)
-            blend_attr.set(1)
-            key_attr(blend_attr, new_value=1, copy_previous=True)
+            try:
+                # Blend attr
+                blend_attr = get_blend_attr(con_node)
+                blend_attr.set(1)
+                key_attr(blend_attr, new_value=1, copy_previous=True)
+            except:
+                pass
 
 
 @QtCore.Slot()
@@ -334,7 +339,7 @@ def _do_switch_on_off(con_tup, val):
     :param con_tup: Tuple of UI options and constraint node, targets and object.
     :param val: Value to set weights to. Should be 0 or 1.
     """
-    MVis, Key, con_node, obj, targets = con_tup[0:5]
+    MVis, Key, con_node, obj, targets = con_tup
 
     log.debug(con_tup)
 
@@ -376,10 +381,9 @@ def _do_switch_on_off(con_tup, val):
 
         elif MVis and Key:
             # Weight attr
-            for pair in zip(weight_list, con_node.getTargetList()):
-                log.debug(pair)
-                con_node.setWeight(val, pair[1])
-                key_attr(pair[0], new_value=val, copy_previous=True)
+            for attr, pynode in izip(weight_list, con_node.getTargetList()):
+                con_node.setWeight(val, pynode)
+                key_attr(attr, new_value=val, copy_previous=True)
 
             obj.setMatrix(obj_mat, worldSpace=True)
             # Key constrained attributes
@@ -392,26 +396,31 @@ def _do_switch_on_off(con_tup, val):
             for attr in offset_list:
                 key_attr(attr)
 
-            # Blend attr
-            blend_attr = get_blend_attr(con_node)
-            blend_attr.set(val)
-            key_attr(blend_attr, new_value=val, copy_previous=True)
+            try:
+                # Blend attr
+                blend_attr = get_blend_attr(con_node)
+                blend_attr.set(val)
+                key_attr(blend_attr, new_value=val, copy_previous=True)
+            except:
+                pass
 
         elif not MVis and Key:
             # Weight attr
-            for pair in zip(weight_list, con_node.getTargetList()):
-                log.debug(pair)
-                con_node.setWeight(val, pair[1])
-                key_attr(pair[0], new_value=val, copy_previous=True)
+            for attr, pynode in izip(weight_list, con_node.getTargetList()):
+                con_node.setWeight(val, pynode)
+                key_attr(attr, new_value=val, copy_previous=True)
 
             # Key constrained attributes
             for attr in attr_list:
                 key_attr(attr, copy_previous=True)
 
-            # Blend attr
-            blend_attr = get_blend_attr(con_node)
-            blend_attr.set(val)
-            key_attr(blend_attr, new_value=val, copy_previous=True)
+            try:
+                # Blend attr
+                blend_attr = get_blend_attr(con_node)
+                blend_attr.set(val)
+                key_attr(blend_attr, new_value=val, copy_previous=True)
+            except:
+                pass
 
 
 def get_blend_attr(con_node):
