@@ -10,7 +10,6 @@ from utils.qtshim import QtCore, QtGui, QtWidgets, logging
 Signal = QtCore.Signal
 
 log = logging.getLogger(__name__)
-# log.setLevel(logging.DEBUG)
 
 
 class QListItemCon(QtWidgets.QListWidgetItem):
@@ -139,28 +138,28 @@ class ConManWindow(QtWidgets.QMainWindow):
         font.setFamily("Arial")
         self.setFont(font)
         self.setTabShape(QtWidgets.QTabWidget.Rounded)
-        #
+
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setMinimumSize(QtCore.QSize(250, 425))
         self.centralwidget.setMaximumSize(QtCore.QSize(250, 425))
-        #
+
         self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 250, 425))
-        #
+
         self.LayoutVert1 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.LayoutVert1.setSpacing(2)
         self.LayoutVert1.setContentsMargins(5, -1, 5, -1)
-        #
+
         self.ObjList = QtWidgets.QListWidget()
         self.ObjList.setMinimumSize(QtCore.QSize(240, 125))
         self.ObjList.setMaximumSize(QtCore.QSize(240, 125))
         self.ObjList.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.ObjList.setFrameShadow(QtWidgets.QFrame.Plain)
         self.ObjList.setToolTip("Click to see switching options.\nDouble click to select constrained object.")
-        #
+
         self.ButtonRow1 = QtWidgets.QHBoxLayout()
         self.ButtonRow1.setSpacing(0)
-        #
+
         self.ButtonAdd = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonAdd.setEnabled(True)
         self.ButtonAdd.setMinimumSize(QtCore.QSize(40, 40))
@@ -172,7 +171,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonAdd.setIconSize(QtCore.QSize(40, 40))
         self.ButtonAdd.setFlat(False)
         self.ButtonAdd.setToolTip("Add selected constraint nodes to the list.")
-        #
+
         self.ButtonParent = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonParent.setMinimumSize(QtCore.QSize(40, 40))
         self.ButtonParent.setMaximumSize(QtCore.QSize(40, 40))
@@ -183,7 +182,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonParent.setIconSize(QtCore.QSize(40, 40))
         self.ButtonParent.setFlat(False)
         self.ButtonParent.setToolTip("Create a parent constraint with options below.")
-        #
+
         self.ButtonPoint = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonPoint.setMinimumSize(QtCore.QSize(40, 40))
         self.ButtonPoint.setMaximumSize(QtCore.QSize(40, 40))
@@ -194,7 +193,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonPoint.setIconSize(QtCore.QSize(40, 40))
         self.ButtonPoint.setFlat(False)
         self.ButtonPoint.setToolTip("Create a point constraint with options below.")
-        #
+
         self.ButtonOrient = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonOrient.setMinimumSize(QtCore.QSize(40, 40))
         self.ButtonOrient.setMaximumSize(QtCore.QSize(40, 40))
@@ -205,7 +204,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonOrient.setIconSize(QtCore.QSize(40, 40))
         self.ButtonOrient.setFlat(False)
         self.ButtonOrient.setToolTip("Create an orient constraint with options below.")
-        #
+
         self.ButtonScale = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonScale.setMinimumSize(QtCore.QSize(40, 40))
         self.ButtonScale.setMaximumSize(QtCore.QSize(40, 40))
@@ -216,7 +215,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonScale.setIconSize(QtCore.QSize(40, 40))
         self.ButtonScale.setFlat(False)
         self.ButtonScale.setToolTip("Create a scale constraint with options below.")
-        #
+
         self.ButtonRemove = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonRemove.setMinimumSize(QtCore.QSize(40, 40))
         self.ButtonRemove.setMaximumSize(QtCore.QSize(40, 40))
@@ -227,168 +226,168 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonRemove.setIconSize(QtCore.QSize(40, 40))
         self.ButtonRemove.setFlat(False)
         self.ButtonRemove.setToolTip("Remove constraint from the scene.")
-        #
+
         self.tabWidget = QtWidgets.QTabWidget(self.verticalLayoutWidget)
         self.tabWidget.setMinimumSize(QtCore.QSize(240, 205))
         self.tabWidget.setMaximumSize(QtCore.QSize(240, 205))
         self.tabWidget.setFont(font)
         self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
-        #
+
         self.tabBar = QtWidgets.QTabBar(self.verticalLayoutWidget)
         self.tabWidget.setTabBar(self.tabBar)
-        #
+
         self.ConstraintOptions = QtWidgets.QWidget()
-        #
+
         self.gridLayoutWidget = QtWidgets.QWidget(self.ConstraintOptions)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 240, 185))
-        #
+
         self.OptionsGrid = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.OptionsGrid.setContentsMargins(-1, -1, -1, -1)
         self.OptionsGrid.setHorizontalSpacing(2)
         self.OptionsGrid.setVerticalSpacing(2)
-        #
+
         # Labels
         self.LabelOffset = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelOffset.setFont(font)
         self.LabelOffset.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         self.LabelMOffset = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelMOffset.setFont(font)
         self.LabelMOffset.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         self.LabelTr = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelTr.setFont(font)
         self.LabelTr.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         self.LabelRo = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelRo.setFont(font)
         self.LabelRo.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         self.LabelSc = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelSc.setFont(font)
         self.LabelSc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         self.LabelWeight = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelWeight.setFont(font)
         self.LabelWeight.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.LabelWeight.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        #
+
         # Checkboxes
         self.CheckOffset = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckOffset.setText("")
         self.CheckOffset.setChecked(True)
-        #
+
         # Translate checkboxes
         self.CheckTrAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrAll.setFont(font)
         self.CheckTrAll.setChecked(True)
-        #
+
         self.CheckTrX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrX.setFont(font)
-        #
+
         self.CheckTrY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrY.setFont(font)
-        #
+
         self.CheckTrZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrZ.setFont(font)
-        #
+
         # Rotate checkboxes
         self.CheckRoAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoAll.setFont(font)
         self.CheckRoAll.setChecked(True)
-        #
+
         self.CheckRoX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoX.setFont(font)
-        #
+
         self.CheckRoY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoY.setFont(font)
-        #
+
         self.CheckRoZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoZ.setFont(font)
-        #
+
         # Scale checkboxes
         self.CheckScAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScAll.setFont(font)
         self.CheckScAll.setChecked(True)
-        #
+
         self.CheckScX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScX.setFont(font)
-        #
+
         self.CheckScY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScY.setFont(font)
-        #
+
         self.CheckScZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScZ.setFont(font)
-        #
+
         # Spin boxes
         self.SpinOffsetX = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
         self.SpinOffsetX.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        #
+
         self.SpinOffsetY = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
         self.SpinOffsetY.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        #
+
         self.SpinOffsetZ = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
         self.SpinOffsetZ.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        #
+
         self.SpinWeight = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
         self.SpinWeight.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.SpinWeight.setMaximum(1.0)
         self.SpinWeight.setSingleStep(0.1)
         self.SpinWeight.setProperty("value", 1.0)
-        #
+
         self.Switch = QtWidgets.QWidget()
-        #
+
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.Switch)
         self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 235, 110))
-        #
+
         self.SwitchCol = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
         self.SwitchCol.setSpacing(4)
         self.SwitchCol.setContentsMargins(5, 5, 5, 5)
-        #
+
         self.MenuSwitchTarget = QtWidgets.QComboBox(self.verticalLayoutWidget_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.MenuSwitchTarget.setSizePolicy(sizePolicy)
         self.MenuSwitchTarget.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.MenuSwitchTarget.setFrame(True)
         self.MenuSwitchTarget.setToolTip("Select a target to switch to...")
-        #
+
         self.ButtonRow3 = QtWidgets.QHBoxLayout()
         self.ButtonRow3.setSpacing(4)
-        #
+
         self.ButtonOff = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonOff.setMinimumHeight(25)
         self.ButtonOff.setToolTip("Turn all target weights OFF.")
-        #
+
         self.ButtonAll = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonAll.setMinimumHeight(25)
         self.ButtonAll.setToolTip("Turn all target weights ON.")
-        #
+
         self.ButtonSwitch = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonSwitch.setMinimumHeight(25)
         self.ButtonSwitch.setToolTip("Weight constraint to a single target.")
-        #
+
         self.CheckVisTrans = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckVisTrans.setChecked(True)
         self.CheckVisTrans.setToolTip("Keep object in the same position\nby updating constraint offsets.")
-        #
+
         self.CheckKey = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckKey.setChecked(True)
         self.CheckKey.setToolTip("Key offsets, transforms and blend attributes.")
-        #
+
         self.ButtonRow2 = QtWidgets.QHBoxLayout()
         self.ButtonRow2.setSpacing(0)
-        #
+
         self.ButtonHelp = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonHelp.setMinimumHeight(30)
         self.ButtonHelp.setFont(font)
         self.ButtonHelp.setToolTip("Open help documentation.")
-        #
+
         self.ButtonPurge = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonPurge.setMinimumHeight(30)
         self.ButtonPurge.setFont(font)
         self.ButtonPurge.setToolTip("Remove all ConMan data. \nWARNING: CANNOT BE UNDONE")
-        #
+
         self.__place_ui()
         self.__retranslate_ui()
         self.__set_connections()
@@ -525,7 +524,6 @@ class ConManWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to file."""
-        log.debug("Closing main window...")
         self.CloseSig.emit()
         self.settings.setValue("mainwindowposition", self.pos())
         super(ConManWindow, self).closeEvent(*args, **kwargs)
@@ -546,8 +544,6 @@ class ConManWindow(QtWidgets.QMainWindow):
         return [self.ObjList.item(i) for i in range(self.ObjList.count())]
 
     def __item_list_changed(self, current, previous):
-        log.debug("Previous: {}".format(previous))
-        log.debug("Current: {}".format((current)))
         if current is None:
             self.MenuSwitchTarget.clear()
         else:
@@ -557,7 +553,6 @@ class ConManWindow(QtWidgets.QMainWindow):
 
     def __item_list_double_click(self, item):
         log.debug("Double clicked: {}".format(item.text()))
-        log.debug("Selecting: {}".format(item.obj))
         self.SelSig.emit(item.obj)
 
     def populate_list(self, data):
@@ -576,12 +571,13 @@ class ConManWindow(QtWidgets.QMainWindow):
         """Clear constraint list and all data stored in the UI."""
         log.debug("Clearing list")
         self.ObjList.clear()
+        del self.__StaleData[:]
 
     def populate_menu(self, selObjs):
         """
         Populate combo box for target selection.
 
-        :param selObjs: List of PyNode targets to switch constraint weighting to.
+        :param selObjs: List of PyNode targets.
         """
         self.MenuSwitchTarget.clear()
         for ind, item in enumerate(selObjs):
@@ -701,29 +697,23 @@ class ConManWindow(QtWidgets.QMainWindow):
         del self.__StaleData[:]
 
     def __stale_iter(self, cb_bundle):
-        log.debug("Stale iter")
         dag_path, clientData = cb_bundle
 
         if clientData:
             for stale_item in self.__StaleData:
-                log.debug(stale_item.label)
-                log.debug(stale_item.exists)
                 if stale_item.exists:
                     self.RenameSig.connect(stale_item.update_label_callback)
                     self.ObjList.addItem(stale_item)
                     self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
                     self.ObjList.setCurrentItem(stale_item)
-                    log.debug("Stale data returning to list")
 
         elif clientData is False:
             for list_item in self.iter_list():
-                log.debug(list_item.label)
                 if dag_path in [list_item.con_dag, list_item.object_dag]:
                     current_row = self.ObjList.row(list_item)
                     self.RenameSig.disconnect(list_item.update_label_callback)
                     self.__StaleData.append(self.ObjList.takeItem(current_row))
                     self.ObjList.sortItems(order=QtCore.Qt.AscendingOrder)
-                    log.debug("Stale data removal success")
 
 
 class PurgeConfirm(QtWidgets.QMainWindow):
@@ -842,7 +832,7 @@ class ConManHelpWindow(QtWidgets.QMainWindow):
         font.setPointSize(8)
         font.setFamily("Arial")
         self.setFont(font)
-        #
+
         self.centralwidget = QtWidgets.QWidget(self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -852,12 +842,12 @@ class ConManHelpWindow(QtWidgets.QMainWindow):
         self.centralwidget.setMinimumSize(QtCore.QSize(325, 250))
         self.centralwidget.setMaximumSize(QtCore.QSize(600, 425))
         self.centralwidget.setObjectName("centralwidget")
-        #
+
         self.vlayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.vlayout.setSpacing(2)
         self.vlayout.setContentsMargins(2, 2, 2, 2)
         self.vlayout.setObjectName("VLayout")
-        #
+
         self.textwidget = QtWidgets.QTextEdit(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -866,14 +856,13 @@ class ConManHelpWindow(QtWidgets.QMainWindow):
         self.textwidget.setReadOnly(True)
         self.textwidget.setObjectName("TextWidget")
         self.textwidget.setHtml(self.helpText)
-        #
+
         self.vlayout.addWidget(self.textwidget)
-        #
+
         self.setCentralWidget(self.centralwidget)
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to file."""
-        log.debug("Closing help window...")
         self.settings.setValue("helpwindowposition", self.pos())
         super(ConManHelpWindow, self).closeEvent(*args, **kwargs)
 

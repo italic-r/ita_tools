@@ -48,7 +48,17 @@ callback_list = []
 
 @QtCore.Slot()
 def create_con(conType, Offset, mOffset, weight, skipT, skipR, skipS):
-    """Pass options from UI to constraint creator and data storage."""
+    """
+    Pass options from UI to constraint creator and data storage.
+
+    :param conType: Type of constraint.
+    :param Offset: Explicit X, Y, Z values to set offset to.
+    :param mOffset: Maintain offset.
+    :param weight: Explicit weight value to give to each target.
+    :param skipT: List of channels to skip.
+    :param skipR: List of channels to skip.
+    :param skipS: List of channels to skip.
+    """
     selection = pmc.ls(sl=True, type="transform")
 
     if len(selection) > 1:
@@ -107,18 +117,33 @@ def add_con():
 
 @QtCore.Slot()
 def remove_con(con_node):
-    """Delete constraint node from the scene."""
+    """
+    Delete constraint node from the scene.
+
+    :param con_node: Constraint PyNode.
+    """
     log.debug("Deleting constraint node...")
     with UndoChunk():
         pmc.delete(con_node)
-        log.debug("Deleted constraint")
 
 
 def create_constraint(ctype, actObj, selObjs,
                       offset, mOffset, weight,
                       skipT=['none'], skipR=['none'], skipS=['none']
                       ):
-    """Create constraint with given options."""
+    """
+    Create constraint with given options.
+
+    :param ctype: Type of constraint.
+    :param actObj: PyNode of object to be constrained.
+    :param selObjs: List of PyNode objects to constrain actObj to.
+    :param offset: Explicit X, Y, Z values to set offset to.
+    :param mOffset: Maintain offset.
+    :param weight: Explicit weight value to give to each target.
+    :param skipT: List of channels to skip.
+    :param skipR: List of channels to skip.
+    :param skipS: List of channels to skip.
+    """
     if ctype == "Parent":
         cObj = pmc.parentConstraint(
             selObjs, actObj,
@@ -150,9 +175,13 @@ def create_constraint(ctype, actObj, selObjs,
 
 @QtCore.Slot()
 def sel_con_node(node):
-    """Select constrained node in the scene."""
-    log.debug("Selecting: {}".format(node))
+    """
+    Select constrained node in the scene.
+
+    :param node: PyNode to be selected in the scene.
+    """
     pmc.select(node)
+    log.debug("Selected: {}".format(node))
 
 
 # Switch Weight ===============================================================
@@ -160,7 +189,11 @@ def sel_con_node(node):
 
 @QtCore.Slot()
 def switch_single(con_tup):
-    """Switch constraint weight to a single defined target."""
+    """
+    Switch constraint weight to a single defined target.
+
+    :param con_tup: Tuple of UI options and constraint node, targets and object.
+    """
     log.debug("Switching single...")
     MVis, Key, con_node, obj, targets, sel_tgt = con_tup[0:6]
 
@@ -174,7 +207,6 @@ def switch_single(con_tup):
     log.debug("Attr list: {}".format(attr_list))
     log.debug("Weight list: {}".format(weight_list))
     log.debug("Offset list: {}".format(offset_list))
-    log.debug("Object matrix: {}".format(obj_mat))
 
     with UndoChunk():
         if not MVis and not Key:
@@ -271,7 +303,12 @@ def switch_all(con_tup):
 
 
 def _do_switch_on_off(con_tup, val):
-    """Switch weight fully on or off."""
+    """
+    Switch weight fully on or off.
+
+    :param con_tup: Tuple of UI options and constraint node, targets and object.
+    :param val: Value to set weights to. Should be 0 or 1.
+    """
     MVis, Key, con_node, obj, targets = con_tup[0:5]
 
     log.debug(con_tup)
@@ -284,7 +321,6 @@ def _do_switch_on_off(con_tup, val):
     log.debug("Attr list: {}".format(attr_list))
     log.debug("Weight list: {}".format(weight_list))
     log.debug("Offset list: {}".format(offset_list))
-    log.debug("Object matrix: {}".format(obj_mat))
 
     with UndoChunk():
         if not MVis and not Key:
@@ -354,7 +390,13 @@ def _do_switch_on_off(con_tup, val):
 
 
 def get_blend_attr(con_node):
-    """Get blend attribute on the object."""
+    """
+    Get blend attribute on the object.
+
+    :param con_node: Constraint PyNode.
+    :return: Blend Attribute() object.
+    :rtype: Attribute() object.
+    """
     node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
     for node in node_connections:
         if isinstance(node, pmc.nodetypes.PairBlend):
@@ -362,7 +404,14 @@ def get_blend_attr(con_node):
 
 
 def get_connected_attr(con_node, obj):
-    """Get a list of node connections to key."""
+    """
+    Get a list of node connections to key.
+
+    :param con_node: Constraint PyNode.
+    :param obj: Constrained object to check connections.
+    :return: Attributes connected to the constraint.
+    :rtype: List of Attribute() objects.
+    """
     node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
     for node in node_connections:
         if node == obj:
@@ -373,12 +422,24 @@ def get_connected_attr(con_node, obj):
 
 
 def get_weight_attr(con_node):
-    """Get list of weight attributes."""
+    """
+    Get list of weight attributes.
+
+    :param con_node: Constraint PyNode.
+    :return: All constraint targets.
+    :rtype: List of PyNode objects.
+    """
     return con_node.getWeightAliasList()
 
 
 def get_offset_attr(con_node):
-    """Get list of offset attributes for maintaining offset."""
+    """
+    Get list of offset attributes for maintaining offset.
+
+    :param con_node: Constraint PyNode.
+    :return: Constraint offset attributes.
+    :rtype: List of Attribute() objects.
+    """
     attr_list = []
     if isinstance(con_node, pmc.nodetypes.ParentConstraint):
         for ind, tgt in enumerate(con_node.getTargetList()):
@@ -390,7 +451,13 @@ def get_offset_attr(con_node):
 
 
 def key_attr(attr, new_value=None, copy_previous=None):
-    """Key given attr on previous and current frame."""
+    """
+    Key given attr on previous and current frame.
+
+    :param attr: Attribute to be keyed of type Attribute().
+    :param new_value: Explicitly set key value on current frame.
+    :param copy_previous: Explicitly copy previous key or value onto previous frame for a single-frame switch.
+    """
     log.debug("Keying attr...")
 
     cur_time = pmc.currentTime(q=True)
@@ -398,7 +465,7 @@ def key_attr(attr, new_value=None, copy_previous=None):
     log.debug("Attr: {}".format(attr))
     log.debug("New value: {}".format(new_value))
     log.debug("Copy previous: {}".format(copy_previous))
-    log.debug("Time: {}".format(cur_time))
+    log.debug("Current time: {}".format(cur_time))
 
     if copy_previous:
         prev_key_time = pmc.findKeyframe(attr, which="previous")
@@ -425,7 +492,12 @@ def key_attr(attr, new_value=None, copy_previous=None):
 
 
 def update_offset(con_node, targets):
-    """Update offset of given constraint."""
+    """
+    Update offset of given constraint.
+
+    :param con_node: Constraint PyNode.
+    :param targets: List of PyNode targets (constraints can only be edited with a complete list of the original targets).
+    """
     if isinstance(con_node, pmc.nodetypes.ParentConstraint):
         pmc.parentConstraint(targets, con_node, e=True, maintainOffset=True)
     elif isinstance(con_node, pmc.nodetypes.PointConstraint):
@@ -439,7 +511,12 @@ def update_offset(con_node, targets):
 # Constraint Data =============================================================
 
 def get_object(con_node):
-    """Get constrained object."""
+    """
+    Get constrained object. Skip over pairBlend nodes in the case of existing animation.
+
+    :param con_node: Constraint PyNode.
+    :return: Constrained object.
+    """
     obj_list = []
 
     node_connections = set(pmc.listConnections(con_node, source=False, destination=True))
@@ -453,7 +530,13 @@ def get_object(con_node):
 
 
 def get_con_type(con_node):
-    """Get type of constraint."""
+    """
+    Get type of constraint.
+
+    :param con_node: Constraint PyNode.
+    :return: Constraint type: parent, point, orient, scale.
+    :rtype: Dict
+    """
     if isinstance(con_node, pmc.nodetypes.ParentConstraint):
         con_type = "Parent"
     elif isinstance(con_node, pmc.nodetypes.PointConstraint):
@@ -462,12 +545,16 @@ def get_con_type(con_node):
         con_type = "Orient"
     elif isinstance(con_node, pmc.nodetypes.ScaleConstraint):
         con_type = "Scale"
-
     return con_type
 
 
 def get_data(con_node):
-    """Return dict of relevant constraint data based on PyNode."""
+    """
+    Return dict of relevant constraint data based on PyNode.
+
+    :param con_node: Constraint PyNode.
+    :return: Data associated with the constraint: type, constrained object, targets, constraint node.
+    """
     con_data = {
         "type": get_con_type(con_node),
         "object": get_object(con_node),
@@ -481,7 +568,7 @@ def get_data(con_node):
 
 def pickle_read(arg=None):
     """Read pickled data from scene's fileInfo attribute."""
-    log.debug("Reading pickle...")
+    log.info("Reading pickle...")
 
     try:
         _CMan.clear_list()
@@ -511,16 +598,16 @@ def pickle_read(arg=None):
                 _CMan.populate_list(con_data)
             except:
                 log.debug("DAG path invalid: {}".format(dag))
-        log.debug("Read pickle complete")
+        log.info("Read pickle complete")
 
     except KeyError:
-        log.debug("No data found")
+        log.info("No data found")
 
 
 @QtCore.Slot()
 def pickle_write(arg=None):
     """Write pickled data into scene's fileInfo attribute."""
-    log.debug("Writing pickle...")
+    log.info("Writing pickle...")
 
     _DagList = [item.con_dag for item in _CMan.iter_list()]
 
@@ -529,7 +616,7 @@ def pickle_write(arg=None):
     pmc.fileInfo("CMan_data", encoded)
     cmds.file(modified=True)
 
-    log.debug("Pickle written")
+    log.info("Pickle written")
 
 
 def purge_data(arg=None):
@@ -538,7 +625,7 @@ def purge_data(arg=None):
     pmc.fileInfo("CMan_data", "")
     _CMan.clear_list()
     cmds.file(modified=True)
-    log.debug("Purge complete")
+    log.warning("Purge complete")
 
 
 # Connection and Callback Registration ========================================
@@ -551,7 +638,12 @@ def rename_cb(clientData=None):
 
 
 def obj_add_remove_cb(mobj, clientData=None):
-    """Callback to check stale data."""
+    """
+    Callback to check stale data.
+
+    :param mobj: Maya MObject passed from the callback.
+    :param clientData: Data parcel to pass to the callback function, passed to conditional in stale data iterator.
+    """
     mFnHandle = om.MFnDagNode(mobj)
     object_dag = mFnHandle.fullPathName()
     _CMan.ExistSig.emit((object_dag, clientData))
@@ -606,7 +698,7 @@ def show():
     """Init."""
     global _CMan
     if _CMan is None:
-        log.debug("Initializing...")
+        log.info("Initializing ConMan")
         _CMan = ConManWindow(parent=get_maya_window())
         register_connections()
         register_cb()
