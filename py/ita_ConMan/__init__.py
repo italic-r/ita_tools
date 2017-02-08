@@ -30,7 +30,7 @@ LogHandler = logging.FileHandler(LogFile)
 LogFormat = logging.Formatter(
     "%(levelname)s: %(name)s.%(funcName)s -- %(message)s"
 )
-logging.basicConfig(level=logging.DEBUG, filename=LogFile, filemode='w')
+logging.basicConfig(level=logging.WARN, filename=LogFile, filemode='w')
 
 log = logging.getLogger(__name__)
 LogHandler.setFormatter(LogFormat)

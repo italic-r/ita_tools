@@ -10,8 +10,7 @@ from utils.qtshim import QtCore, QtGui, QtWidgets, logging
 Signal = QtCore.Signal
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
-log.setLevel(logging.DEBUG)
+# log.setLevel(logging.DEBUG)
 
 
 class QListItemCon(QtWidgets.QListWidgetItem):
@@ -37,7 +36,11 @@ class QListItemCon(QtWidgets.QListWidgetItem):
             str(self._data["con_node"]))
 
     def data(self, role):
-        """Data to return for specific roles."""
+        """
+        Data to return for specific roles.
+
+        :param role: Specific Qt role to determine how data is returned.
+        """
         if role == QtCore.Qt.DisplayRole:
             return self.label
         elif role == QtCore.Qt.UserRole:
@@ -223,7 +226,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonRemove.setIcon(icon5)
         self.ButtonRemove.setIconSize(QtCore.QSize(40, 40))
         self.ButtonRemove.setFlat(False)
-        self.ButtonRemove.setToolTip("Click to remove constraint from list. Double click to delete from scene.")
+        self.ButtonRemove.setToolTip("Remove constraint from the scene.")
         #
         self.tabWidget = QtWidgets.QTabWidget(self.verticalLayoutWidget)
         self.tabWidget.setMinimumSize(QtCore.QSize(240, 205))
@@ -535,7 +538,7 @@ class ConManWindow(QtWidgets.QMainWindow):
 
     def show_purge_ui(self):
         """Show purge confirmation window."""
-        self._Purge = PurgeConfirm()
+        self._Purge = PurgeConfirm(parent=self)
         self._Purge.ConfirmSig.connect(self.__purge)
 
     def iter_list(self):
@@ -558,7 +561,11 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.SelSig.emit(item.obj)
 
     def populate_list(self, data):
-        """Create new QListWidgetItem instance with given data and sort list."""
+        """
+        Create new QListWidgetItem instance with given data and sort list.
+
+        :param data: Dict of vital constraint data for use in the UI.
+        """
         listItem = QListItemCon(data)
         self.RenameSig.connect(listItem.update_label_callback)
         self.ObjList.addItem(listItem)
@@ -571,7 +578,11 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ObjList.clear()
 
     def populate_menu(self, selObjs):
-        """Populate combo box for target selection."""
+        """
+        Populate combo box for target selection.
+
+        :param selObjs: List of PyNode targets to switch constraint weighting to.
+        """
         self.MenuSwitchTarget.clear()
         for ind, item in enumerate(selObjs):
             self.MenuSwitchTarget.addItem(str(item))
@@ -687,7 +698,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         log.debug("Purging")
         self.PurgeSig.emit()
         self._Purge = None
-        self.__StaleData.clear()
+        del self.__StaleData[:]
 
     def __stale_iter(self, cb_bundle):
         log.debug("Stale iter")
@@ -725,6 +736,9 @@ class PurgeConfirm(QtWidgets.QMainWindow):
         """:param parent: Window or widget to parent purge window under."""
         super(PurgeConfirm, self).__init__(parent=parent)
         self.__show_ui()
+        self.__center(parent)
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self.show()
 
     def __show_ui(self):
         self.setObjectName("PurgeConfirm")
@@ -749,7 +763,12 @@ class PurgeConfirm(QtWidgets.QMainWindow):
         self.VLayout.addWidget(self.confirm_button)
         self.setCentralWidget(self.container)
 
-        self.show()
+    def __center(self, cman_win):
+        cman_geo = cman_win.frameGeometry()
+        cman_center = cman_geo.center()
+        purge_geo = self.frameGeometry()
+        purge_geo.moveCenter(cman_center)
+        self.move(purge_geo.topLeft())
 
     def __button_click(self):
         log.debug("Pressed")
@@ -776,7 +795,7 @@ class ConManHelpWindow(QtWidgets.QMainWindow):
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Create</span></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Create common constraints (parent, point, orient, scale) with the given options.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Remove</span></p>\n"
-            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Remove a constraint from the list with the trash icon; delete from the scene with double click.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Delete a constraint from the scene with the trash icon.</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Switch</span></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Switch constraint targets in the second section. Select a constraint, then a target in the dropdown menu.</p>\n"
@@ -790,12 +809,10 @@ class ConManHelpWindow(QtWidgets.QMainWindow):
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Constraint data is saved in the scene file.</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-            # "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Clean Stale</span>: Remove old data of non-existant objects. Any data not shown in the list is removed.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Purge...</span>: Remove ALL saved constraint data from the scene.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">WARNING: THIS IS NOT UNDO-ABLE!</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">LIMITATIONS AND KNOWN ISSUES:</p>\n"
-            # "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- This tool supports only one parent constraint at a time. Maya supports multiple parent constraints and one of any other kind.</p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">-- Maintain Visual Transforms: Currently updates offsets in the constraint node. Enable keying to save old offsets during switching.</p>\n"
             "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
             "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">(c) Jeffrey &quot;italic&quot; Hoover</p>\n"
