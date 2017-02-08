@@ -61,7 +61,7 @@ logging.basicConfig(level=logging.WARN, filename=LogFile, filemode='w')
 log = logging.getLogger(__name__)
 LogHandler.setFormatter(LogFormat)
 log.addHandler(LogHandler)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 
 # Global Data =================================================================
