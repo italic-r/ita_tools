@@ -872,7 +872,10 @@ if __name__ == "__main__":
         "con_node": "con node name"
     }
 
-    win = QtWidgets.QApplication([])
+    try:
+        win = QtWidgets.QApplication([])
+    except RuntimeError:
+        win = QtCore.QCoreApplication.instance()
     _CMan = ConManWindow()
     _CMan.show()
     _CMan.populate_list(generic_data)
