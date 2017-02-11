@@ -69,6 +69,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARN)
 
+ConMan_v2_download = "https://github.com/Italic-/ita_tools/tree/master/py/ita_ConMan"
+
 
 class ConstraintManager(object):
 
@@ -1257,9 +1259,38 @@ class ConstraintManager(object):
         self.CleanData()
 
 
+class ConMan_Deprecated(object):
+
+    def __init__(self):
+        self.__showUI()
+
+    def __showUI(self):
+        self.window = cmds.window(title="Old_ConMan", ret=False, rtf=True, s=True)
+        self.col = cmds.scrollLayout("WinCol", p=self.window)
+        self.warn_test = cmds.text(p=self.col, label="This version of ConMan is obsolete. Please download the new version.")
+        self.download_button = cmds.button(p=self.col, label="Download", command=self.__go_to_download)
+        self.cancel_button = cmds.button(p=self.col, label="Cancel", command=self.__open_conman)
+
+        cmds.showWindow(self.window)
+
+    def __go_to_download(self, arg=None):
+        self.__destroyUI()
+        import webbrowser
+        webbrowser.open_new_tab(ConMan_v2_download)
+
+    def __open_conman(self, arg=None):
+        self.__destroyUI()
+        CMan = ConstraintManager()
+
+    def __destroyUI(self):
+        if cmds.window(self.window, exists=True):
+            cmds.deleteUI(self.window)
+
 if "CMan" not in locals().keys():
-    CMan = ConstraintManager()
+    CMan = ConMan_Deprecated()
     log.debug("New ConMan instance")
+    log.error("This version of ConMan is obsolete. Please get version 2 from {}".format(ConMan_v2_download))
 elif "CMan" in locals().keys() and cmds.window(CMan.window, exists=True) is False:
     CMan = ConstraintManager()
     log.debug("ConMan in locals(), but window not shown. New ConMan instance created.")
+    log.error("This version of ConMan is obsolete. Please get version 2 from {}".format(ConMan_v2_download))
