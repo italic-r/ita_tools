@@ -69,7 +69,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARN)
 
-ConMan_v2_download = "https://github.com/Italic-/ita_tools/tree/master/py/ita_ConMan"
+ConMan_v2_download = "https://github.com/Italic-/ita_tools-dist/raw/master/ita_ConMan.zip"
 
 
 class ConstraintManager(object):

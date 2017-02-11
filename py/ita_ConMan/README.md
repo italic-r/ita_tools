@@ -1,6 +1,17 @@
 # ConMan
 ##### A tool to create and manage constraints for rigging and animation.
 
+To Install
+--
+Put ita_ConMan directory into your maya scripts directory. The default
+locations are:
+
+System | Location
+-- | --
+Windows | C:\Users\\_user_\My Documents\maya\\_version_\prefs\scripts
+Linux | ~/maya/_version_/prefs/scripts
+Mac | /Users/_user_/Library/Preferences/Autodesk/maya/version
+
 Loading and Unloading
 --
 ```python
