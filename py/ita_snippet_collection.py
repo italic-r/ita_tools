@@ -154,6 +154,7 @@ def TanLock(arg=None):
     if arg == "Press":
         if panType == "graphEditor1":
             cmds.undoInfo(swf=False)
+            mel.eval('MoveTool;')
             cmds.keyTangent(e=True, wl=False)
             cmds.undoInfo(swf=True)
         else:
@@ -161,6 +162,7 @@ def TanLock(arg=None):
     elif arg == "Release":
         if panType == "graphEditor1":
             cmds.undoInfo(swf=False)
+            mel.eval('global string $gSelect; setToolTo $gSelect')
             cmds.keyTangent(e=True, wl=True)
             cmds.undoInfo(swf=True)
         else:
