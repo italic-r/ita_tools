@@ -6,6 +6,15 @@ Signal = QtCore.Signal
 log = logging.getLogger(__name__)
 
 
+class LogSlider(QtWidgets.QSlider):
+    def __init__(self, parent=None):
+        super(LogSlider, self).__init__(parent=parent)
+
+    def paintEvent(self, event):
+        """Paint log scale ticks."""
+        super(LogSlider, self).paintEvent(event)
+
+
 class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
