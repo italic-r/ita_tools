@@ -7,23 +7,32 @@ log = logging.getLogger(__name__)
 
 
 class LogSlider(QtWidgets.QSlider):
+
     def __init__(self, parent=None):
         super(LogSlider, self).__init__(parent=parent)
-
-    def paintEvent(self, event):
-        """Paint log scale ticks."""
-        super(LogSlider, self).paintEvent(event)
+        self.setMinimum(1)
+        self.setMaximum(240)
+        self.setTickInterval(20)
+        self.setSingleStep(1)
+        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setTracking(True)
+        self.setTickPosition(self.TicksBelow)
 
 
 class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
 
+    SliderChanged = Signal(int)
+    SpinBoxChanged = Signal(int)
+
     def __init__(self, parent=None):
         """:param parent: Window to place Butter under."""
         super(ButterWindow, self).__init__(parent=parent)
         self.settings = QtCore.QSettings("italic", "Butter")
         self.__setup_ui()
+        self.__place_ui()
+        self.__set_connections()
         self.move(self.settings.value("mainwindowposition", QtCore.QPoint(0, 0)))
         self._ButterHelp = None
 
@@ -35,10 +44,47 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.setFont(font)
 
         self.centralwidget = QtWidgets.QWidget(self)
-
         self.virticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-
         self.LayoutVert1 = QtWidgets.QVBoxLayout(self.virticalLayoutWidget)
+
+        self.radioRow = QtWidgets.QHBoxLayout()
+        self.radioLowPass = QtWidgets.QRadioButton(text="Lowpass")
+        self.radioBandPass = QtWidgets.QRadioButton(text="Bandpass")
+        self.radioHighPass = QtWidgets.QRadioButton(text="Highpass")
+
+        self.sliderRow = QtWidgets.QHBoxLayout()
+        self.slider = LogSlider()
+        self.sliderVal = QtWidgets.QSpinBox()
+        self.sliderVal.setRange(1, 240)
+
+
+    def __place_ui(self):
+        self.radioRow.addWidget(self.radioHighPass)
+        self.radioRow.addWidget(self.radioBandPass)
+        self.radioRow.addWidget(self.radioLowPass)
+
+        self.sliderRow.addWidget(self.slider)
+        self.sliderRow.addWidget(self.sliderVal)
+
+        self.LayoutVert1.addLayout(self.radioRow)
+        self.LayoutVert1.addLayout(self.sliderRow)
+
+        self.setCentralWidget(self.centralwidget)
+
+    def __set_connections(self):
+        self.slider.valueChanged.connect(self.__set_spinbox_value)
+        self.SliderChanged.connect(self.slider.valueChanged)
+
+        self.sliderVal.valueChanged.connect(self.__set_slider_value)
+        self.SpinBoxChanged.connect(self.sliderVal.valueChanged)
+
+    @QtCore.Slot()
+    def __set_spinbox_value(self, value):
+        self.sliderVal.setValue(value)
+
+    @QtCore.Slot()
+    def __set_slider_value(self, value):
+        self.slider.setValue(value)
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
@@ -81,3 +127,4 @@ if __name__ == '__main__':
 
     _ButterWin = ButterWindow()
     _ButterWin.show()
+    win.exec_()
