@@ -6,19 +6,6 @@ Signal = QtCore.Signal
 log = logging.getLogger(__name__)
 
 
-class LogSlider(QtWidgets.QSlider):
-
-    def __init__(self, parent=None):
-        super(LogSlider, self).__init__(parent=parent)
-        self.setMinimum(1)
-        self.setMaximum(240)
-        self.setTickInterval(20)
-        self.setSingleStep(1)
-        self.setOrientation(QtCore.Qt.Horizontal)
-        self.setTracking(True)
-        self.setTickPosition(self.TicksBelow)
-
-
 class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
@@ -43,48 +30,130 @@ class ButterWindow(QtWidgets.QMainWindow):
         font.setFamily("Arial")
         self.setFont(font)
 
-        self.centralwidget = QtWidgets.QWidget(self)
-        self.virticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.LayoutVert1 = QtWidgets.QVBoxLayout(self.virticalLayoutWidget)
+        # Size policy
+        self.FrameSizePolicy = QtWidgets.QSizePolicy()
+        self.FrameSizePolicy.setVerticalPolicy(self.FrameSizePolicy.Fixed)
+        self.FrameSizePolicy.setHorizontalPolicy(self.FrameSizePolicy.Expanding)
 
+        # Main layout and central widget
+        # TODO: Maintain horizontal stretch while minimizing height
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setSizePolicy(self.FrameSizePolicy)
+        self.LayoutVert1 = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.LayoutVert1.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        self.LayoutVert1.setSpacing(1)
+
+        # Radio buttons
         self.radioRow = QtWidgets.QHBoxLayout()
         self.radioLowPass = QtWidgets.QRadioButton(text="Lowpass")
         self.radioBandPass = QtWidgets.QRadioButton(text="Bandpass")
         self.radioHighPass = QtWidgets.QRadioButton(text="Highpass")
 
-        self.sliderRow = QtWidgets.QHBoxLayout()
-        self.slider = LogSlider()
-        self.sliderVal = QtWidgets.QSpinBox()
-        self.sliderVal.setRange(1, 240)
+        # Minimum
+        self.FrameMinFreq = QtWidgets.QFrame()
+        self.FrameMinFreq.setSizePolicy(self.FrameSizePolicy)
+        self.VertLayoutMinFreq = QtWidgets.QVBoxLayout()
+        self.FrameMinFreq.setLayout(self.VertLayoutMinFreq)
 
+        self.labelFreqMin = QtWidgets.QLabel(text="Minimum Frequency")
+        self.labelFreqMin.setSizePolicy(self.FrameSizePolicy)
+
+        self.sliderRowMin = QtWidgets.QHBoxLayout()
+
+        self.sliderMin = QtWidgets.QSlider()
+        self.sliderMin.setRange(1, 240)
+        self.sliderMin.setTickInterval(20)
+        self.sliderMin.setSingleStep(1)
+        self.sliderMin.setOrientation(QtCore.Qt.Horizontal)
+        self.sliderMin.setTracking(True)
+        self.sliderMin.setTickPosition(self.sliderMin.TicksBelow)
+
+        self.sliderValMin = QtWidgets.QSpinBox()
+        self.sliderValMin.setRange(1, 240)
+
+        # Maximum
+        self.FrameMaxFreq = QtWidgets.QFrame()
+        self.FrameMaxFreq.setSizePolicy(self.FrameSizePolicy)
+        self.VertLayoutMaxFreq = QtWidgets.QVBoxLayout()
+        self.FrameMaxFreq.setLayout(self.VertLayoutMaxFreq)
+
+        self.labelFreqMax = QtWidgets.QLabel(text="Maximum Frequency")
+        self.labelFreqMax.setSizePolicy(self.FrameSizePolicy)
+
+        self.sliderRowMax = QtWidgets.QHBoxLayout()
+
+        self.sliderMax = QtWidgets.QSlider()
+        self.sliderMax.setRange(1, 240)
+        self.sliderMax.setTickInterval(20)
+        self.sliderMax.setSingleStep(1)
+        self.sliderMax.setOrientation(QtCore.Qt.Horizontal)
+        self.sliderMax.setTracking(True)
+        self.sliderMax.setTickPosition(self.sliderMax.TicksBelow)
+
+        self.sliderValMax = QtWidgets.QSpinBox()
+        self.sliderValMax.setRange(1, 240)
 
     def __place_ui(self):
         self.radioRow.addWidget(self.radioHighPass)
         self.radioRow.addWidget(self.radioBandPass)
         self.radioRow.addWidget(self.radioLowPass)
 
-        self.sliderRow.addWidget(self.slider)
-        self.sliderRow.addWidget(self.sliderVal)
+        self.sliderRowMin.addWidget(self.sliderMin)
+        self.sliderRowMin.addWidget(self.sliderValMin)
+
+        self.VertLayoutMinFreq.addWidget(self.labelFreqMin)
+        self.VertLayoutMinFreq.addLayout(self.sliderRowMin)
+
+        self.sliderRowMax.addWidget(self.sliderMax)
+        self.sliderRowMax.addWidget(self.sliderValMax)
+
+        self.VertLayoutMaxFreq.addWidget(self.labelFreqMax)
+        self.VertLayoutMaxFreq.addLayout(self.sliderRowMax)
 
         self.LayoutVert1.addLayout(self.radioRow)
-        self.LayoutVert1.addLayout(self.sliderRow)
+        self.LayoutVert1.addWidget(self.FrameMinFreq)
+        self.LayoutVert1.addWidget(self.FrameMaxFreq)
 
         self.setCentralWidget(self.centralwidget)
 
     def __set_connections(self):
-        self.slider.valueChanged.connect(self.__set_spinbox_value)
-        self.SliderChanged.connect(self.slider.valueChanged)
+        self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
+        self.sliderValMin.valueChanged.connect(self.__set_slider_value_min)
+        self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
+        self.sliderValMax.valueChanged.connect(self.__set_slider_value_max)
 
-        self.sliderVal.valueChanged.connect(self.__set_slider_value)
-        self.SpinBoxChanged.connect(self.sliderVal.valueChanged)
+        self.radioLowPass.toggled.connect(self.__slider_config)
+        self.radioBandPass.toggled.connect(self.__slider_config)
+        self.radioHighPass.toggled.connect(self.__slider_config)
 
     @QtCore.Slot()
-    def __set_spinbox_value(self, value):
-        self.sliderVal.setValue(value)
+    def __set_spinbox_value_min(self, value):
+        self.sliderValMin.setValue(value)
 
     @QtCore.Slot()
-    def __set_slider_value(self, value):
-        self.slider.setValue(value)
+    def __set_slider_value_min(self, value):
+        self.sliderMin.setValue(value)
+
+    @QtCore.Slot()
+    def __set_spinbox_value_max(self, value):
+        self.sliderValMax.setValue(value)
+
+    @QtCore.Slot()
+    def __set_slider_value_max(self, value):
+        self.sliderMax.setValue(value)
+
+    def __slider_config(self, checked):
+        if self.radioLowPass.isChecked():
+            self.FrameMinFreq.hide()
+            self.FrameMaxFreq.show()
+
+        elif self.radioBandPass.isChecked():
+            self.FrameMinFreq.show()
+            self.FrameMaxFreq.show()
+
+        elif self.radioHighPass.isChecked():
+            self.FrameMinFreq.show()
+            self.FrameMaxFreq.hide()
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
@@ -103,6 +172,7 @@ class ButterHelpWindow(QtWidgets.QMainWindow):
     """Help window."""
 
     def __init__(self, parent=None):
+        """:param parent: Window to place Butter Help under."""
         self.helpText = (
             ""
         )
