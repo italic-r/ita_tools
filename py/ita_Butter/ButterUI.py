@@ -133,9 +133,7 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     def __set_connections(self):
         self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
-        self.sliderValMin.valueChanged.connect(self.__set_slider_value_min)
         self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
-        self.sliderValMax.valueChanged.connect(self.__set_slider_value_max)
 
         self.sliderMin.sliderPressed.connect(self.__undo_queue_start)
         self.sliderMin.sliderReleased.connect(self.__undo_queue_end)
