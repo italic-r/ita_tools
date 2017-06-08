@@ -10,8 +10,10 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
 
-    SliderChanged = Signal(int)
-    SpinBoxChanged = Signal(int)
+    SliderChangedSig = Signal(int)
+    SpinBoxChangedSig = Signal(int)
+    SliderClickSig = Signal()
+    SliderReleaseSig = Signal()
 
     def __init__(self, parent=None):
         """:param parent: Window to place Butter under."""
@@ -72,6 +74,9 @@ class ButterWindow(QtWidgets.QMainWindow):
 
         self.sliderValMin = QtWidgets.QSpinBox()
         self.sliderValMin.setRange(1, 240)
+        self.sliderValMin.setSuffix(" Hz")
+        self.sliderValMin.setReadOnly(True)
+        self.sliderValMin.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
         # Maximum
         # Range set to (1, 240) - subject to change
@@ -95,6 +100,9 @@ class ButterWindow(QtWidgets.QMainWindow):
 
         self.sliderValMax = QtWidgets.QSpinBox()
         self.sliderValMax.setRange(1, 240)
+        self.sliderValMax.setSuffix(" Hz")
+        self.sliderValMax.setReadOnly(True)
+        self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
     def __place_ui(self):
         self.radioRow.addWidget(self.radioHighPass)
@@ -129,6 +137,11 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
         self.sliderValMax.valueChanged.connect(self.__set_slider_value_max)
 
+        self.sliderMin.sliderPressed.connect(self.__undo_queue_start)
+        self.sliderMin.sliderReleased.connect(self.__undo_queue_end)
+        self.sliderMax.sliderPressed.connect(self.__undo_queue_start)
+        self.sliderMax.sliderReleased.connect(self.__undo_queue_end)
+
         self.radioLowPass.toggled.connect(self.__slider_config)
         self.radioBandPass.toggled.connect(self.__slider_config)
         self.radioHighPass.toggled.connect(self.__slider_config)
@@ -161,6 +174,14 @@ class ButterWindow(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def __set_slider_value_max(self, value):
         self.sliderMax.setValue(value)
+
+    @QtCore.Slot()
+    def __undo_queue_start(self):
+        self.SliderClickSig.emit()
+
+    @QtCore.Slot()
+    def __undo_queue_end(self):
+        self.SliderReleaseSig.emit()
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
