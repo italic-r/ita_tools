@@ -39,9 +39,7 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.FrameSizePolicy.setHorizontalPolicy(self.FrameSizePolicy.Expanding)
 
         # Main layout and central widget
-        # TODO: Maintain horizontal stretch while minimizing height
         self.centralwidget = QtWidgets.QWidget(self)
-        # self.centralwidget.setSizePolicy(self.FrameSizePolicy)
         self.LayoutVert1 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.LayoutVert1.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.LayoutVert1.setSpacing(1)
@@ -53,6 +51,7 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.radioHighPass = QtWidgets.QRadioButton(text="Highpass")
 
         # Minimum
+        # Range set to (1, 240) - subject to change
         self.FrameMinFreq = QtWidgets.QFrame()
         self.FrameMinFreq.setSizePolicy(self.FrameSizePolicy)
         self.VertLayoutMinFreq = QtWidgets.QVBoxLayout()
@@ -75,6 +74,7 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderValMin.setRange(1, 240)
 
         # Maximum
+        # Range set to (1, 240) - subject to change
         self.FrameMaxFreq = QtWidgets.QFrame()
         self.FrameMaxFreq.setSizePolicy(self.FrameSizePolicy)
         self.VertLayoutMaxFreq = QtWidgets.QVBoxLayout()
