@@ -18,13 +18,16 @@ class ButterWindow(QtWidgets.QMainWindow):
         super(ButterWindow, self).__init__(parent=parent)
         self.settings = QtCore.QSettings("italic", "Butter")
         self.__setup_ui()
-        self.__place_ui()
         self.__set_connections()
-        self.move(self.settings.value("mainwindowposition", QtCore.QPoint(0, 0)))
+        self.__place_ui()
+        self.move(self.settings.value("mainwindow/position", QtCore.QPoint(0, 0)))
+        self.resize(370, 162)
         self._ButterHelp = None
 
     def __setup_ui(self):
         self.setObjectName("ButterWindow")
+        self.setMinimumSize(232, 162)
+        self.setMaximumSize(1280, 162)
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setFamily("Arial")
@@ -38,7 +41,7 @@ class ButterWindow(QtWidgets.QMainWindow):
         # Main layout and central widget
         # TODO: Maintain horizontal stretch while minimizing height
         self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setSizePolicy(self.FrameSizePolicy)
+        # self.centralwidget.setSizePolicy(self.FrameSizePolicy)
         self.LayoutVert1 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.LayoutVert1.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.LayoutVert1.setSpacing(1)
@@ -116,6 +119,10 @@ class ButterWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(self.centralwidget)
 
+        # Set default slider enable/disable state
+        # Set only after buttons are grouped
+        self.radioLowPass.toggle()
+
     def __set_connections(self):
         self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
         self.sliderValMin.valueChanged.connect(self.__set_slider_value_min)
@@ -125,6 +132,19 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.radioLowPass.toggled.connect(self.__slider_config)
         self.radioBandPass.toggled.connect(self.__slider_config)
         self.radioHighPass.toggled.connect(self.__slider_config)
+
+    def __slider_config(self, checked):
+        if self.radioLowPass.isChecked():
+            self.FrameMinFreq.setEnabled(False)
+            self.FrameMaxFreq.setEnabled(True)
+
+        elif self.radioBandPass.isChecked():
+            self.FrameMinFreq.setEnabled(True)
+            self.FrameMaxFreq.setEnabled(True)
+
+        elif self.radioHighPass.isChecked():
+            self.FrameMinFreq.setEnabled(True)
+            self.FrameMaxFreq.setEnabled(False)
 
     @QtCore.Slot()
     def __set_spinbox_value_min(self, value):
@@ -142,22 +162,9 @@ class ButterWindow(QtWidgets.QMainWindow):
     def __set_slider_value_max(self, value):
         self.sliderMax.setValue(value)
 
-    def __slider_config(self, checked):
-        if self.radioLowPass.isChecked():
-            self.FrameMinFreq.hide()
-            self.FrameMaxFreq.show()
-
-        elif self.radioBandPass.isChecked():
-            self.FrameMinFreq.show()
-            self.FrameMaxFreq.show()
-
-        elif self.radioHighPass.isChecked():
-            self.FrameMinFreq.show()
-            self.FrameMaxFreq.hide()
-
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
-        self.settings.setValue("mainwindowposition", self.pos())
+        self.settings.setValue("mainwindow/position", self.pos())
         super(ButterWindow, self).closeEvent(*args, **kwargs)
 
     def show_help_ui(self):
