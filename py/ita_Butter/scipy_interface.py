@@ -53,7 +53,7 @@ def filter_list(b, a, data):
     a = numpy.asarray(a)
     data = numpy.asarray(data)
 
-    y = sig.filtfilt(b, a, data)
+    y = sig.filtfilt(b, a, data, padtype=None)
     y = y.tolist()
 
     return y
