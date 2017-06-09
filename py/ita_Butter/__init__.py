@@ -95,7 +95,7 @@ def set_key_values(anim_curve=None, data=None):
 
 
 def get_key_values(anim_curve=None):
-    return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys() - 1)]
+    return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys())]
 
 
 def build_key_dict():
