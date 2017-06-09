@@ -10,8 +10,9 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
 
-    SliderChangedSig = Signal(int)
-    SpinBoxChangedSig = Signal(int)
+    SliderMinChangedSig = Signal(int, int, str)
+    SliderMaxChangedSig = Signal(int, int, str)
+
     SliderClickSig = Signal()
     SliderReleaseSig = Signal()
 
@@ -134,6 +135,8 @@ class ButterWindow(QtWidgets.QMainWindow):
     def __set_connections(self):
         self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
         self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
+        self.sliderMin.valueChanged.connect(self.__slider_min_send)
+        self.sliderMax.valueChanged.connect(self.__slider_max_send)
 
         self.sliderMin.sliderPressed.connect(self.__undo_queue_start)
         self.sliderMin.sliderReleased.connect(self.__undo_queue_end)
@@ -180,6 +183,16 @@ class ButterWindow(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def __undo_queue_end(self):
         self.SliderReleaseSig.emit()
+
+    @QtCore.Slot()
+    def __slider_min_send(self, low_value):
+        pass_type = "bandpass" if self.radioBandPass.isChecked() else "highpass"
+        self.SliderMinChangedSig.emit(low_value, self.sliderMax.value(), pass_type)
+
+    @QtCore.Slot()
+    def __slider_max_send(self, high_value):
+        pass_type = "bandpass" if self.radioBandPass.isChecked() else "lowpass"
+        self.SliderMinChangedSig.emit(self.sliderMin.value(), high_value, pass_type)
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
