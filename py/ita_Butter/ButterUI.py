@@ -65,8 +65,8 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderRowMin = QtWidgets.QHBoxLayout()
 
         self.sliderMin = QtWidgets.QSlider()
-        self.sliderMin.setRange(1, 100)
-        self.sliderMin.setTickInterval(10)
+        self.sliderMin.setRange(0, 1000)
+        self.sliderMin.setTickInterval(100)
         self.sliderMin.setSingleStep(1)
         self.sliderMin.setOrientation(QtCore.Qt.Horizontal)
         self.sliderMin.setTracking(True)
@@ -74,6 +74,7 @@ class ButterWindow(QtWidgets.QMainWindow):
 
         self.sliderValMin = QtWidgets.QDoubleSpinBox()
         self.sliderValMin.setRange(0.0, 1.0)
+        self.sliderValMin.setDecimals(5)
         self.sliderValMin.setReadOnly(True)
         self.sliderValMin.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
@@ -89,15 +90,18 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderRowMax = QtWidgets.QHBoxLayout()
 
         self.sliderMax = QtWidgets.QSlider()
-        self.sliderMax.setRange(1, 100)
-        self.sliderMax.setTickInterval(10)
+        self.sliderMax.setRange(1, 1000)
+        self.sliderMax.setTickInterval(100)
         self.sliderMax.setSingleStep(1)
+        self.sliderMax.setValue(1000)
         self.sliderMax.setOrientation(QtCore.Qt.Horizontal)
         self.sliderMax.setTracking(True)
         self.sliderMax.setTickPosition(self.sliderMax.TicksBelow)
 
         self.sliderValMax = QtWidgets.QDoubleSpinBox()
         self.sliderValMax.setRange(0.0, 1.0)
+        self.sliderValMax.setDecimals(3)
+        self.sliderValMax.setValue(1.0)
         self.sliderValMax.setReadOnly(True)
         self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
@@ -158,7 +162,7 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def __set_spinbox_value_min(self, value):
-        self.sliderValMin.setValue(value * 0.0001)
+        self.sliderValMin.setValue(value * 0.00001)
 
     @QtCore.Slot()
     def __set_spinbox_value_max(self, value):

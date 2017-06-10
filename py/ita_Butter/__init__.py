@@ -84,7 +84,7 @@ def __close_undo_queue():
 
 @QtCore.Slot()
 def scipy_send(low, high, pass_type):
-    low = low * 0.0001   # Subject to fine-tuning
+    low = low * 0.00001   # Subject to fine-tuning
     high = high * 0.001  # Subject to fine-tuning
     if _CurveDict:
         for (crv, data) in _CurveDict.iteritems():
