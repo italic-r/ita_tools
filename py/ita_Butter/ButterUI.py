@@ -54,7 +54,6 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.radioHighPass = QtWidgets.QRadioButton(text="Highpass")
 
         # Minimum
-        # Range set to (1, 240) - subject to change
         self.FrameMinFreq = QtWidgets.QFrame()
         self.FrameMinFreq.setSizePolicy(self.FrameSizePolicy)
         self.VertLayoutMinFreq = QtWidgets.QVBoxLayout()
@@ -66,21 +65,19 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderRowMin = QtWidgets.QHBoxLayout()
 
         self.sliderMin = QtWidgets.QSlider()
-        self.sliderMin.setRange(1, 240)
-        self.sliderMin.setTickInterval(20)
+        self.sliderMin.setRange(1, 100)
+        self.sliderMin.setTickInterval(10)
         self.sliderMin.setSingleStep(1)
         self.sliderMin.setOrientation(QtCore.Qt.Horizontal)
         self.sliderMin.setTracking(True)
         self.sliderMin.setTickPosition(self.sliderMin.TicksBelow)
 
-        self.sliderValMin = QtWidgets.QSpinBox()
-        self.sliderValMin.setRange(1, 240)
-        self.sliderValMin.setSuffix(" Hz")
+        self.sliderValMin = QtWidgets.QDoubleSpinBox()
+        self.sliderValMin.setRange(0.0, 1.0)
         self.sliderValMin.setReadOnly(True)
         self.sliderValMin.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
         # Maximum
-        # Range set to (1, 240) - subject to change
         self.FrameMaxFreq = QtWidgets.QFrame()
         self.FrameMaxFreq.setSizePolicy(self.FrameSizePolicy)
         self.VertLayoutMaxFreq = QtWidgets.QVBoxLayout()
@@ -92,16 +89,15 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderRowMax = QtWidgets.QHBoxLayout()
 
         self.sliderMax = QtWidgets.QSlider()
-        self.sliderMax.setRange(1, 240)
-        self.sliderMax.setTickInterval(20)
+        self.sliderMax.setRange(1, 100)
+        self.sliderMax.setTickInterval(10)
         self.sliderMax.setSingleStep(1)
         self.sliderMax.setOrientation(QtCore.Qt.Horizontal)
         self.sliderMax.setTracking(True)
         self.sliderMax.setTickPosition(self.sliderMax.TicksBelow)
 
-        self.sliderValMax = QtWidgets.QSpinBox()
-        self.sliderValMax.setRange(1, 240)
-        self.sliderValMax.setSuffix(" Hz")
+        self.sliderValMax = QtWidgets.QDoubleSpinBox()
+        self.sliderValMax.setRange(0.0, 1.0)
         self.sliderValMax.setReadOnly(True)
         self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
@@ -162,19 +158,11 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def __set_spinbox_value_min(self, value):
-        self.sliderValMin.setValue(value)
-
-    @QtCore.Slot()
-    def __set_slider_value_min(self, value):
-        self.sliderMin.setValue(value)
+        self.sliderValMin.setValue(value * 0.0001)
 
     @QtCore.Slot()
     def __set_spinbox_value_max(self, value):
-        self.sliderValMax.setValue(value)
-
-    @QtCore.Slot()
-    def __set_slider_value_max(self, value):
-        self.sliderMax.setValue(value)
+        self.sliderValMax.setValue(value * 0.001)
 
     @QtCore.Slot()
     def __undo_queue_start(self):
