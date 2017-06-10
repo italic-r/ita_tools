@@ -1,4 +1,5 @@
 mock/*
 deps/*.whl*
 deps/*.xz*
+deps/*.7z*
 *get-pip.py*
