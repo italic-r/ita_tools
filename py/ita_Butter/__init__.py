@@ -138,6 +138,10 @@ def scipy_send(low, high, pass_type):
         for (crv, data) in _CurveDict.iteritems():
             b, a = scipy_interface.create_filter(_SceneFPS, low, high, _FilterOrder, pass_type=pass_type)
             new_curve = scipy_interface.filter_list(b, a, data)
+
+            log.debug("{}".format(data))
+            log.debug("{}".format(new_curve))
+
             with UndoChunk():
                 set_key_values(anim_curve=crv, data=new_curve)
 
