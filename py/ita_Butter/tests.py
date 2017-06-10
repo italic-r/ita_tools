@@ -15,7 +15,7 @@ class TestScipy(unittest.TestCase):
 
     def test_array_create(self):
         """Test lfilter example."""
-        t = numpy.linspace(-1, 1, 44)
+        t = numpy.linspace(1, 45, 44)
         x = [
             6.10073773779645,
             6.083901597959422,
@@ -65,8 +65,8 @@ class TestScipy(unittest.TestCase):
         xn_array = numpy.asarray(x)
         xn_list = x
 
-        print(xn_array)
-        print(xn_list)
+        # print(xn_array)
+        # print(xn_list)
 
         self.assertIsInstance(xn_array, numpy.ndarray)
         self.assertIsInstance(xn_list, list)
@@ -78,26 +78,27 @@ class TestScipy(unittest.TestCase):
         t, x, xn = self.test_array_create()
         b, a = sig.butter(2, 0.05)
 
-        zi = sig.lfilter_zi(b, a)
-        z, _ = sig.lfilter(b, a, xn, zi=zi*xn[0])
-        z2, _ = sig.lfilter(b, a, z, zi=zi*z[0])
+        # zi = sig.lfilter_zi(b, a)
+        # z, _ = sig.lfilter(b, a, xn, zi=zi*xn[0])
+        # z2, _ = sig.lfilter(b, a, z, zi=zi*z[0])
         y = sig.filtfilt(b, a, xn)
 
-        print(t)
+        # print(t)
         print(y)
 
-        return t, x, xn, b, a, zi, z, z2, y
+        # x, b, a, zi, z, z2
+        return t, xn, y
 
     def test_matplotlib_example(self):
         """Test lfilter example."""
-        t, x, xn, b, a, zi, z, z2, y = self.test_lfilter_example()
+        t, xn, y = self.test_lfilter_example()
 
         plt.figure
         plt.plot(t, xn, 'b', alpha=0.25)
-        plt.plot(t, z, 'r--')
-        plt.plot(t, z2, 'r')
+        # plt.plot(t, z, 'r--')
+        # plt.plot(t, z2, 'r')
         plt.plot(t, y, 'k')
-        plt.legend(('noisy signal', 'lfilter, once', 'lfilter, twice', 'filtfilt'), loc='best')
+        plt.legend(('noisy signal', 'filtfilt'), loc='best')
         plt.grid(True)
         plt.show()
 
