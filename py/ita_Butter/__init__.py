@@ -1,15 +1,39 @@
 """
-ita_Butter: A Butterworth filter for Maya's animation curves.
+Butter: A Butterworth filter for Maya's animation curves.
 
+To load:
+========
 import ita_Butter
 ita_Butter.show()
+
+For help, see README.md or open the help through the tool interface.
+
+
+(c) Jeffrey "italic" Hoover
+italic DOT rendezvous AT gmail DOT com
+
+Licensed under the Apache 2.0 license.
+This script can be used for non-commercial
+and commercial projects free of charge.
+For more information, visit:
+https://www.apache.org/licenses/LICENSE-2.0
 """
 
+# Builtins
+import os
+import site
+
+# Maya
 import pymel.core as pmc
 
+# Module
 from utils.qtshim import QtCore, logging
 from utils.mayautils import get_maya_window, UndoChunk
 from ButterUI import ButterWindow
+
+deps_path = os.path.join(os.path.dirname(__file__), 'deps')
+site.addsitedir(deps_path)
+
 import scipy_interface
 
 
