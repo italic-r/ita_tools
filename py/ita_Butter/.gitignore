@@ -1,4 +1,6 @@
 mock/*
+deps/*numpy*
+deps/*scipy*
 deps/*.whl*
 deps/*.xz*
 deps/*.7z*
