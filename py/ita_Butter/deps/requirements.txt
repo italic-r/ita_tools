@@ -1,3 +1,9 @@
-# Required packages:
-numpy==1.9.2
-scipy=0.16.0
+# Windows
+numpy==1.9.2   # https://pypi.anaconda.org/carlkl/simple/numpy/
+scipy==0.16.0  # https://pypi.anaconda.org/carlkl/simple/scipy/
+
+# Linux
+numpy>=1.9.2   #
+scipy>=0.16.0  #
+
+# Mac TBD

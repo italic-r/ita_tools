@@ -8,21 +8,23 @@ below.
 Dependencies
 --
 Butter requires Numpy and Scipy. These are libraries with C extensions, so must
-be compiled for Maya's Python interpreter and be made available to it. The
-script looks for these libraries under `ita_Butter/deps`, but any other
+be compiled for Maya's Python interpreter (mayapy) and be made available to it.
+The script looks for these libraries under `ita_Butter/deps`, but any other
 available site-packages directory would also work. Compiling C extensions is
 beyond the scope of this readme, but pre-compiled binaries are available for
 download:
 
-[Windows](TBD)
-[Mac](TBD)
-[Linux](TBD)
+Windows:
+[Numpy_1.9.2](https://pypi.anaconda.org/carlkl/simple/numpy/)
+[Scipy_0.16.0](https://pypi.anaconda.org/carlkl/simple/scipy/)
+
+Mac and Linux: See [Linux README](README_linux.md) for instructions.
 
 For a custom site-packages directory:
 
-`import site; site.addsitedir('/path/to/site/packages')   # Linux/Mac`
+* `import site; site.addsitedir('/path/to/site/packages')   # Linux/Mac`
 
-`import site; site.addsitedir('C:\path\to\site\packages') # Windows`
+* `import site; site.addsitedir('C:\path\to\site\packages') # Windows`
 
 To Install
 --
@@ -59,4 +61,3 @@ Submit [bug reports](https://github.com/Italic-/ita_tools/issues) and
 [pull requests](https://github.com/Italic-/ita_tools/pulls).
 
 Enjoy!
-
