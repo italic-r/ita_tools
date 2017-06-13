@@ -60,7 +60,6 @@ _FilterOrder = 4
 
 def construct_settings():
     global _CurveDict
-    global _SceneFPS
 
     _CurveDict = build_key_dict()
 
@@ -84,8 +83,10 @@ def build_key_dict():
 def get_curves():
     if pmc.keyframe(q=True, sl=True, name=True):
         crvs = [pmc.nodetypes.AnimCurve(crv) for crv in pmc.keyframe(q=True, sl=True, name=True)]
-    else:
+    elif pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True):
         crvs = [pmc.nodetypes.AnimCurve(crv) for crv in pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True)]
+    else:
+        crvs = []
     return crvs
 
 

@@ -24,13 +24,13 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.__set_connections()
         self.__place_ui()
         self.move(self.settings.value("mainwindow/position", QtCore.QPoint(0, 0)))
-        self.resize(370, 162)
+        self.resize(370, 186)
         self._ButterHelp = None
 
     def __setup_ui(self):
         self.setObjectName("ButterWindow")
-        self.setMinimumSize(232, 162)
-        self.setMaximumSize(1280, 162)
+        self.setMinimumSize(232, 186)
+        self.setMaximumSize(1280, 186)
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setFamily("Arial")
@@ -105,6 +105,11 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderValMax.setReadOnly(True)
         self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
+        # Buttons 24 px tall
+        # self.start_filter = QtWidgets.QPushButton(text="Start interactive filter")
+        # self.end_filter = QtWidgets.QPushButton(text="Exit filter")
+        self.help_button = QtWidgets.QPushButton(text="Help...")
+
     def __place_ui(self):
         self.radioRow.addWidget(self.radioHighPass)
         self.radioRow.addWidget(self.radioBandPass)
@@ -126,6 +131,10 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.LayoutVert1.addWidget(self.FrameMinFreq)
         self.LayoutVert1.addWidget(self.FrameMaxFreq)
 
+        # self.LayoutVert1.addWidget(self.start_filter)
+        # self.LayoutVert1.addWidget(self.end_filter)
+        self.LayoutVert1.addWidget(self.help_button)
+
         self.setCentralWidget(self.centralwidget)
 
         # Set default slider enable/disable state
@@ -133,6 +142,8 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.radioLowPass.toggle()
 
     def __set_connections(self):
+        self.help_button.pressed.connect(self.show_help_ui)
+
         self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
         self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
         self.sliderMin.valueChanged.connect(self.__slider_min_send)
@@ -189,6 +200,7 @@ class ButterWindow(QtWidgets.QMainWindow):
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
         self.settings.setValue("mainwindow/position", self.pos())
+        self.settings.setValue("mainwindow/size", self.size())
         super(ButterWindow, self).closeEvent(*args, **kwargs)
 
     def show_help_ui(self):
@@ -204,19 +216,23 @@ class ButterHelpWindow(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None):
         """:param parent: Window to place Butter Help under."""
+        super(ButterHelpWindow, self).__init__(parent=parent)
         self.helpText = (
             ""
         )
         self.settings = QtCore.QSettings("italic", "Butter")
         self.__setup_ui()
-        self.move(self.settings.value("helpwindowposition", QtCore.QPoint(0, 0)))
+        self.move(self.settings.value("help/position", QtCore.QPoint(0, 0)))
+        self.resize(self.settings.value("help/size", QtCore.QSize(0, 0)))
+        self.show()
 
     def __setup_ui(self):
         pass
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to file."""
-        self.settings.setValue("helpwindowposition", self.pos())
+        self.settings.setValue("help/position", self.pos())
+        self.settings.setValue("help/size", self.size())
         super(ButterHelpWindow, self).closeEvent(*args, **kwargs)
 
 
