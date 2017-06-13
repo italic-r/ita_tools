@@ -36,8 +36,8 @@ For more information, visit:
 https://www.apache.org/licenses/LICENSE-2.0
 """
 
-__version__ = 2.0
-__date__ = (12, "June", 2017)
+__version__ = 1.5
+__date__ = (13, "June", 2017)
 __author__ = "Jeffrey 'italic' Hoover"
 __license__ = "Apache 2.0"
 
@@ -100,13 +100,12 @@ def build_key_dict():
 
 
 def get_curves():
-    if pmc.keyframe(q=True, sl=True, name=True):
-        crvs = [pmc.nodetypes.AnimCurve(crv) for crv in pmc.keyframe(q=True, sl=True, name=True)]
-    elif pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True):
-        crvs = [pmc.nodetypes.AnimCurve(crv) for crv in pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True)]
-    else:
-        crvs = []
-    return crvs
+    available_curves = \
+        pmc.keyframe(q=True, sl=True, name=True) or \
+        pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True) or \
+        []
+
+    return [pmc.nodetypes.AnimCurve(crv) for crv in available_curves]
 
 
 # Undo queue stacking =========================================================
