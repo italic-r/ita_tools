@@ -5,6 +5,42 @@ Butter is under active development. Functionality and interface may change
 periodically. Please report any bugs and submit pull requests at the links
 below.
 
+This filter allows you to quickly smooth and denoise high-density animation
+curves, usually from motion capture. If any curves are selected, the filter
+will manipulate only selected curves. If no curves are selected, the filter
+will manipulate all visible curves in the graph editor.
+
+Quick tip: expand the window sideways for higher precision!
+
+How to use:
+Enable the filter by clicking Start interactive filter.
+Select your filter type from [Highpass, Bandpass, Lowpass].
+Use the sliders to start filtering curves.
+Exit the filter by clicking Exit filter.
+Undo or redo as necessary.
+
+
+Loading and Unloading
+--
+```python
+# Load
+import ita_Butter
+ita_Butter.show()
+```
+
+
+To Install
+--
+Put ita_Butter directory into your maya scripts directory. The default
+locations are:
+
+| System | Location |
+| ------ | ------ |
+| Windows | C:\Users\\_user_\My Documents\maya\\_version_\prefs\scripts |
+| Linux | ~/maya/_version_/prefs/scripts |
+| Mac | /Users/_user_/Library/Preferences/Autodesk/maya/version |
+
+
 Dependencies
 --
 Butter requires Numpy and Scipy. These are libraries with C extensions, so must
@@ -26,24 +62,6 @@ For a custom site-packages directory:
 
 * `import site; site.addsitedir('C:\path\to\site\packages') # Windows`
 
-To Install
---
-Put ita_Butter directory into your maya scripts directory. The default
-locations are:
-
-| System | Location |
-| ------ | ------ |
-| Windows | C:\Users\\_user_\My Documents\maya\\_version_\prefs\scripts |
-| Linux | ~/maya/_version_/prefs/scripts |
-| Mac | /Users/_user_/Library/Preferences/Autodesk/maya/version |
-
-Loading and Unloading
---
-``python
-# Load
-import ita_Butter
-ita_Butter.show()
-``
 
 # License
 

@@ -49,22 +49,24 @@ Call `import numpy` to import the Numpy library. If it gives no feedback, it
 imported without error. Great!
 
 #### Numpy in Maya
-Say you want to use Numpy in Maya for writing a tool. If you copy the numpy library
-over to your Maya scripts directory, you would expect Maya to find the
-library and import it just as in your virtual environment. However, Maya spits
-out an error saying a library could not be loaded. We can fix this with one line:
-`import os, site; site.addsitedir(os.path.expanduser(~/.virtualenvs/mayapy/lib/python2.7/site-packages))`
-Now try to import Numpy. Again, it will give no output if successful. You now
-have a fast math library for use in Maya and your scripts. Any tool that
-requires Numpy will have access to Numpy through this path, so there's no
-need to have multiple copies of Numpy floating around.
+Say you want to use Numpy in Maya for writing a tool. If you copy the numpy
+library over to your Maya scripts directory, you would expect Maya to find
+the library and import it just as in your virtual environment. However, Maya
+will spit out an error saying a library could not be loaded. Without moving
+Numpy, we can fix this with one line:
+```import os, site; site.addsitedir(os.path.expanduser(~/.virtualenvs/mayapy/lib/python2.7/site-packages))```
+Importing Numpy should result in no output. You now have a fast math library
+for use in Maya and your scripts. Any tool that requires Numpy will have
+access to Numpy through this path, so there's no need to have multiple copies
+of Numpy floating around.
 
-The next logical step is to add this path to your Maya configuration using `userSetup.py`.
-Copy the same code line to the top of userSetup.py and it is now available on Maya startup.
+The next logical step is to add this path to your Maya configuration using
+`userSetup.py`. Copy the same code line to the top of userSetup.py and it
+is now available on Maya startup.
 
 It is important to note an added benefit to using site-packages from the
-virtual environment: you can develop in the virtual environment and access all
-the same libraries within Maya.
+virtual environment: you can develop in the virtual environment as you would
+normally and access all the same libraries within Maya.
 
 #### For individual tools
 To use with a single tool, make a 'deps' folder in the tool root.
@@ -77,8 +79,8 @@ tool_root/
     __init__.py
     ...
 ```
-In \__init\__.py add the line
-`import os, site; site.addsitedir(os.path.join(os.path.dirname(__file__), 'deps'))`
+In \__init\__.py add the line:
+```import os, site; site.addsitedir(os.path.join(os.path.dirname(__file__), 'deps'))```
 
 ## Recap
 * Make sure Python 2.7.x and virtualenv are on your system.
@@ -93,3 +95,7 @@ In \__init\__.py add the line
 * Start Maya as normal and import Numpy from the script editor or through a Python
   script.
 * Develop your Maya scripts within the virtual environment.
+
+Have questions/comments/revision? Leave a
+[report](https://github.com/Italic-/ita_tools/issues) or
+[pull request](https://github.com/Italic-/ita_tools/pulls) on Github.
