@@ -1,14 +1,31 @@
 """
 Butter: A Butterworth filter for Maya's animation curves.
 
+This filter allows you to quickly smooth and denoise high-density animation
+curves, usually from motion capture. If any curves are selected, the filter
+will manipulate only selected curves. If no curves are selected, the filter
+will manipulate all visible curves in the graph editor.
+
+Quick tip: expand the window sideways for higher precision!
+
 To load:
 ========
 import ita_Butter
 ita_Butter.show()
 
+How to use:
+==========
+Enable the filter by clicking Start interactive filter.
+Select your filter type from [Highpass, Bandpass, Lowpass].
+Use the sliders to start filtering curves:
+    Maximum filters out higher-frequency noise (smaller curve shapes).
+    Minimum filters out lower-frequency noise (larger curve shapes).
+Exit the filter by clicking Exit filter.
+Undo or redo as necessary.
+
 For help, see README.md or open the help through the tool interface.
 
-
+----
 (c) Jeffrey "italic" Hoover
 italic DOT rendezvous AT gmail DOT com
 
@@ -28,7 +45,7 @@ import pymel.core as pmc
 
 # Module
 from utils.qtshim import QtCore, logging
-from utils.mayautils import get_maya_window, UndoChunk
+from utils.mayautils import get_maya_window  # UndoChunk
 from ButterUI import ButterWindow
 
 deps_path = os.path.join(os.path.dirname(__file__), 'deps')
@@ -60,7 +77,6 @@ _FilterOrder = 4
 
 def construct_settings():
     global _CurveDict
-
     _CurveDict = build_key_dict()
 
 
@@ -121,13 +137,12 @@ def scipy_send(low, high, pass_type):
             log.debug("Original: {}".format(data))
             log.debug("Filtered: {}".format(new_curve))
 
-            with UndoChunk():
-                set_key_values(anim_curve=crv, data=new_curve)
+            set_key_values(anim_curve=crv, data=new_curve)
 
 
 def set_connections():
-    _Butter.SliderClickSig.connect(__open_undo_queue)
-    _Butter.SliderReleaseSig.connect(__close_undo_queue)
+    _Butter.FilterStartSig.connect(__open_undo_queue)
+    _Butter.FilterEndSig.connect(__close_undo_queue)
     _Butter.SliderMinChangedSig.connect(scipy_send)
     _Butter.SliderMaxChangedSig.connect(scipy_send)
 
