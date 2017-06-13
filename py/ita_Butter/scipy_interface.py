@@ -5,11 +5,19 @@ Data passed into this module is pure Python. Data is converted into usable form
 to pass into respective functions and returned as pure Python.
 """
 
-import numpy
-import scipy.signal as sig
-from utils.qtshim import logging
 
+from utils.qtshim import logging
 log = logging.getLogger(__name__)
+
+try:
+    import numpy
+except ImportError:
+    log.error("Numpy not available. Did you install Numpy properly?")
+try:
+    import scipy.signal as sig
+except ImportError:
+    log.error("Scipy not available. Did you install Scipy properly?")
+
 
 
 def create_filter(low, high, order, pass_type=None):
