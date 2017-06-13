@@ -60,7 +60,7 @@ For a custom site-packages directory:
 
 * `import site; site.addsitedir('/path/to/site/packages')   # Linux/Mac`
 
-* `import site; site.addsitedir('C:\path\to\site\packages') # Windows`
+* `import site; site.addsitedir('C:\\path\\to\\site\\packages') # Windows`
 
 
 # License
