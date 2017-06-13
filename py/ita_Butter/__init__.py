@@ -66,7 +66,7 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
 LogHandler.setFormatter(LogFormat)
 log.addHandler(LogHandler)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 
 # Global Data =================================================================
@@ -131,8 +131,8 @@ def scipy_send(low, high, pass_type):
     low = low * 0.00001   # Subject to fine-tuning
     high = high * 0.001  # Subject to fine-tuning
     if _CurveDict:
+        b, a = scipy_interface.create_filter(low, high, _FilterOrder, pass_type=pass_type)
         for (crv, data) in _CurveDict.iteritems():
-            b, a = scipy_interface.create_filter(low, high, _FilterOrder, pass_type=pass_type)
             new_curve = scipy_interface.filter_list(b, a, data)
 
             log.debug("Order:    {}".format(_FilterOrder))
