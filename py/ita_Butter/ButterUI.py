@@ -106,7 +106,6 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderValMax.setReadOnly(True)
         self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
-        # Buttons 24 px tall
         self.start_filter = QtWidgets.QPushButton(text="Start interactive filter")
         self.end_filter = QtWidgets.QPushButton(text="Exit filter")
         self.help_button = QtWidgets.QPushButton(text="Help...")
@@ -233,7 +232,31 @@ class ButterHelpWindow(QtWidgets.QMainWindow):
         """:param parent: Window to place Butter Help under."""
         super(ButterHelpWindow, self).__init__(parent=parent)
         self.helpText = (
-            ""
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+            "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+            "p, li { white-space: pre-wrap; }\n"
+            "</style></head><body style=\" font-family:\'Sans Serif\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:600;\">Butter</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">An animation curve filter for Maya.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This filter allows you to quickly smooth and denoise high-density animation curves, usually from motion capture. If any curves are selected, the filter will manipulate only selected curves. If no curves are selected, the filter will manipulate all visible curves in the graph editor.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Quick tip: expand the window sideways for higher precision!</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt; font-weight:600;\">How to use:</span></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Enable the filter by clicking <span style=\" font-weight:600;\">Start interactive filter</span>.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Select your filter type from [Highpass, Bandpass, Lowpass].</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Use the sliders to start filtering curves.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Exit the filter by clicking <span style=\" font-weight:600;\">Exit filter</span>.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Undo or redo as necessary.</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">----</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">(c) Jeffrey &quot;italic&quot; Hoover</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">italic DOT rendezvous AT gmail DOT com</p>\n"
+            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Licensed under the Apache 2.0 license.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This script can be used for commercial and non-commercial projects free of charge.</p>\n"
+            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.apache.org/licenses/LICENSE-2.0\"><span style=\" text-decoration: underline; color:#0057ae;\">https://www.apache.org/licenses/LICENSE-2.0</span></a></p></body></html>"
         )
         self.settings = QtCore.QSettings("italic", "Butter")
         self.__setup_ui()
@@ -246,7 +269,7 @@ class ButterHelpWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("Butter Help")
         self.setMinimumSize(325, 250)
         self.setMaximumSize(600, 425)
-        font = QtGui.QFont
+        font = QtGui.QFont()
         font.setPointSize(8)
         font.setFamily("Arial")
         self.setFont(font)

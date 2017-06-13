@@ -36,14 +36,17 @@ For more information, visit:
 https://www.apache.org/licenses/LICENSE-2.0
 """
 
-# Builtins
+__version__ = 2.0
+__date__ = (12, "June", 2017)
+__author__ = "Jeffrey 'italic' Hoover"
+__license__ = "Apache 2.0"
+
+
 import os
 import site
 
-# Maya
 import pymel.core as pmc
 
-# Module
 from utils.qtshim import QtCore, logging
 from utils.mayautils import get_maya_window  # UndoChunk
 from ButterUI import ButterWindow
@@ -157,4 +160,4 @@ def show():
 
 
 if __name__ == '__main__':
-    pass
+    show()
