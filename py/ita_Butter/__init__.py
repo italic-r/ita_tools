@@ -1,3 +1,5 @@
+#!/bin/python
+
 """
 Butter: A Butterworth filter for Maya's animation curves.
 
@@ -78,28 +80,28 @@ _FilterOrder = 4
 
 # Data builders ===============================================================
 
-def construct_settings():
+def __construct_settings():
     global _CurveDict
-    _CurveDict = build_key_dict()
+    _CurveDict = __build_key_dict()
 
 
-def set_key_values(anim_curve=None, data=None):
+def __set_key_values(anim_curve=None, data=None):
     for (ind, val) in enumerate(data):
         anim_curve.setValue(ind, val)
 
 
-def get_key_values(anim_curve=None):
+def __get_key_values(anim_curve=None):
     return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys())]
 
 
-def build_key_dict():
+def __build_key_dict():
     crv_dict = dict()
-    for crv in get_curves():
-        crv_dict[crv] = get_key_values(crv)
+    for crv in __get_curves():
+        crv_dict[crv] = __get_key_values(crv)
     return crv_dict
 
 
-def get_curves():
+def __get_curves():
     available_curves = \
         pmc.keyframe(q=True, sl=True, name=True) or \
         pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True) or \
@@ -114,7 +116,7 @@ def get_curves():
 def __open_undo_queue():
     """Open UndoQueue stack and collect settings."""
     pmc.undoInfo(openChunk=True)
-    construct_settings()
+    __construct_settings()
 
 
 @QtCore.Slot()
@@ -127,6 +129,7 @@ def __close_undo_queue():
 
 @QtCore.Slot()
 def scipy_send(low, high, pass_type):
+    """Send data to Scipy and get filter parameters and filtered data."""
     low = low * 0.00001   # Subject to fine-tuning
     high = high * 0.001  # Subject to fine-tuning
     if _CurveDict:
@@ -139,10 +142,10 @@ def scipy_send(low, high, pass_type):
             log.debug("Original: {}".format(data))
             log.debug("Filtered: {}".format(new_curve))
 
-            set_key_values(anim_curve=crv, data=new_curve)
+            __set_key_values(anim_curve=crv, data=new_curve)
 
 
-def set_connections():
+def __set_connections():
     _Butter.FilterStartSig.connect(__open_undo_queue)
     _Butter.FilterEndSig.connect(__close_undo_queue)
     _Butter.SliderMinChangedSig.connect(scipy_send)
@@ -150,11 +153,12 @@ def set_connections():
 
 
 def show():
+    """Start Butter and show window."""
     global _Butter
     if _Butter is None:
         log.info("Initializing Butter")
         _Butter = ButterWindow(parent=get_maya_window())
-        set_connections()
+        __set_connections()
     _Butter.show()
 
 
