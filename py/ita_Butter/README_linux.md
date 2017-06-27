@@ -54,7 +54,7 @@ library over to your Maya scripts directory, you would expect Maya to find
 the library and import it just as in your virtual environment. However, Maya
 will spit out an error saying a library could not be loaded. Without moving
 Numpy, we can fix this with one line:
-```import os, site; site.addsitedir(os.path.expanduser(~/.virtualenvs/mayapy/lib/python2.7/site-packages))```
+```import os, site; site.addsitedir(os.path.expanduser("~/.virtualenvs/mayapy/lib/python2.7/site-packages"))```
 Importing Numpy should result in no output. You now have a fast math library
 for use in Maya and your scripts. Any tool that requires Numpy will have
 access to Numpy through this path, so there's no need to have multiple copies
@@ -90,7 +90,7 @@ In \__init\__.py add the line:
 * `pip install numpy` to install Numpy.
 * Put ``python
   import os, site;
-  site.addsitedir(os.path.expanduser(~/.virtualenvs/mayapy/lib/python2.7/site-packages))``
+  site.addsitedir(os.path.expanduser("~/.virtualenvs/mayapy/lib/python2.7/site-packages"))``
   at the top of `userSetup.py`
 * Start Maya as normal and import Numpy from the script editor or through a Python
   script.
