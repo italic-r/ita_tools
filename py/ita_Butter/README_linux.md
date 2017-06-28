@@ -57,8 +57,12 @@ Numpy, we can fix this with one line:
 ```import os, site; site.addsitedir(os.path.expanduser("~/.virtualenvs/mayapy/lib/python2.7/site-packages"))```
 Importing Numpy should result in no output. You now have a fast math library
 for use in Maya and your scripts. Any tool that requires Numpy will have
-access to Numpy through this path, so there's no need to have multiple copies
+access to Numpy through this path, so there is no need to have multiple copies
 of Numpy floating around.
+
+Scipy
+--
+Follow the same instructions as with [Numpy](README_linux.md#numpy).
 
 The next logical step is to add this path to your Maya configuration using
 `userSetup.py`. Copy the same code line to the top of userSetup.py and it
