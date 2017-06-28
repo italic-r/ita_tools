@@ -2,6 +2,18 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 
+def YupZup():
+    if cmds.upAxis(q=True, axis=True) == "y":
+        cmds.upAxis(ax="z", rv=True)
+    else:
+        cmds.upAxis(ax="y", rv=True)
+
+    for cam in cmds.listCameras():
+        cmds.viewSet(cam, animate=False, home=True)
+
+    cmds.viewFit(all=True)
+
+
 def hideVPelement(typ):
     """
     //Hide viewport element (nurbs, polys, joints, etc)
