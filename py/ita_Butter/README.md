@@ -50,9 +50,7 @@ available site-packages directory would also work. Compiling C extensions is
 beyond the scope of this readme, but pre-compiled binaries are available for
 download:
 
-Windows:
-[Numpy_1.9.2](https://pypi.anaconda.org/carlkl/simple/numpy/)
-[Scipy_0.16.0](https://pypi.anaconda.org/carlkl/simple/scipy/)
+Windows: See [Windows README](README_win.md) for instructions.
 
 Mac and Linux: See [Linux README](README_linux.md) for instructions.
 
