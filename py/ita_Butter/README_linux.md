@@ -64,6 +64,8 @@ Scipy
 --
 Follow the same instructions as with [Numpy](README_linux.md#numpy).
 
+Utilizing The Libraries
+--
 The next logical step is to add this path to your Maya configuration using
 `userSetup.py`. Copy the same code line to the top of userSetup.py and it
 is now available on Maya startup.
