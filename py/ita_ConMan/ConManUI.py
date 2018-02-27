@@ -129,6 +129,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self._CManHelp = None
 
     def __setup_ui(self):
+        self.setWindowTitle("Constraint Manager")
         self.setObjectName("ConManWindow")
         self.resize(250, 425)
         self.setMinimumSize(250, 425)
@@ -238,6 +239,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.tabWidget.setTabBar(self.tabBar)
 
         self.ConstraintOptions = QtWidgets.QWidget()
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.ConstraintOptions), "Constraint Options")
 
         self.gridLayoutWidget = QtWidgets.QWidget(self.ConstraintOptions)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 240, 185))
@@ -251,74 +253,92 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.LabelOffset = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelOffset.setFont(font)
         self.LabelOffset.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelOffset.setText("Offset")
 
         self.LabelMOffset = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelMOffset.setFont(font)
         self.LabelMOffset.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelMOffset.setText("Maintain Off")
 
         self.LabelTr = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelTr.setFont(font)
         self.LabelTr.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelTr.setText("Translate")
 
         self.LabelRo = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelRo.setFont(font)
         self.LabelRo.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelRo.setText("Rotate")
 
         self.LabelSc = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelSc.setFont(font)
         self.LabelSc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelSc.setText("Scale")
 
         self.LabelWeight = QtWidgets.QLabel(self.gridLayoutWidget)
         self.LabelWeight.setFont(font)
         self.LabelWeight.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.LabelWeight.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.LabelWeight.setText("Weight")
 
         # Checkboxes
         self.CheckOffset = QtWidgets.QCheckBox(self.gridLayoutWidget)
-        self.CheckOffset.setText("")
         self.CheckOffset.setChecked(True)
+        self.CheckOffset.setText("")
 
         # Translate checkboxes
         self.CheckTrAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrAll.setFont(font)
         self.CheckTrAll.setChecked(True)
+        self.CheckTrAll.setText("All")
 
         self.CheckTrX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrX.setFont(font)
+        self.CheckTrX.setText("X")
 
         self.CheckTrY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrY.setFont(font)
+        self.CheckTrY.setText("Y")
 
         self.CheckTrZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckTrZ.setFont(font)
+        self.CheckTrZ.setText("Z")
 
         # Rotate checkboxes
         self.CheckRoAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoAll.setFont(font)
         self.CheckRoAll.setChecked(True)
+        self.CheckRoAll.setText("All")
 
         self.CheckRoX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoX.setFont(font)
+        self.CheckRoX.setText("X")
 
         self.CheckRoY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoY.setFont(font)
+        self.CheckRoY.setText("Y")
 
         self.CheckRoZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckRoZ.setFont(font)
+        self.CheckRoZ.setText("Z")
 
         # Scale checkboxes
         self.CheckScAll = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScAll.setFont(font)
         self.CheckScAll.setChecked(True)
+        self.CheckScAll.setText("All")
 
         self.CheckScX = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScX.setFont(font)
+        self.CheckScX.setText("X")
 
         self.CheckScY = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScY.setFont(font)
+        self.CheckScY.setText("Y")
 
         self.CheckScZ = QtWidgets.QCheckBox(self.gridLayoutWidget)
         self.CheckScZ.setFont(font)
+        self.CheckScZ.setText("Z")
 
         # Spin boxes
         self.SpinOffsetX = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
@@ -337,6 +357,8 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.SpinWeight.setProperty("value", 1.0)
 
         self.Switch = QtWidgets.QWidget()
+        self.ButtonSwitch.setText("Switch")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Switch), "Switch")
 
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.Switch)
         self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 235, 110))
@@ -358,10 +380,12 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonOff = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonOff.setMinimumHeight(25)
         self.ButtonOff.setToolTip("Turn all target weights OFF.")
+        self.ButtonOff.setText("OFF")
 
         self.ButtonAll = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonAll.setMinimumHeight(25)
         self.ButtonAll.setToolTip("Turn all target weights ON.")
+        self.ButtonAll.setText("ALL")
 
         self.ButtonSwitch = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.ButtonSwitch.setMinimumHeight(25)
@@ -370,10 +394,12 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.CheckVisTrans = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckVisTrans.setChecked(True)
         self.CheckVisTrans.setToolTip("Keep object in the same position\nby updating constraint offsets.")
+        self.CheckVisTrans.setText("Maintain Visual Transforms")
 
         self.CheckKey = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
         self.CheckKey.setChecked(True)
         self.CheckKey.setToolTip("Key offsets, transforms and blend attributes.")
+        self.CheckKey.setText("Key")
 
         self.ButtonRow2 = QtWidgets.QHBoxLayout()
         self.ButtonRow2.setSpacing(0)
@@ -382,14 +408,15 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonHelp.setMinimumHeight(30)
         self.ButtonHelp.setFont(font)
         self.ButtonHelp.setToolTip("Open help documentation.")
+        self.ButtonHelp.setText("Help")
 
         self.ButtonPurge = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.ButtonPurge.setMinimumHeight(30)
         self.ButtonPurge.setFont(font)
         self.ButtonPurge.setToolTip("Remove all ConMan data. \nWARNING: CANNOT BE UNDONE")
+        self.ButtonPurge.setText("Purge...")
 
         self.__place_ui()
-        self.__retranslate_ui()
         self.__set_connections()
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -441,36 +468,6 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonRow2.addWidget(self.ButtonPurge)
         self.LayoutVert1.addLayout(self.ButtonRow2)
         self.setCentralWidget(self.centralwidget)
-
-    def __retranslate_ui(self):
-        self.setWindowTitle(QtWidgets.QApplication.translate("ConManWindow", "Constraint Manager", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelOffset.setText(QtWidgets.QApplication.translate("ConManWindow", "Offset", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelMOffset.setText(QtWidgets.QApplication.translate("ConManWindow", "Maintain Off", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelTr.setText(QtWidgets.QApplication.translate("ConManWindow", "Translate", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelRo.setText(QtWidgets.QApplication.translate("ConManWindow", "Rotate", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelSc.setText(QtWidgets.QApplication.translate("ConManWindow", "Scale", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.LabelWeight.setText(QtWidgets.QApplication.translate("ConManWindow", "Weight", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckTrAll.setText(QtWidgets.QApplication.translate("ConManWindow", "All", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckTrX.setText(QtWidgets.QApplication.translate("ConManWindow", "X", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckTrY.setText(QtWidgets.QApplication.translate("ConManWindow", "Y", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckTrZ.setText(QtWidgets.QApplication.translate("ConManWindow", "Z", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckRoAll.setText(QtWidgets.QApplication.translate("ConManWindow", "All", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckRoX.setText(QtWidgets.QApplication.translate("ConManWindow", "X", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckRoY.setText(QtWidgets.QApplication.translate("ConManWindow", "Y", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckRoZ.setText(QtWidgets.QApplication.translate("ConManWindow", "Z", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckScAll.setText(QtWidgets.QApplication.translate("ConManWindow", "All", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckScX.setText(QtWidgets.QApplication.translate("ConManWindow", "X", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckScY.setText(QtWidgets.QApplication.translate("ConManWindow", "Y", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckScZ.setText(QtWidgets.QApplication.translate("ConManWindow", "Z", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.ConstraintOptions), QtWidgets.QApplication.translate("ConManWindow", "Constraint Options", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.ButtonOff.setText(QtWidgets.QApplication.translate("ConManWindow", "OFF", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.ButtonAll.setText(QtWidgets.QApplication.translate("ConManWindow", "ALL", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.ButtonSwitch.setText(QtWidgets.QApplication.translate("ConManWindow", "Switch", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckVisTrans.setText(QtWidgets.QApplication.translate("ConManWindow", "Maintain Visual Transforms", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.CheckKey.setText(QtWidgets.QApplication.translate("ConManWindow", "Key", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Switch), QtWidgets.QApplication.translate("ConManWindow", "Switch", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.ButtonHelp.setText(QtWidgets.QApplication.translate("ConManWindow", "Help", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.ButtonPurge.setText(QtWidgets.QApplication.translate("ConManWindow", "Purge...", None, QtWidgets.QApplication.UnicodeUTF8))
 
     def __set_tab_order(self):
         self.setTabOrder(self.ObjList, self.ButtonAdd)
