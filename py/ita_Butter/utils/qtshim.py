@@ -16,9 +16,12 @@ log = logging.getLogger(__name__)
 
 if Qt.__binding__ in ("PySide", "PySide2"):
     try:
-        import shiboken
-    except:
-        from Shiboken import shiboken
+        import shiboken2 as shiboken
+    except ImportError:
+        try:
+            import shiboken
+        except ImportError:
+            from Shiboken import shiboken
 
     log.debug("Imported PySide and shiboken")
 
