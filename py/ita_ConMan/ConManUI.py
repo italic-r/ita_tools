@@ -357,7 +357,6 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.SpinWeight.setProperty("value", 1.0)
 
         self.Switch = QtWidgets.QWidget()
-        self.ButtonSwitch.setText("Switch")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Switch), "Switch")
 
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.Switch)
@@ -388,6 +387,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.ButtonAll.setText("ALL")
 
         self.ButtonSwitch = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
+        self.ButtonSwitch.setText("Switch")
         self.ButtonSwitch.setMinimumHeight(25)
         self.ButtonSwitch.setToolTip("Weight constraint to a single target.")
 
