@@ -239,7 +239,6 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.tabWidget.setTabBar(self.tabBar)
 
         self.ConstraintOptions = QtWidgets.QWidget()
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.ConstraintOptions), "Constraint Options")
 
         self.gridLayoutWidget = QtWidgets.QWidget(self.ConstraintOptions)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 240, 185))
@@ -357,7 +356,6 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.SpinWeight.setProperty("value", 1.0)
 
         self.Switch = QtWidgets.QWidget()
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Switch), "Switch")
 
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.Switch)
         self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 235, 110))
@@ -454,7 +452,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.OptionsGrid.addWidget(self.SpinOffsetY, 1, 2, 1, 1)
         self.OptionsGrid.addWidget(self.SpinOffsetZ, 1, 3, 1, 1)
         self.OptionsGrid.addWidget(self.SpinWeight, 8, 1, 1, 1)
-        self.tabWidget.addTab(self.ConstraintOptions, "")
+        self.tabWidget.addTab(self.ConstraintOptions, "Constraint Options")
         self.SwitchCol.addWidget(self.MenuSwitchTarget)
         self.ButtonRow3.addWidget(self.ButtonOff)
         self.ButtonRow3.addWidget(self.ButtonAll)
@@ -462,7 +460,7 @@ class ConManWindow(QtWidgets.QMainWindow):
         self.SwitchCol.addLayout(self.ButtonRow3)
         self.SwitchCol.addWidget(self.CheckVisTrans)
         self.SwitchCol.addWidget(self.CheckKey)
-        self.tabWidget.addTab(self.Switch, "")
+        self.tabWidget.addTab(self.Switch, "Switch")
         self.LayoutVert1.addWidget(self.tabWidget)
         self.ButtonRow2.addWidget(self.ButtonHelp)
         self.ButtonRow2.addWidget(self.ButtonPurge)
