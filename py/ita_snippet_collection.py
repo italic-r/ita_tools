@@ -272,7 +272,7 @@ def pin_control():
     # Rigging Dojo: 2016 v.2
     aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
     selection = cmds.ls(sl=True)
-    selectionActvive = cmds.timeControl(aPlayBackSliderPython, query=True, rangeVisible=True)
+    selectionActive = cmds.timeControl(aPlayBackSliderPython, query=True, rangeVisible=True)
     selectedRange = cmds.timeControl(aPlayBackSliderPython, query=True, rangeArray=True)
     frameRange = range(*map(int, selectedRange))
     zeroStartKey = cmds.setKeyframe(selection, time=(selectedRange[0] - 1), id=True)  # zero the frames to base layer adjust as needed
