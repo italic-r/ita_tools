@@ -50,7 +50,7 @@ I recommend something like *%MAYA_APP_DIR%\\deps*.
 
 * * For general use in Maya, in _userSetup.py_ put the line at the top:
 ```python
-import os, site; site.addsitedir(os.path.expandvars("$MAYA_APP_DIR/deps"))
+import os, site; site.addsitedir(os.path.join(os.path.expandvars("$MAYA_APP_DIR"), "deps"))
 ```
 
 * * For use within a package, make a new "deps" directory in your
