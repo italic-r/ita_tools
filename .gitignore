@@ -1,4 +1,5 @@
-/.project
-/.pydevproject
+*__pycache__*
+*.ropeproject*
+*.pyc
 *.swp*
 *.swo*
