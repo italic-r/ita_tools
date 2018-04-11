@@ -25,7 +25,10 @@ def get_curves(direction=None):
     curves = pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True)
     if not curves:
         return []
-    displayed_curves = [x.split("_") for x in curves]
+    displayed_curves = [
+        ("_".join(x.split("_")[:-1]), x.split("_")[-1])
+        for x in curves
+    ]
     keys = list(set(pmc.findKeyframe(x[0], attribute=x[1], which=direction) for x in displayed_curves))
     keys.sort()
     return keys
