@@ -28,8 +28,8 @@ For more information, visit:
 https://www.apache.org/licenses/LICENSE-2.0
 """
 
-__version__ = 2.1
-__date__ = (25, "February", 2018)
+__version__ = 2.2
+__date__ = (1, "November", 2018)
 __author__ = "Jeffrey 'italic' Hoover"
 __license__ = "Apache 2.0"
 
@@ -48,16 +48,10 @@ from ConManUI import ConManWindow
 
 LogPath = os.path.dirname(__file__)
 LogFile = os.path.join(LogPath, "conman_log.log")
-LogHandler = logging.FileHandler(LogFile)
-LogFormat = logging.Formatter(
-    "%(levelname)s: %(name)s.%(funcName)s -- %(message)s"
-)
 logging.basicConfig(level=logging.WARN, filename=LogFile, filemode='w')
 
 log = logging.getLogger(__name__)
-LogHandler.setFormatter(LogFormat)
-log.addHandler(LogHandler)
-log.setLevel(logging.INFO)
+log.setLevel(logging.WARN)
 
 
 # Global Data =================================================================
