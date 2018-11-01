@@ -414,12 +414,10 @@ def init(*args):
     destroy_window()
     if cmds.play(q=True, state=True) is True:
         play_button()
+    elif not prefs_play_all():
+        play_button()
+        log.info("Playback prefs set to update all viewports.")
+    elif custom_viewport == "":
+        draw_PlayView('PlayView')
     else:
-        if not prefs_play_all():
-            play_button()
-            log.info("Playback prefs set to update all viewports.")
-        else:
-            if custom_viewport == "":
-                draw_PlayView('PlayView')
-            else:
-                play_view(custom_viewport)
+        play_view(custom_viewport)
