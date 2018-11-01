@@ -68,7 +68,7 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
 LogHandler.setFormatter(LogFormat)
 log.addHandler(LogHandler)
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 
 # Global Data =================================================================
