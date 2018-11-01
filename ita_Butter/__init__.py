@@ -46,6 +46,7 @@ __license__ = "Apache 2.0"
 
 import os
 import site
+from collections import OrderedDict
 
 import pymel.core as pmc
 
@@ -86,22 +87,23 @@ def __construct_settings():
 
 
 def __set_key_values(anim_curve=None, data=None):
+    # type: (pmc.nodetypes.AnimCurve, OrderedDict) -> None
     for (ind, val) in enumerate(data):
         anim_curve.setValue(ind, val)
 
 
 def __get_key_values(anim_curve=None):
+    # type: (pmc.nodetypes.AnimCurve) -> [float]
     return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys())]
 
 
 def __build_key_dict():
-    crv_dict = dict()
-    for crv in __get_curves():
-        crv_dict[crv] = __get_key_values(crv)
-    return crv_dict
+    # type: () -> {pmc.nodetypes.AnimCurve: {int: float}}
+    return {crv: __get_key_values(crv) for crv in __get_curves()}
 
 
 def __get_curves():
+    # type: () -> [pmc.nodetypes.AnimCurve]
     available_curves = \
         pmc.keyframe(q=True, sl=True, name=True) or \
         pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True) or \
@@ -129,6 +131,7 @@ def __close_undo_queue():
 
 @QtCore.Slot()
 def scipy_send(low, high, pass_type):
+    # type: (float, float, str) -> None
     """Send data to Scipy and get filter parameters and filtered data."""
     low = low * 0.00001   # Subject to fine-tuning
     high = high * 0.001  # Subject to fine-tuning
