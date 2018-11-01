@@ -60,15 +60,8 @@ site.addsitedir(deps_path)
 import scipy_interface
 
 
-LogHandler = logging.StreamHandler()
-LogFormat = logging.Formatter(
-    "%(levelname)s: %(name)s.%(funcName)s -- %(message)s"
-)
-
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
-LogHandler.setFormatter(LogFormat)
-log.addHandler(LogHandler)
 log.setLevel(logging.DEBUG)
 
 
