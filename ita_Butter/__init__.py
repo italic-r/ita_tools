@@ -62,7 +62,7 @@ import scipy_interface
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARN)
 
 
 # Global Data =================================================================

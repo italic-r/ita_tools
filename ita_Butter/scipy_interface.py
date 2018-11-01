@@ -56,9 +56,9 @@ def filter_list(b, a, data):
 
     y = sig.filtfilt(
         b, a, data,
-        # method="pad",
-        # padlen=4,
-        # padtype=None,
+        method="pad",
+        padlen=20,
+        padtype="constant",
         # method="gust",
         # irlen=None,
     )
