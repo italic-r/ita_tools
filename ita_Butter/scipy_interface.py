@@ -54,7 +54,14 @@ def filter_list(b, a, data):
     """
     data = numpy.asarray(data)
 
-    y = sig.filtfilt(b, a, data)
+    y = sig.filtfilt(
+        b, a, data,
+        # method="pad",
+        # padlen=4,
+        # padtype=None,
+        # method="gust",
+        # irlen=None,
+    )
     y = y.tolist()
 
     return y
