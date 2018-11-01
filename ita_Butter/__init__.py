@@ -46,6 +46,7 @@ __license__ = "Apache 2.0"
 
 import os
 import site
+from collections import OrderedDict
 
 import pymel.core as pmc
 
@@ -59,16 +60,9 @@ site.addsitedir(deps_path)
 import scipy_interface
 
 
-LogHandler = logging.StreamHandler()
-LogFormat = logging.Formatter(
-    "%(levelname)s: %(name)s.%(funcName)s -- %(message)s"
-)
-
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
-LogHandler.setFormatter(LogFormat)
-log.addHandler(LogHandler)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARN)
 
 
 # Global Data =================================================================
@@ -80,28 +74,38 @@ _FilterOrder = 4
 
 # Data builders ===============================================================
 
+def __reset_settings():
+    global _CurveDict
+    _CurveDict = None
+
+
 def __construct_settings():
     global _CurveDict
     _CurveDict = __build_key_dict()
 
 
 def __set_key_values(anim_curve=None, data=None):
-    for (ind, val) in enumerate(data):
+    # type: (pmc.nodetypes.AnimCurve, Dict[int, float]) -> None
+    for (ind, val) in data.iteritems():
         anim_curve.setValue(ind, val)
 
 
 def __get_key_values(anim_curve=None):
-    return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys())]
+    # type: (pmc.nodetypes.AnimCurve) -> Dict[int, float]
+    unordered = {
+        k: anim_curve.getValue(k)
+        for k in pmc.keyframe(anim_curve, q=True, sl=True, indexValue=True)
+    }
+    return OrderedDict(sorted(unordered.iteritems(), key=lambda x: x[0]))
 
 
 def __build_key_dict():
-    crv_dict = dict()
-    for crv in __get_curves():
-        crv_dict[crv] = __get_key_values(crv)
-    return crv_dict
+    # type: () -> Dict[pmc.nodetypes.AnimCurve, Dict[int, float]]
+    return {crv: __get_key_values(crv) for crv in __get_curves()}
 
 
 def __get_curves():
+    # type: () -> List[pmc.nodetypes.AnimCurve]
     available_curves = \
         pmc.keyframe(q=True, sl=True, name=True) or \
         pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True) or \
@@ -123,26 +127,31 @@ def __open_undo_queue():
 def __close_undo_queue():
     """Close UndoQueue stack."""
     pmc.undoInfo(closeChunk=True)
+    __reset_settings()
 
 
 # Scipy =======================================================================
 
 @QtCore.Slot()
 def scipy_send(low, high, pass_type):
+    # type: (float, float, str) -> None
     """Send data to Scipy and get filter parameters and filtered data."""
     low = low * 0.00001   # Subject to fine-tuning
     high = high * 0.001  # Subject to fine-tuning
     if _CurveDict:
         b, a = scipy_interface.create_filter(low, high, _FilterOrder, pass_type=pass_type)
-        for (crv, data) in _CurveDict.iteritems():
-            new_curve = scipy_interface.filter_list(b, a, data)
+        for (crv, kmap) in _CurveDict.iteritems():
+            keys = kmap.keys()
+            vals = kmap.values()
+
+            new_vals = scipy_interface.filter_list(b, a, vals)
 
             log.debug("Order:    {}".format(_FilterOrder))
             log.debug("Pass:     {}".format(pass_type))
-            log.debug("Original: {}".format(data))
-            log.debug("Filtered: {}".format(new_curve))
+            log.debug("Original: {}".format(vals))
+            log.debug("Filtered: {}".format(new_vals))
 
-            __set_key_values(anim_curve=crv, data=new_curve)
+            __set_key_values(anim_curve=crv, data=dict(zip(keys, new_vals)))
 
 
 def __set_connections():

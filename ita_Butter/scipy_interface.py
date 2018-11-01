@@ -21,6 +21,7 @@ except ImportError:
 
 
 def create_filter(low, high, order, pass_type=None):
+    # type: (float, float, int, str) -> Tuple(List[float], List[float])
     """
     :param low: Low-end cutoff for highpass filter.
     :param high: High-end cutoff for lowpass filter.
@@ -43,6 +44,7 @@ def create_filter(low, high, order, pass_type=None):
 
 
 def filter_list(b, a, data):
+    # type: (List[float], List[float], List[float]) -> List[float]
     """
     :param b: Numerator polynomial Numpy array of the filter.
     :param a: Denominator polynomial Numpy array of the filter.
@@ -52,7 +54,14 @@ def filter_list(b, a, data):
     """
     data = numpy.asarray(data)
 
-    y = sig.filtfilt(b, a, data)
+    y = sig.filtfilt(
+        b, a, data,
+        method="pad",
+        padlen=20,
+        padtype="constant",
+        # method="gust",
+        # irlen=None,
+    )
     y = y.tolist()
 
     return y
