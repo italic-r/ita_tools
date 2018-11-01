@@ -38,8 +38,8 @@ For more information, visit:
 https://www.apache.org/licenses/LICENSE-2.0
 """
 
-__version__ = 1.5
-__date__ = (13, "June", 2017)
+__version__ = 2.0
+__date__ = (01, "November", 2018)
 __author__ = "Jeffrey 'italic' Hoover"
 __license__ = "Apache 2.0"
 
