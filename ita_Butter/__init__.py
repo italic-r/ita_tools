@@ -87,23 +87,23 @@ def __construct_settings():
 
 
 def __set_key_values(anim_curve=None, data=None):
-    # type: (pmc.nodetypes.AnimCurve, OrderedDict) -> None
+    # type: (pmc.nodetypes.AnimCurve, Dict[int, float]) -> None
     for (ind, val) in enumerate(data):
         anim_curve.setValue(ind, val)
 
 
 def __get_key_values(anim_curve=None):
-    # type: (pmc.nodetypes.AnimCurve) -> [float]
+    # type: (pmc.nodetypes.AnimCurve) -> List[float]
     return [anim_curve.getValue(ind) for ind in range(anim_curve.numKeys())]
 
 
 def __build_key_dict():
-    # type: () -> {pmc.nodetypes.AnimCurve: {int: float}}
+    # type: () -> Dict[pmc.nodetypes.AnimCurve, Dict[int, float]]
     return {crv: __get_key_values(crv) for crv in __get_curves()}
 
 
 def __get_curves():
-    # type: () -> [pmc.nodetypes.AnimCurve]
+    # type: () -> List[pmc.nodetypes.AnimCurve]
     available_curves = \
         pmc.keyframe(q=True, sl=True, name=True) or \
         pmc.animCurveEditor("graphEditor1GraphEd", q=True, curvesShown=True) or \
