@@ -4,7 +4,7 @@
 This guide assumes no Python installation is available on a Windows machine,
 and your firewall allows downloading .whl files. This guide also assumes your
 Maya version is 2014-2017 (these use Python 2.7.x); adjust versions as
-necessary for earlier Maya versions. This guide will use 2016.5.
+necessary for earlier or later Maya versions. This guide will use 2016.5.
 
 ###### Some background
 * Maya's installation directory should not be disturbed! Keep Maya's directories
@@ -48,14 +48,9 @@ I recommend something like *%MAYA_APP_DIR%\\deps*.
 
 * Add this new path to your Python environment within Maya.
 
-* * For general use in Maya, in _userSetup.py_ put the line at the top:
-```python
-import os, site; site.addsitedir(os.path.join(os.path.expandvars("$MAYA_APP_DIR"), "deps"))
-```
-
-* * For use within a package, make a new "deps" directory in your
-package root, put numpy and scipy in there, and in your package's
-_\_\_init\_\_.py_ put:
+* * I recommend keeping dependencies inside your module unless your technical team
+says otherwise, so make a new "deps" directory in your package root, put numpy
+and scipy in there, and in your package's _\_\_init\_\_.py_ put:
 ```python
 import os, site; site.addsitedir(os.path.join(os.path.dirname(__name__)), "deps")
 ```
