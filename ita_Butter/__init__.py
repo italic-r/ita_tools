@@ -95,6 +95,9 @@ def __get_key_values(anim_curve=None):
     unordered = {
         k: anim_curve.getValue(k)
         for k in pmc.keyframe(anim_curve, q=True, sl=True, indexValue=True)
+    } or {
+        k: anim_curve.getValue(k)
+        for k in pmc.keyframe(anim_curve, q=True, indexValue=True)
     }
     return OrderedDict(sorted(unordered.iteritems(), key=lambda x: x[0]))
 
