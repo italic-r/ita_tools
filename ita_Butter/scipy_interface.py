@@ -58,7 +58,7 @@ def filter_list(b, a, data):
         b, a, data,
         method="pad",
         padlen=20,
-        padtype="constant",
+        padtype=None,
         # method="gust",
         # irlen=None,
     )
