@@ -153,6 +153,9 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
         self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
 
+        self.sliderValMin.valueChanged.connect(self.__set_slider_value_min)
+        self.sliderValMax.valueChanged.connect(self.__set_slider_value_max)
+
         self.radioLowPass.toggled.connect(self.__slider_config)
         self.radioBandPass.toggled.connect(self.__slider_config)
         self.radioHighPass.toggled.connect(self.__slider_config)
@@ -172,11 +175,27 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def __set_spinbox_value_min(self, value):
+        self.sliderValMin.valueChanged.disconnect(self.__set_slider_value_min)
         self.sliderValMin.setValue(value * 0.00001)
+        self.sliderValMin.valueChanged.connect(self.__set_slider_value_min)
 
     @QtCore.Slot()
     def __set_spinbox_value_max(self, value):
+        self.sliderValMax.valueChanged.disconnect(self.__set_slider_value_max)
         self.sliderValMax.setValue(value * 0.001)
+        self.sliderValMax.valueChanged.connect(self.__set_slider_value_max)
+
+    @QtCore.Slot()
+    def __set_slider_value_min(self, value):
+        self.sliderMin.valueChanged.disconnect(self.__set_spinbox_value_min)
+        self.sliderMin.setValue(value * 100000)
+        self.sliderMin.valueChanged.connect(self.__set_spinbox_value_min)
+
+    @QtCore.Slot()
+    def __set_slider_value_max(self, value):
+        self.sliderMax.valueChanged.disconnect(self.__set_spinbox_value_max)
+        self.sliderMax.setValue(value * 1000)
+        self.sliderMax.valueChanged.connect(self.__set_spinbox_value_max)
 
     @QtCore.Slot()
     def __start_filter(self):
