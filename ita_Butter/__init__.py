@@ -160,8 +160,7 @@ def scipy_send(low, high, pass_type):
 def __set_connections():
     _Butter.FilterStartSig.connect(__open_undo_queue)
     _Butter.FilterEndSig.connect(__close_undo_queue)
-    _Butter.SliderMinChangedSig.connect(scipy_send)
-    _Butter.SliderMaxChangedSig.connect(scipy_send)
+    _Butter.SlidersChangedSig.connect(scipy_send)
 
 
 def show():

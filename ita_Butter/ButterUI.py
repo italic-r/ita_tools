@@ -10,8 +10,7 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     """Main Window."""
 
-    SliderMinChangedSig = Signal(int, int, str)
-    SliderMaxChangedSig = Signal(int, int, str)
+    SlidersChangedSig = Signal(int, int, str)
 
     FilterStartSig = Signal()
     FilterEndSig = Signal()
@@ -66,7 +65,7 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderRowMin = QtWidgets.QHBoxLayout()
 
         self.sliderMin = QtWidgets.QSlider()
-        self.sliderMin.setRange(0, 1000)
+        self.sliderMin.setRange(1, 1000)
         self.sliderMin.setTickInterval(100)
         self.sliderMin.setSingleStep(1)
         self.sliderMin.setOrientation(QtCore.Qt.Horizontal)
@@ -74,10 +73,11 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderMin.setTickPosition(self.sliderMin.TicksBelow)
 
         self.sliderValMin = QtWidgets.QDoubleSpinBox()
-        self.sliderValMin.setRange(0.0, 1.0)
+        self.sliderValMin.setRange(0.00001, 1.0)
         self.sliderValMin.setDecimals(5)
-        self.sliderValMin.setReadOnly(True)
-        self.sliderValMin.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.sliderValMin.setReadOnly(False)
+        self.sliderValMin.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
+        self.sliderValMin.setSingleStep(0.00001)
 
         # Maximum
         self.FrameMaxFreq = QtWidgets.QFrame()
@@ -103,8 +103,9 @@ class ButterWindow(QtWidgets.QMainWindow):
         self.sliderValMax.setRange(0.0, 1.0)
         self.sliderValMax.setDecimals(3)
         self.sliderValMax.setValue(1.0)
-        self.sliderValMax.setReadOnly(True)
-        self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.sliderValMax.setReadOnly(False)
+        self.sliderValMax.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
+        self.sliderValMax.setSingleStep(0.001)
 
         self.start_filter = QtWidgets.QPushButton(text="Start interactive filter")
         self.end_filter = QtWidgets.QPushButton(text="Exit filter")
@@ -203,13 +204,15 @@ class ButterWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def __slider_min_send(self, low_value):
+        # passed in as (low, high, pass_type)
         pass_type = "bandpass" if self.radioBandPass.isChecked() else "highpass"
-        self.SliderMinChangedSig.emit(low_value, self.sliderMax.value(), pass_type)
+        self.SlidersChangedSig.emit(low_value, self.sliderMax.value(), pass_type)
 
     @QtCore.Slot()
     def __slider_max_send(self, high_value):
+        # passed in as (low, high, pass_type)
         pass_type = "bandpass" if self.radioBandPass.isChecked() else "lowpass"
-        self.SliderMinChangedSig.emit(self.sliderMin.value(), high_value, pass_type)
+        self.SlidersChangedSig.emit(self.sliderMin.value(), high_value, pass_type)
 
     def closeEvent(self, *args, **kwargs):
         """Custom closeEvent to write settings to files."""
